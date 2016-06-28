@@ -25,10 +25,19 @@ Date: June 21st, 2016
 
 Usage Examples:
 import EventViewer
-EventViewer.parse('MyComPair_Tower.inc1.id1.sim')
+EventViewer.plot('MyComPair_Tower.inc1.id1.sim')
 
 ------------------------------------------------------------------------
 """
+
+##########################################################################################
+
+class Simulation(object):
+
+	def __init__(self):	
+
+		self.events = []
+
 
 ##########################################################################################
 
@@ -44,10 +53,63 @@ class Event(object):
 		self.escapedEnergy = None
 		self.depositedEnergy_NonSensitiveMaterial = None
 
+		self.interactions = None
+		self.hits = None
+		self.particleInformation = {}
+
 
 ##########################################################################################
 
-def PlotCube(shape=[80,80,60], position=[0,0,0], ax=None, color='blue'):
+class Interactions(object):
+
+	def __init__(self):	
+
+		self.interactionType = []
+		self.ID_interaction = []
+		self.ID_parentInteraction = []
+		self.ID_detector = []
+		self.timeStart = []
+		self.x = []
+		self.y = []
+		self.z = []
+		self.ID_parentParticleType = []
+		self.x_newDirection_OriginalParticle = []
+		self.y_newDirection_OriginalParticle = []
+		self.z_newDirection_OriginalParticle = []
+		self.x_polarization_OriginalParticle = []
+		self.y_polarization_OriginalParticle = []
+		self.z_polarization_OriginalParticle = []
+		self.newKineticEnergy_OriginalParticle = []
+		self.ID_childParticleType = []
+		self.x_direction_NewParticle = []
+		self.y_direction_NewParticle = []
+		self.z_direction_NewParticle = []
+		self.x_polarization_NewParticle = []
+		self.y_polarization_NewParticle = []
+		self.z_polarization_NewParticle = []
+		self.newKineticEnergy_NewParticle = []
+
+
+##########################################################################################
+
+class Hits(object):
+
+	def __init__(self):	
+
+		self.x = []
+		self.y = []
+		self.z = []
+		self.energy = []
+
+
+##########################################################################################
+
+def plotCube(shape=[80,80,60], position=[0,0,0], ax=None, color='blue'):
+	"""
+	A helper function to plot a 3D cube. Note that if no ax object is provided, a new plot will be created.
+	Example Usage: 
+	EventViewer.plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+	 """
 
 	# individual axes coordinates (clockwise around (0,0,0))
 	x_bottom = numpy.array([1,-1,-1,1,1]) * (shape[0]/2.) + position[0]
@@ -77,10 +139,14 @@ def PlotCube(shape=[80,80,60], position=[0,0,0], ax=None, color='blue'):
 	ax.plot3D(x_RightStrut, y_BackStrut, z_Strut, c=color)
 
 
-
 ##########################################################################################
 
-def PlotSphere(radius=300, ax=None):
+def plotSphere(radius=300, ax=None):
+	"""
+	A helper function to plot a 3D sphere. Note that if no ax object is provided, a new plot will be created.
+	Example Usage: 
+	EventViewer.plotSphere(radius=300, ax=ax)
+	 """
 
 	#draw sphere
 	u, v = numpy.mgrid[0:2*numpy.pi:20j, 0:numpy.pi:10j]
@@ -97,91 +163,128 @@ def PlotSphere(radius=300, ax=None):
 
 ##########################################################################################
 
-# def ShowStats(filename):
+def parse(filename, skipPhoto=True):
+	"""
+	A function to parse the cosima output simulation file.  The function returns a simulation object.
+	Example Usage: 
+	simulation = EventViewer.parse(filename)
+	 """
 
-	# for line in fileinput.input([filename]):
-
-
-	# if 'SE' in line and currentEventNumber == 0:
-
-	# 	# Create a new event
-	# 	event = Event()
-
-	# 	currentEventNumber = currentEventNumber + 1
-
-
-	# fileinput.close()
-
-
-
-##########################################################################################
-
-def PlotInteractions(filename, eventNumber=1, ax=None, hidePhoto=True):
-
-	parseLine = False
+	# Start an event counter
 	currentEventNumber = 0
-	lineNumber = 0
 
-	interactionTypes = []
-	x_interactions = []
-	y_interactions = []
-	z_interactions = []
-	ID_interactions = []
-	ID_parentInteractions = []	
-	timeStarts = []
-	ID_originalParticles = []
-
-	particleInformation = {}
-
-	interactionMarkers = {'INIT':u'$\u2193$', 'PAIR':'^', 'COMP':'s', 'PHOT': 'D', 'BREM': 'o', 'RAYL':'8', 'IONI':'d', 'INEL':'<', 'CAPT':'.', 'DECA':'h', 'ESCP':'x', 'ENTR':'+', 'EXIT':'x', 'BLAK':'-', 'ANNI':'*'}
-	particleColors = {'0': 'gray', '1':'gray', '2':'red', '3':'blue', '4': 'lightgreen', '5': 'darkgreen'}
-	particleLabels = {'0': r'$\gamma$', '1':r'$\gamma$', '2':r'$e^{+}$', '3':r'$e^{-}$', '4': r'$p^{+}$', '5': r'$p^{-}$'}
-
+	# Loop through each line of the file
 	for line in fileinput.input([filename]):
 
-		lineNumber = lineNumber + 1
+		# Create the first event
+		if 'SE' in line and currentEventNumber == 0:
+
+			# Create a new simulation object to store all of the events in this run
+			simulation = Simulation()
+
+			# Create a new event
+			event = Event()
+
+			# Create a new object to store the interactions for this event
+			interactions = Interactions()
+
+			# Create a new object to store the hits for this event
+			hits = Hits()
+
+			# Increment the event number
+			currentEventNumber = currentEventNumber + 1
+
+		# Store the existing event and create a new event
+		elif 'SE' in line or 'EN' in line:
+			
+			# Store the interaction and hit objects in their respective event
+			event.interactions = interactions
+			event.hits = hits
+
+			# Store the current event in the simulation object			
+			simulation.events.append(event)
+
+			# Create a new event
+			event = Event()
+
+			# Create a new object to store the interactions for the new event
+			interactions = Interactions()
+
+			# Create a new object to store the hits for the new event
+			hits = Hits()
+
+			# Increment the event number
+			currentEventNumber = currentEventNumber + 1
+
+		# Get the event ID
+		if 'ID' in line and currentEventNumber != 0:
+
+			event.id_trigger = line.split()[1]
+			event.id_simulatedEvent = line.split()[2]
+
+		# Get the event time
+		if 'TI' in line and currentEventNumber != 0:
+
+			event.time = line.split()[1]
+
+		# Get the total deposited energy 
+		if 'ED' in line and currentEventNumber != 0:
+
+			event.depositedEnergy = line.split()[1]
+
+		# Get the total escaped energy 
+		if 'EC' in line and currentEventNumber != 0:
+
+			event.escapedEnergy = line.split()[1]
+
+		# Get the total deposited energy in non-sensative material
+		if 'NS' in line and currentEventNumber != 0:
+
+			event.depositedEnergy_NonSensitiveMaterial = line.split()[1]		
 
 		# if 'IA' in line and 'PHOT' not in line:
 		if 'IA' in line:
 
 			# Skip photoelectric interactions
-			if hidePhoto == True:
+			if skipPhoto == True:
 				if 'PHOT' in line:
 					continue 
 
+			# Split the line
 			LineContents = line.split(';')	
 
-			interactionType = LineContents[0].split()[1].split()[0]
-			ID_interaction = LineContents[0].split()[2].split()[0]
-			ID_parentInteraction = LineContents[1].split()[0]
-			ID_detector = LineContents[2]
-			timeStart = float(LineContents[3])
-			x_interaction = float(LineContents[4])
-			y_interaction = float(LineContents[5])
-			z_interaction = float(LineContents[6])
-			ID_parentParticleType = LineContents[7].split()[0]
-			x_newDirection_OriginalParticle = float(LineContents[8])
-			y_newDirection_OriginalParticle = float(LineContents[9])
-			z_newDirection_OriginalParticle = float(LineContents[10])
-			x_polarization_OriginalParticle = LineContents[11]
-			y_polarization_OriginalParticle = LineContents[12]
-			z_polarization_OriginalParticle = LineContents[13]
-			newKineticEnergy_OriginalParticle = LineContents[14]
-			ID_childParticleType = LineContents[15]
-			x_direction_NewParticle = float(LineContents[16])
-			y_direction_NewParticle = float(LineContents[17])
-			z_direction_NewParticle = float(LineContents[18])
-			x_polarization_NewParticle = LineContents[19]
-			y_polarization_NewParticle = LineContents[20]
-			z_polarization_NewParticle = LineContents[21]
-			newKineticEnergy_NewParticle = LineContents[22].rstrip()
+			# Parse each line and place the extracted information into their respective arrays
+			interactions.interactionType.append(LineContents[0].split()[1].split()[0])
+			interactions.ID_interaction.append(LineContents[0].split()[2].split()[0])
+			interactions.ID_parentInteraction.append(LineContents[1].split()[0])
+			interactions.ID_detector.append(LineContents[2])
+			interactions.timeStart.append(float(LineContents[3]))
+			interactions.x.append(float(LineContents[4]))
+			interactions.y.append(float(LineContents[5]))
+			interactions.z.append(float(LineContents[6]))
+			interactions.ID_parentParticleType.append(LineContents[7].split()[0])
+			interactions.x_newDirection_OriginalParticle.append(float(LineContents[8]))
+			interactions.y_newDirection_OriginalParticle.append(float(LineContents[9]))
+			interactions.z_newDirection_OriginalParticle.append(float(LineContents[10]))
+			interactions.x_polarization_OriginalParticle.append(LineContents[11])
+			interactions.y_polarization_OriginalParticle.append(LineContents[12])
+			interactions.z_polarization_OriginalParticle.append(LineContents[13])
+			interactions.newKineticEnergy_OriginalParticle.append(LineContents[14])
+			interactions.ID_childParticleType.append(LineContents[15])
+			interactions.x_direction_NewParticle.append(float(LineContents[16]))
+			interactions.y_direction_NewParticle.append(float(LineContents[17]))
+			interactions.z_direction_NewParticle.append(float(LineContents[18]))
+			interactions.x_polarization_NewParticle.append(LineContents[19])
+			interactions.y_polarization_NewParticle.append(LineContents[20])
+			interactions.z_polarization_NewParticle.append(LineContents[21])
+			interactions.newKineticEnergy_NewParticle.append(LineContents[22].rstrip())
 
 			if 'INIT' in line:
-				event.initialEnergy = newKineticEnergy_NewParticle
+				event.initialEnergy = interactions.newKineticEnergy_NewParticle[-1]
 
 			# Create a unique particle id to track parent and child particles
-			ID_parentParticle = ID_parentInteraction + '_' + ID_parentParticleType
-			ID_childParticle = ID_interaction + '_' + ID_childParticleType
+			ID_parentParticle = interactions.ID_parentInteraction[-1] + '_' + interactions.ID_parentParticleType[-1]
+			ID_childParticle = interactions.ID_interaction[-1] + '_' + interactions.ID_childParticleType[-1]
 
 			# if ID_childParticleType == '1':
 			# 	ID_childParticle = ID_parentInteraction + '_' + ID_childParticleType
@@ -189,85 +292,92 @@ def PlotInteractions(filename, eventNumber=1, ax=None, hidePhoto=True):
 			# 	ID_childParticle = ID_interaction + '_' + ID_childParticleType
 
 			# Store the information for the individual particles associated with this interaction
-			if ID_parentParticle in particleInformation:
-				particleInformation[ID_parentParticle]['x'].append(x_interaction)
-				particleInformation[ID_parentParticle]['y'].append(y_interaction)
-				particleInformation[ID_parentParticle]['z'].append(z_interaction)
-				particleInformation[ID_parentParticle]['time'].append(timeStart)
+
+			# Record the particle trajectory
+			if ID_parentParticle in event.particleInformation:
+				event.particleInformation[ID_parentParticle]['x'].append(interactions.x[-1])
+				event.particleInformation[ID_parentParticle]['y'].append(interactions.y[-1])
+				event.particleInformation[ID_parentParticle]['z'].append(interactions.z[-1])
+				event.particleInformation[ID_parentParticle]['time'].append(interactions.timeStart[-1])
 			else:
-				particleInformation[ID_parentParticle] = {}
-				particleInformation[ID_parentParticle]['x'] = [x_interaction]
-				particleInformation[ID_parentParticle]['y'] = [y_interaction]
-				particleInformation[ID_parentParticle]['z'] = [z_interaction]
-				particleInformation[ID_parentParticle]['time'] = [timeStart]
+				event.particleInformation[ID_parentParticle] = {}
+				event.particleInformation[ID_parentParticle]['x'] = [interactions.x[-1]]
+				event.particleInformation[ID_parentParticle]['y'] = [interactions.y[-1]]
+				event.particleInformation[ID_parentParticle]['z'] = [interactions.z[-1]]
+				event.particleInformation[ID_parentParticle]['time'] = [interactions.timeStart[-1]]
 
-			if ID_childParticle in particleInformation:
-				particleInformation[ID_childParticle]['x'].append(x_interaction)
-				particleInformation[ID_childParticle]['y'].append(y_interaction)
-				particleInformation[ID_childParticle]['z'].append(z_interaction)
-				particleInformation[ID_childParticle]['time'].append(timeStart)
+			if ID_childParticle in event.particleInformation:
+				event.particleInformation[ID_childParticle]['x'].append(interactions.x[-1])
+				event.particleInformation[ID_childParticle]['y'].append(interactions.y[-1])
+				event.particleInformation[ID_childParticle]['z'].append(interactions.z[-1])
+				event.particleInformation[ID_childParticle]['time'].append(timeStart[-1])
 			else:
-				particleInformation[ID_childParticle] = {}
-				particleInformation[ID_childParticle]['x'] = [x_interaction]
-				particleInformation[ID_childParticle]['y'] = [y_interaction]
-				particleInformation[ID_childParticle]['z'] = [z_interaction]
-				particleInformation[ID_childParticle]['time'] = [timeStart]
+				event.particleInformation[ID_childParticle] = {}
+				event.particleInformation[ID_childParticle]['x'] = [interactions.x[-1]]
+				event.particleInformation[ID_childParticle]['y'] = [interactions.y[-1]]
+				event.particleInformation[ID_childParticle]['z'] = [interactions.z[-1]]
+				event.particleInformation[ID_childParticle]['time'] = [interactions.timeStart[-1]]
+	
+		# Record the hit information
+		if 'HTsim' in line:
 
-			# Add the current interaction information to the relevant arrays
-			interactionTypes.append(interactionType)
-			x_interactions.append(x_interaction)
-			y_interactions.append(y_interaction)
-			z_interactions.append(z_interaction)
-			timeStarts.append(timeStart)
-			ID_interactions.append(ID_interaction)
+			# Split the line
+			LineContents = line.split(';')	
 
-		if 'ID' in line and currentEventNumber != 0:
+			# Extract the hit information
+			hits.x.append(float(LineContents[1]))
+			hits.y.append(float(LineContents[2]))
+			hits.z.append(float(LineContents[3]))
+			hits.energy.append(float(LineContents[4]))
 
-			event.id_trigger = line.split()[1]
-			event.id_simulatedEvent = line.split()[2]
 
-		if 'TI' in line and currentEventNumber != 0:
+	# Close the input file
+	fileinput.close()
 
-			event.time = line.split()[1]
+	return simulation
 
-		if 'ED' in line and currentEventNumber != 0:
 
-			event.depositedEnergy = line.split()[1]
+##########################################################################################
 
-		if 'EC' in line and currentEventNumber != 0:
+def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, showHits=True, hitMarker='o'):
+	"""
+	A function to plot the cosima output simulation file.
+	Example Usage: 
+	EventViewer.plot(filename)
+	 """
 
-			event.escapedEnergy = line.split()[1]
+	simulation = parse(filename, skipPhoto=True)
 
-		if 'NS' in line and currentEventNumber != 0:
+	# Create a dictionary of symbols and colors for the various interaction and particle types
+	interactionMarkers = {'INIT':u'$\u2193$', 'PAIR':'^', 'COMP':'s', 'PHOT': 'D', 'BREM': 'o', 'RAYL':'8', 'IONI':'d', 'INEL':'<', 'CAPT':'.', 'DECA':'h', 'ESCP':'x', 'ENTR':'+', 'EXIT':'x', 'BLAK':'-', 'ANNI':'*'}
+	particleColors = {'0': 'gray', '1':'gray', '2':'red', '3':'blue', '4': 'lightgreen', '5': 'darkgreen'}
+	particleLabels = {'0': r'$\gamma$', '1':r'$\gamma$', '2':r'$e^{+}$', '3':r'$e^{-}$', '4': r'$p^{+}$', '5': r'$p^{-}$'}
 
-			event.depositedEnergy_NonSensitiveMaterial = line.split()[1]			
+	# Loop through all of the events
+	for event in simulation.events:
 
-		if 'SE' in line and currentEventNumber != 0:
+		# Check and see if the user wants to display this event
+		if showEvent == int(event.id_trigger) or showEvent == 'All':
 
-			if eventNumber == currentEventNumber or eventNumber == 'All':
+			# Check to see if the interactions plot should be displayed
+			if showInteractions == True:
 
-				if ax == None:
-					fig = plt.figure(figsize=(8,5))
-					# ax = fig.add_subplot(111, projection='3d', aspect='equal')
-					ax = fig.add_subplot(111, projection='3d')
+				# Create a new 3D axis object
+				fig = plt.figure(figsize=(15,12))
+				fig.suptitle('Event Interactions')
+				ax = fig.add_subplot(111, projection='3d')
 
-				ax.set_xlim3d(-60,60)
-				ax.set_ylim3d(-60,60)
-				ax.set_zlim3d(-50,100)
-
-				ax.set_xlabel('x')
-				ax.set_ylabel('y')
-				ax.set_zlabel('z')
-
-				# ax.axis('off')
+				# Let's make sure a zero doesn't make it into the time array so that we can display it on a log scale
+				event.interactions.timeStart[0] = event.interactions.timeStart[1]	
 
 				# Generate the color map
 				norm = plt.Normalize()
-				timeStarts[0] = timeStarts[1]
-				colors = plt.cm.jet(norm(numpy.log(timeStarts)))
+				colors = plt.cm.jet(norm(numpy.log(event.interactions.timeStart)))
 
-				for x, y, z, interactionType, ID, color in zip(x_interactions, y_interactions, z_interactions, interactionTypes, ID_interactions, colors):
+				# Plot each individual interaction 
+				for x, y, z, interactionType, ID, color in zip(event.interactions.x, event.interactions.y, event.interactions.z, event.interactions.interactionType, event.interactions.ID_interaction, colors):
 					
+					# Change the size and color of the plotting symbol based on the interaction
 					if interactionType == 'INIT':
 						size = 200
 						color='gray'
@@ -276,18 +386,27 @@ def PlotInteractions(filename, eventNumber=1, ax=None, hidePhoto=True):
 					else:
 						size = 25
 
+					# Plot the interaction
 					ax.scatter(x, y, z, marker=interactionMarkers[interactionType], s=size, c=color, label=interactionType)
+
+					# Label the interaction
 					ax.text(x, y, z, '  %s' % (ID), size=10, zorder=1)
 
+				# Add a colorbar
+				interactionPlot = ax.scatter(event.interactions.x, event.interactions.y, event.interactions.z, marker='x', c=numpy.log(event.interactions.timeStart), s=1)				
+				colorbar = fig.colorbar(interactionPlot, shrink=1, aspect=20)
+				colorbar.set_label('log Time (sec)')
 
-				for ID in particleInformation.keys():
+				# Plot the particle trajectories
+				for ID in event.particleInformation.keys():
 
-					time = numpy.array(particleInformation[ID]['time'])
-					x = numpy.array(particleInformation[ID]['x'])
-					y = numpy.array(particleInformation[ID]['y'])
-					z = numpy.array(particleInformation[ID]['z'])
+					time = numpy.array(event.particleInformation[ID]['time'])
+					x = numpy.array(event.particleInformation[ID]['x'])
+					y = numpy.array(event.particleInformation[ID]['y'])
+					z = numpy.array(event.particleInformation[ID]['z'])
 					particleType = ID.split('_')[1]
 
+					# Make sure the trajectories are sorted intime
 					i_timeSorted = numpy.argsort(time)
 					x_sorted = x[i_timeSorted]
 					y_sorted = y[i_timeSorted]
@@ -295,142 +414,78 @@ def PlotInteractions(filename, eventNumber=1, ax=None, hidePhoto=True):
 
 					ax.plot(x_sorted, y_sorted, z_sorted, c=particleColors[particleType], label=particleLabels[particleType], linewidth=0.5)
 
-
 				# Plot the legend
 				handles, labels = ax.get_legend_handles_labels()
 				by_label = OrderedDict(zip(labels, handles))
 				ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
 
 				# Plot the geometry
-				PlotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
-				PlotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
-				PlotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+				plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+				plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+				plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
 
+				# Set the plot limits
+				ax.set_xlim3d(-60,60)
+				ax.set_ylim3d(-60,60)
+				ax.set_zlim3d(-50,100)
+
+				# Set the plot labels
+				ax.set_xlabel('x')
+				ax.set_ylabel('y')
+				ax.set_zlabel('z')
+
+			# Check to see if the hits plot should be displayed
+			if showHits == False:
+
+				plt.show()
+
+			else:
+
+				# Create a new 3D axis object
+				fig = plt.figure(figsize=(15,12))
+				fig.suptitle('Detector Hits')				
+				ax = fig.add_subplot(111, projection='3d')				
+
+				# Plot the hits
+				hitPlot = ax.scatter(event.hits.x, event.hits.y, event.hits.z, c=numpy.log(event.hits.energy), marker=hitMarker)
+
+				# Add a colorbar
+				colorbar = fig.colorbar(hitPlot, shrink=1, aspect=20)
+				colorbar.set_label('log Energy (keV)')
+
+				# Plot the geometry
+				plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+				plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+				plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+				# Display the event demographics
 				print '\nShowing Trigger: %s' % event.id_trigger
-				print ' - Time: %s' % event.time				
+				print ' - Time: %s sec' % event.time				
 				print ' - Simulated event: %s' % event.id_simulatedEvent
 				print ' - Initial energy: %s keV' % event.initialEnergy
 				print ' - Total deposited energy in sensitive material: %s keV (%.2f%%)' % (event.depositedEnergy, float(event.depositedEnergy)/float(event.initialEnergy) * 100)
 				print ' - Total deposited energy in non-sensitive material: %s keV (%.2f%%)' % (event.depositedEnergy_NonSensitiveMaterial, float(event.depositedEnergy_NonSensitiveMaterial)/float(event.initialEnergy) * 100)
 				print ' - Total escaped energy: %s keV (%.2f%%)' % (event.escapedEnergy, float(event.escapedEnergy)/float(event.initialEnergy) * 100)
 
+				# Set the plot limits
+				ax.set_xlim3d(-60,60)
+				ax.set_ylim3d(-60,60)
+				ax.set_zlim3d(-50,100)
+
+				# Set the plot labels
+				ax.set_xlabel('x')
+				ax.set_ylabel('y')
+				ax.set_zlabel('z')
+
 				# Show the plot
 				plt.show()
 
 
-			interactionTypes = []
-			x_interactions = []
-			y_interactions = []
-			z_interactions = []
-			ID_interactions = []
-			ID_parentInteractions = []	
-			timeStarts = []
-			ID_originalParticles = []
-
-			particleInformation = {}
-
-			# Increment the event number
-			currentEventNumber = currentEventNumber + 1
-
-			# Create a new event
-			event = Event()
-
-
-		if 'SE' in line and currentEventNumber == 0:
-
-			# Create a new event
-			event = Event()
-
-			currentEventNumber = currentEventNumber + 1
-
-
-	fileinput.close()
-
-
-##########################################################################################
-
-def PlotHits(filename, interaction=1, returnAxis=False, marker='o'):
-
-	# Create the neccessary lists
-	x_hit = []
-	y_hit = []
-	z_hit = []
-	energy = []
-
-	eventNumber = 0
-
-	for line in fileinput.input([filename]):
-
-		if 'HTsim' in line:
-
-			# Split the line
-			LineContents = line.split(';')	
-
-			# Extract the hit information
-			x_hit.append(float(LineContents[1]))
-			y_hit.append(float(LineContents[2]))
-			z_hit.append(float(LineContents[3]))
-			energy.append(float(LineContents[4]))
-
-		if 'SE' in line and eventNumber != 0:
-
-			fig = plt.figure()
-			ax = fig.add_subplot(111, projection='3d', aspect='equal')
-
-			ax.set_xlim3d(-60,60)
-			ax.set_ylim3d(-60,60)
-			ax.set_zlim3d(-50,100)
-
-			ax.set_xlabel('x')
-			ax.set_ylabel('y')
-			ax.set_zlabel('z')
-
-			# ax.axis('off')
-
-			# Plot the hits
-			ax.scatter(x_hit, y_hit, z_hit, c=numpy.log(energy), marker=marker)
-
-			# Plot the geometry
-			PlotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
-			PlotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
-			PlotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
-
-
-			eventNumber = eventNumber + 1
-
-			x_hit = []
-			y_hit = []
-			z_hit = []
-			energy = []
-
-			if returnAxis == True:
-				fileinput.close()
-				return ax
-			else:
-				plt.show()
-
-		if 'SE' in line and eventNumber == 0:
-			eventNumber = eventNumber + 1
-
-
-##########################################################################################
-
-def Plot(filename):
-
-	ax = PlotHits(filename, returnAxis=True, marker='x')
-	PlotInteractions(filename, ax=ax)
-
-
-
 ##########################################################################################
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    # Read in the file name
-    if (len(sys.argv) == 2):
-        filename = sys.argv[1]
 
-        parseEventFile(filename)
 
 
