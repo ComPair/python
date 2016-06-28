@@ -447,11 +447,16 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 				ax = fig.add_subplot(111, projection='3d')				
 
 				# Plot the hits
-				hitPlot = ax.scatter(event.hits.x, event.hits.y, event.hits.z, c=numpy.log(event.hits.energy), marker=hitMarker)
+				hitPlot = ax.scatter(event.hits.x, event.hits.y, event.hits.z, c=numpy.log(event.hits.energy), marker=hitMarker, label='Detector Hit')
 
 				# Add a colorbar
 				colorbar = fig.colorbar(hitPlot, shrink=1, aspect=20)
 				colorbar.set_label('log Energy (keV)')
+
+				# Plot the legend
+				handles, labels = ax.get_legend_handles_labels()
+				by_label = OrderedDict(zip(labels, handles))
+				ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
 
 				# Plot the geometry
 				plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
