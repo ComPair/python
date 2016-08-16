@@ -102,6 +102,15 @@ class Hits(object):
 		self.energy = []
                 self.detector = []
 
+        def __str__(self):
+
+                str = ""
+                hits = zip(self.detector,self.x,self.y,self.z,self.energy)
+                for hit in hits:
+                        str += "HTsim {:d}; {:f}; {:f}; {:f}; {:f}\n".format(*hit)
+                return str
+
+
 
 ##########################################################################################
 
