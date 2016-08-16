@@ -100,6 +100,7 @@ class Hits(object):
 		self.y = []
 		self.z = []
 		self.energy = []
+                self.detector = []
 
 
 ##########################################################################################
@@ -323,8 +324,9 @@ def parse(filename, skipPhoto=True):
 
 			# Split the line
 			LineContents = line.split(';')	
-
+                        
 			# Extract the hit information
+                        hits.detector.append(int(LineContents[0].split(' ')[1]))
 			hits.x.append(float(LineContents[1]))
 			hits.y.append(float(LineContents[2]))
 			hits.z.append(float(LineContents[3]))
