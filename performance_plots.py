@@ -29,15 +29,19 @@ def make_plt(xdata,ydata,points, xmin, xmax, ymin, ymax, xlabel='',ylabel='',log
     plt.gca().set_xlabel(xlabel)
     plt.gca().set_ylabel(ylabel)
 
-    plt.show()
-
 
 make_plt(logEtrue_data, Aeff_data,'ro-',2., 5.5, 1., 1000., r'log$_{10}$(Energy/keV)', r'A$_{\mathrm{eff}}$ [cm$^2$]', True, False)
 plt.savefig('Aeff.png')
+plt.show()
+plt.close()
 
 make_plt(logEtrue_data, Ares_data,'go-',2., 5.5, 0., 20., r'log$_{10}$(Energy/keV)', r'A$_{\mathrm{res}}$ [deg]', False, False)
 plt.savefig('Ares.png')
+plt.show()
+plt.close()
 
 make_plt(logEtrue_data, map(truediv, Eres_data, Etrue_data),'bo-',2., 5.5, 0., 0.2, r'log$_{10}$(Energy/keV)', r'E$_{\mathrm{res}}$ [E$_width$/E$_true$]', False, False)
 plt.savefig('Eres.png')
+plt.show()
+plt.close()
 
