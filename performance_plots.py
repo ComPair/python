@@ -32,6 +32,7 @@ def make_plt(xdata,ydata,points, xmin, xmax, ymin, ymax, xlabel='',ylabel='',log
 
 logEtrue = column(data,'logEtrue_data')
 Etrue = column(data,'Etrue_data')
+CosTh = column(data,'CosTh_data')
 Erec = column(data,'Ereco_data')
 Eres = column(data,'Eres_data')
 Ares = column(data,'Ares_data')

@@ -3,6 +3,7 @@
 # datatype:
 # - {name: logEtrue_data, datatype: float64}
 # - {name: Etrue_data, datatype: float64}
+# - {name: CosTh_data, datatype: float64}
 # - {name: Ereco_data, datatype: float64}
 # - {name: Eres_data datatype: float64}
 # - {name: Ares_data, datatype: float64, unit: degree}
@@ -10,11 +11,11 @@
 # meta:
 # - comments: [hopefully this works]
 
-logEtrue_data Etrue_data Ereco_data Eres_data Ares_data Aeff_data
-2.5 316. 314. 12.24 8.0 25.4 
-3. 1000. 995. 21.0 2.5 19.2
-3.5 3160. 3143. 48.0 1.9 7.2
-4. 10000. 9392. 620.0 16.75 26.9
-4.5 31600. 26140. 3500. 6.25 133.
-5. 100000. 68190. 9750. 2.75 210.
+logEtrue_data Etrue_data CosTh_data Ereco_data Eres_data Ares_data Aeff_data
+2.5 316. 1. 314. 12.24 8.0 25.4 
+3. 1000. 1. 995. 21.0 2.5 19.2
+3.5 3160. 1. 3143. 48.0 1.9 7.2
+4. 10000. 1. 9392. 620.0 16.75 26.9
+4.5 31600. 1. 26140. 3500. 6.25 133.
+5. 100000. 1. 68190. 9750. 2.75 210.
 
