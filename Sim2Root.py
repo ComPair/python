@@ -1,5 +1,26 @@
 from EventViewer import parse
-from ROOT import TFile, TTree, gROOT, AddressOf
+from ROOT import TFile, TTree, AddressOf
+
+class MGSimulation():
+
+    def __init__(self):
+
+        from ROOT import gROOT
+
+        #Structure in the tree
+        gROOT.ProcessLine(
+        "struct h10 {\
+        Float_t         Runevt;\
+        Float_t       Xcor;\
+        Float_t       Ycor;\
+        Float_t       Zcor;\
+        Float_t       Estep;\
+        }" )
+
+        #Root is dumb
+        from ROOT import h10
+
+        self.MGStruct = h10()
 
 
 filename = 'FarFieldPointSource_1MeV.inc1.id1.sim'
@@ -15,26 +36,13 @@ print "There are {} events in this file.".format(len(sim.events))
 f = TFile('test.root', 'RECREATE')
 t = TTree('h10','Simulations')
 
+MGS = MGSimulation()
 
-#Structure in the tree
-gROOT.ProcessLine(
-"struct h10 {\
-   Float_t         Runevt;\
-   Float_t       Xcor;\
-   Float_t       Ycor;\
-   Float_t       Zcor;\
-   Float_t       Estep;\
-}" )
-
-#Root is stupid.
-from ROOT import h10
-
-h = h10()
-t.Branch('Runevt', AddressOf(h, 'Runevt'), 'Runevt/F')
-t.Branch('Xcor', AddressOf(h, 'Xcor'), 'Xcor/F')
-t.Branch('Ycor', AddressOf(h, 'Ycor'), 'Ycor/F')
-t.Branch('Zcor', AddressOf(h, 'Zcor'), 'Zcor/F')
-t.Branch('Estep', AddressOf(h, 'Estep'), 'Estep/F')
+t.Branch('Runevt', AddressOf(MGS.MGStruct, 'Runevt'), 'Runevt/F')
+t.Branch('Xcor', AddressOf(MGS.MGStruct, 'Xcor'), 'Xcor/F')
+t.Branch('Ycor', AddressOf(MGS.MGStruct, 'Ycor'), 'Ycor/F')
+t.Branch('Zcor', AddressOf(MGS.MGStruct, 'Zcor'), 'Zcor/F')
+t.Branch('Estep', AddressOf(MGS.MGStruct, 'Estep'), 'Estep/F')
 
 for event in sim.events:
 
@@ -45,11 +53,11 @@ for event in sim.events:
                event.hits.energy)
     
     for hit in hits:
-        h.Runevt = float(event.id_trigger)
-        h.Xcor = hit[1]
-        h.Ycor = hit[2]
-        h.Zcor = hit[3]
-        h.Estep = hit[4]
+        MGS.MGStruct.Runevt = float(event.id_trigger)
+        MGS.MGStruct.Xcor = hit[1]
+        MGS.MGStruct.Ycor = hit[2]
+        MGS.MGStruct.Zcor = hit[3]
+        MGS.MGStruct.Estep = hit[4]
         t.Fill()
 
 
