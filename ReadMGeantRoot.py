@@ -1,3 +1,6 @@
+'''This is just an example script on how to read the MGeant 
+files from Alex.  Not really useful for much else.'''
+
 from ROOT import TFile, AddressOf
 from Sim2Root import MGSimulation
 

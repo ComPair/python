@@ -1,5 +1,8 @@
 class MGSimulation():
 
+    ''' This class is the description of the MGeant 
+    ntuple in Root.  Root is dumb.'''
+    
     def __init__(self):
 
         from ROOT import gROOT
@@ -22,8 +25,10 @@ class MGSimulation():
 
 
 def cli():
-
-    helpString = "This is the help string."
+    
+    helpString = "This script takes an input Sim file from Cosima and spits out a Root\
+    file which can be used in Alex MGeant analysis scripts.  Takes as\
+    input the Simulation File name and the Root File name."
 
     import argparse
 
@@ -53,7 +58,8 @@ def cli():
     t.Branch('Ycor', AddressOf(MGS.MGStruct, 'Ycor'), 'Ycor/F')
     t.Branch('Zcor', AddressOf(MGS.MGStruct, 'Zcor'), 'Zcor/F')
     t.Branch('Estep', AddressOf(MGS.MGStruct, 'Estep'), 'Estep/F')
-
+    #t.Branch('Det', AddressOf(MGS.MGStruct, 'Det'), 'Det/F')
+    
     for event in sim.events:
 
         hits = zip(event.hits.detector,
@@ -64,6 +70,7 @@ def cli():
     
         for hit in hits:
             MGS.MGStruct.Runevt = float(event.id_trigger)
+            #MGS.MGStruct.Det = hit[0]
             MGS.MGStruct.Xcor = hit[1]
             MGS.MGStruct.Ycor = hit[2]
             MGS.MGStruct.Zcor = hit[3]
