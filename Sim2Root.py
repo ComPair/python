@@ -1,6 +1,3 @@
-from EventViewer import parse
-from ROOT import TFile, TTree, AddressOf
-
 class MGSimulation():
 
     def __init__(self):
@@ -24,43 +21,56 @@ class MGSimulation():
         self.MGStruct = h10()
 
 
-filename = 'FarFieldPointSource_1MeV.inc1.id1.sim'
+def cli():
 
-sim = parse(filename)
+    helpString = "This is the help string."
 
-print "There are {} events in this file.".format(len(sim.events))
+    import argparse
 
-#for event in sim.events[:10]:
-#    print event.hits
+    parser = argparse.ArgumentParser(description=helpString)
+    parser.add_argument("SimFile", help="Input Simulation File (from Cosima)")
+    parser.add_argument("RootFile", help="Output Root File")
 
-#Make the tree
-f = TFile('test.root', 'RECREATE')
-t = TTree('h10','Simulations')
-
-MGS = MGSimulation()
-
-t.Branch('Runevt', AddressOf(MGS.MGStruct, 'Runevt'), 'Runevt/F')
-t.Branch('Xcor', AddressOf(MGS.MGStruct, 'Xcor'), 'Xcor/F')
-t.Branch('Ycor', AddressOf(MGS.MGStruct, 'Ycor'), 'Ycor/F')
-t.Branch('Zcor', AddressOf(MGS.MGStruct, 'Zcor'), 'Zcor/F')
-t.Branch('Estep', AddressOf(MGS.MGStruct, 'Estep'), 'Estep/F')
-
-for event in sim.events:
-
-    hits = zip(event.hits.detector,
-               event.hits.x,
-               event.hits.y,
-               event.hits.z,
-               event.hits.energy)
+    args = parser.parse_args()
     
-    for hit in hits:
-        MGS.MGStruct.Runevt = float(event.id_trigger)
-        MGS.MGStruct.Xcor = hit[1]
-        MGS.MGStruct.Ycor = hit[2]
-        MGS.MGStruct.Zcor = hit[3]
-        MGS.MGStruct.Estep = hit[4]
-        t.Fill()
+    from EventViewer import parse
+    from ROOT import TFile, TTree, AddressOf
 
+    sim = parse(args.SimFile)
+    print "There are {} events in this file.".format(len(sim.events))
 
-f.Write()
-f.Close()
+    #for event in sim.events[:10]:
+    #    print event.hits
+
+    #Make the tree
+    f = TFile(args.RootFile, 'RECREATE')
+    t = TTree('h10','Simulations')
+
+    MGS = MGSimulation()
+
+    t.Branch('Runevt', AddressOf(MGS.MGStruct, 'Runevt'), 'Runevt/F')
+    t.Branch('Xcor', AddressOf(MGS.MGStruct, 'Xcor'), 'Xcor/F')
+    t.Branch('Ycor', AddressOf(MGS.MGStruct, 'Ycor'), 'Ycor/F')
+    t.Branch('Zcor', AddressOf(MGS.MGStruct, 'Zcor'), 'Zcor/F')
+    t.Branch('Estep', AddressOf(MGS.MGStruct, 'Estep'), 'Estep/F')
+
+    for event in sim.events:
+
+        hits = zip(event.hits.detector,
+                   event.hits.x,
+                   event.hits.y,
+                   event.hits.z,
+                   event.hits.energy)
+    
+        for hit in hits:
+            MGS.MGStruct.Runevt = float(event.id_trigger)
+            MGS.MGStruct.Xcor = hit[1]
+            MGS.MGStruct.Ycor = hit[2]
+            MGS.MGStruct.Zcor = hit[3]
+            MGS.MGStruct.Estep = hit[4]
+            t.Fill()
+
+    f.Write()
+    f.Close()
+
+if __name__ == '__main__': cli()
