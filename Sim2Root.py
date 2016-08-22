@@ -15,6 +15,7 @@ class MGSimulation():
         Float_t       Ycor;\
         Float_t       Zcor;\
         Float_t       Estep;\
+        Float_t       Itra;\
         }" )
 
         #Root is dumb

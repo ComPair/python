@@ -1,31 +1,20 @@
-import ROOT
+from ROOT import TFile, AddressOf
+from Sim2Root import MGSimulation
 
-a = 2.0
+MGS = MGSimulation()
 
-ROOT.gROOT.ProcessLine(
-"struct h10 {\
-   Float_t         Runevt;\
-   Float_t       Xcor;\
-   Float_t       Ycor;\
-   Float_t       Zcor;\
-   Float_t       Estep;\
-   Float_t       Itra;\
-}" )
-
-
-train = ROOT.TFile('100MeV_8cm_0deg.root','read')
+train = TFile('100MeV_8cm_0deg.root','read')
 t = train.Get("h10")
-h = ROOT.h10()
 
-t.SetBranchAddress("Runevt", ROOT.AddressOf(h, 'Runevt'))
-t.SetBranchAddress("Xcor", ROOT.AddressOf(h, 'Xcor'))
-t.SetBranchAddress("Ycor", ROOT.AddressOf(h, 'Ycor'))
-t.SetBranchAddress("Zcor", ROOT.AddressOf(h, 'Zcor'))
-t.SetBranchAddress("Estep", ROOT.AddressOf(h, 'Estep'))
-t.SetBranchAddress("Itra", ROOT.AddressOf(h, 'Itra'))
+t.SetBranchAddress("Runevt", AddressOf(MGS.MGStruct, 'Runevt'))
+t.SetBranchAddress("Xcor", AddressOf(MGS.MGStruct, 'Xcor'))
+t.SetBranchAddress("Ycor", AddressOf(MGS.MGStruct, 'Ycor'))
+t.SetBranchAddress("Zcor", AddressOf(MGS.MGStruct, 'Zcor'))
+t.SetBranchAddress("Estep", AddressOf(MGS.MGStruct, 'Estep'))
+t.SetBranchAddress("Itra", AddressOf(MGS.MGStruct, 'Itra'))
 
 a = t.GetEntries()
 
 for i in range(0,a)[1000:1100]:
     t.GetEntry(i)
-    print h.Runevt, h.Xcor
+    print MGS.MGStruct.Runevt, MGS.MGStruct.Xcor
