@@ -10,6 +10,8 @@ Date: August 25st, 2016
 Usage Examples:
 
 import FigureOfMeritPlotter
+
+simulationIDs = '../Simulations/PerformancePlotSourceFiles/FarFieldPointSourceIDs.txt'
 data = FigureOfMeritPlotter.parse()
 FigureOfMeritPlotter.plotEffectiveArea(data)
 
@@ -103,7 +105,7 @@ def parseMimrecLog(filename, interactionType, verbose=False):
 
 ##########################################################################################
 
-def parse(sumlationsIDs):
+def parse(sumlationsIDs=None):
 
 	# Define the path to the python repository
 	pythonPath = os.path.dirname(os.path.realpath(__file__))
@@ -120,16 +122,19 @@ def parse(sumlationsIDs):
 	# Define the PerformancePlotTraFiles path
 	traDirectory = rootPath + 'Simulations/PerformancePlotTraFiles' 
 
-	print rootPath
-	print sourceDirectory
-	print mimrecDirectory
+	if sumlationsIDs == None:
+		sumlationsIDs = sourceDirectory + '/FarFieldPointSourceIDs.txt'
 
 	# Create an dictionary to store the data
 	data = {}
 
+
 	# Read the sim file
 	with open(sumlationsIDs) as filehandle:
 		lines = filehandle.readlines()
+
+	currentNumber = 1
+	print '\nParsing mimrec logs...'
 
 	# Loop through each of the lines
 	for line in lines:
@@ -150,20 +155,24 @@ def parse(sumlationsIDs):
 		mimrecFilename_pair = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_pair.log')
 
 		# Get the mimrec figures of merit and add the dictionary
-		print "Parsing: %s" % mimrecFilename_tracked
+		# print "Parsing: %s" % mimrecFilename_tracked
 		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = parseMimrecLog(mimrecFilename_tracked, interactionType='Compton')
 		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
 
 		# Get the mimrec figures of merit and add the dictionary
-		print "Parsing: %s" % mimrecFilename_untracked	
+		# print "Parsing: %s" % mimrecFilename_untracked	
 		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = parseMimrecLog(mimrecFilename_untracked, interactionType='Compton')
 		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
 
 		# Get the mimrec figures of merit and add the dictionary
-		print "Parsing: %s" % mimrecFilename_pair		
+		# print "Parsing: %s" % mimrecFsilename_pair		
 		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents = parseMimrecLog(mimrecFilename_pair, interactionType='Pair')
 		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents])
 
+		currentNumber = currentNumber + 1
+
+
+	print 'Done.'
 	return data
 
 ##########################################################################################
