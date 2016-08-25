@@ -13,7 +13,28 @@ import FigureOfMeritPlotter
 
 simulationIDs = '../Simulations/PerformancePlotSourceFiles/FarFieldPointSourceIDs.txt'
 data = FigureOfMeritPlotter.parse()
+
+# Effecitive Area vs Energy
 FigureOfMeritPlotter.plotEffectiveArea(data)
+
+# Effecitive Area vs Angle
+FigureOfMeritPlotter.plotEffectiveAreaVsAngle(data)
+
+# Energy Resolution vs Energy
+FigureOfMeritPlotter.plotEnergyResolution(data)
+
+# Energy Resolution vs Angle
+FigureOfMeritPlotter.plotEnergyResolutionVsAngle(data)
+
+# Angular Resolution vs Energy
+FigureOfMeritPlotter.plotAngularResolution(data)
+
+# Angular Resolution vs Angle
+FigureOfMeritPlotter.plotAngularResolutionVsAngle(data)
+
+# Sensitivity Curves
+FigureOfMeritPlotter.plotSourceSensitivity(data)
+
 
 ------------------------------------------------------------------------
 """
@@ -549,19 +570,18 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 
 		plot.scatter(Angle, Sigma_tracked, color='darkgreen')
 		plot.errorbar(Angle, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
-		plot.plot(Angle, Sigma_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+		plot.plot(Angle, Sigma_tracked, color='darkgreen', alpha=0.75, label='Compton (tracked)')
 
 		plot.scatter(Angle, Sigma_untracked, color='blue')
 		plot.errorbar(Angle, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
-		plot.plot(Angle, Sigma_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+		plot.plot(Angle, Sigma_untracked, color='blue', alpha=0.75, label='Compton (untracked)')
 
 		plot.scatter(Angle, Sigma_pair, color='darkred')
 		plot.errorbar(Angle, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
-		plot.plot(Angle, Sigma_pair, color='darkred', alpha=0.5, label='Pair')
+		plot.plot(Angle, Sigma_pair, color='darkred', alpha=0.75, label='Pair')
 
-		if plotNumber == 1:
-			plot.title('Energy Resolution')						
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+		plot.title('Energy Resolution')						
+		plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
 		if xlog == True:
 			plot.xscale('log')
@@ -816,8 +836,136 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 	plot.show()
 
 
- ##########################################################################################
+##########################################################################################
 
+def omega(PSF):
+    return 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
+
+##########################################################################################
+
+def Isrc(E,time, Aeff, nsig, domega, Bbkg):
+    
+    # print E
+    # print time
+    # print Aeff
+    # print nsig
+    # print domega
+    # print Bbkg
+    arg = numpy.sqrt((nsig**4/4.)+(nsig**2*Bbkg*Aeff*time*domega/E))
+    num = E/(Aeff*time)*(nsig**2/2+arg)
+    return num
+
+########################################################################################## 
+
+def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True):
+
+	# Energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
+	# energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
+
+	A_eff = numpy.array([10., 10., 10., 10., 10., 10., 10.])
+	background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
+	exposure = 6.3*10**6
+
+	Energy = []
+
+	EffectiveArea_Tracked = []
+	EffectiveArea_Untracked  = []
+	EffectiveArea_Pair  = []
+
+	FWHM_tracked = []
+	FWHM_untracked = []
+	Containment68 = []
+
+
+	for key in data.keys():
+		energy = float(key.split('_')[1].replace('MeV',''))
+		angle = float(key.split('_')[2].replace('Cos',''))
+
+		if angle == angleSelection:
+
+			# Get the number of reconstructed events
+			numberOfSimulatedEvents = float(data[key][0])
+			numberOfReconstructedEvents_tracked = float(data[key][1][-1])
+			numberOfReconstructedEvents_untracked = float(data[key][2][-1])
+			numberOfReconstructedEvents_pair = float(data[key][3][-1])
+
+			# Get the angular resolution
+			fwhm_tracked = data[key][1][7]
+			fwhm_untracked = data[key][2][7]
+			containment68 = data[key][3][6]
+
+			# Calculate the effective area
+			effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
+			effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
+			effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+
+			# Store the effective area results
+			Energy.append(energy)
+			EffectiveArea_Tracked.append(effectiveArea_tracked)
+			EffectiveArea_Untracked.append(effectiveArea_untracked)
+			EffectiveArea_Pair.append(effectiveArea_pair)
+
+			# Store the angular resolution results
+			FWHM_tracked.append(fwhm_tracked)
+			FWHM_untracked.append(fwhm_untracked)
+			Containment68.append(containment68)
+
+	print Energy
+
+	# Convert everything to a numpy array
+	Energy = numpy.array(Energy)
+	EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
+	EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
+	EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
+
+	FWHM_tracked = numpy.array(FWHM_tracked)
+	FWHM_untracked = numpy.array(FWHM_untracked)
+	Containment68 = numpy.array(Containment68)
+
+	# Sort by energy
+	i = [numpy.argsort(Energy)]
+	Energy = Energy[i]
+	EffectiveArea_Tracked = EffectiveArea_Tracked[i]
+	EffectiveArea_Untracked = EffectiveArea_Untracked[i]
+	EffectiveArea_Pair = EffectiveArea_Pair[i]
+
+	FWHM_tracked = FWHM_tracked[i]
+	FWHM_untracked = FWHM_untracked[i]
+	Containment68 = Containment68[i]
+
+	print Energy
+
+	Sensativity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
+	Sensativity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
+	Sensativity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
+
+	plot.figure(figsize=(10, 6.39))
+	ax = plot.subplot(111)
+
+	plot.scatter(Energy, Sensativity_tracked, color='darkgreen')
+	plot.plot(Energy, Sensativity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+
+	plot.scatter(Energy, Sensativity_untracked, color='blue')
+	plot.plot(Energy, Sensativity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+
+	plot.scatter(Energy, Sensativity_pair, color='darkred')
+	plot.plot(Energy, Sensativity_pair, color='darkred', alpha=0.5, label='Pair')	
+
+	if xlog == True:
+		plot.xscale('log')
+
+	if ylog == True:
+		plot.yscale('log')
+
+	print Energy, Sensativity_tracked, Sensativity_untracked, Sensativity_pair
+
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+
+
+	plot.show()
+
+
+##########################################################################################
 
 
 if __name__=='__main__':
