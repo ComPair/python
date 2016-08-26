@@ -957,12 +957,11 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True):
 	if ylog == True:
 		plot.yscale('log')
 
-	print Energy, Sensativity_tracked, Sensativity_untracked, Sensativity_pair
-
 	plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
-
 	plot.show()
+
+	return Energy, Sensativity_tracked, Sensativity_untracked, Sensativity_pair
 
 
 ##########################################################################################
