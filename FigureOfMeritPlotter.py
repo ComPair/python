@@ -799,7 +799,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 
 		if plotNumber == 1:
-			plot.title('Affective Area')			
+			plot.title('Effective Area')			
 			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
 		plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
@@ -935,21 +935,21 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True):
 
 	print Energy
 
-	Sensativity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
-	Sensativity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
-	Sensativity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
+	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
+	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
+	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
 
 	plot.figure(figsize=(10, 6.39))
 	ax = plot.subplot(111)
 
-	plot.scatter(Energy, Sensativity_tracked, color='darkgreen')
-	plot.plot(Energy, Sensativity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+	plot.scatter(Energy, Sensitivity_tracked, color='darkgreen')
+	plot.plot(Energy, Sensitivity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
 
-	plot.scatter(Energy, Sensativity_untracked, color='blue')
-	plot.plot(Energy, Sensativity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+	plot.scatter(Energy, Sensitivity_untracked, color='blue')
+	plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
 
-	plot.scatter(Energy, Sensativity_pair, color='darkred')
-	plot.plot(Energy, Sensativity_pair, color='darkred', alpha=0.5, label='Pair')	
+	plot.scatter(Energy, Sensitivity_pair, color='darkred')
+	plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
 
 	if xlog == True:
 		plot.xscale('log')
@@ -961,7 +961,7 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True):
 
 	plot.show()
 
-	return Energy, Sensativity_tracked, Sensativity_untracked, Sensativity_pair
+	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair
 
 
 ##########################################################################################
