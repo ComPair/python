@@ -4,7 +4,7 @@ import os
 import time
 import sys
 import fileinput
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plot
 from mpl_toolkits.mplot3d import Axes3D
 import numpy
 from itertools import product, combinations
@@ -15,6 +15,8 @@ from scipy.optimize import leastsq
 import scipy.optimize
 import math
 import matplotlib.gridspec as gridspec
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.ticker import AutoMinorLocator
 
 
 """
@@ -96,7 +98,6 @@ def DoubleLorentzian(x, offset, mean, width1, height1, width2, height2):
 
 ##########################################################################################
 
-
 def Lorentzian(x, par):
 
 	x = numpy.array(range(-50,50,1))/10.
@@ -107,8 +108,15 @@ def Lorentzian(x, par):
 
 	y = (1/(Gamma*math.pi)) * ( ( Gamma**2 ) / ( (x-mean)**2 + Gamma**2 ) )
 
-	plt.plot(x,y)
-	plt.show()
+	plot.plot(x,y)
+	plot.show()
+
+##########################################################################################
+
+def skewedGaussian(x,h=1, e=0,w=1,a=0):
+	t = (x-e) / w
+	# return 2 / w * scipy.stats.norm.pdf(t) * scipy.stats.norm.cdf(a*t)
+	return h * 2 * scipy.stats.norm.pdf(t) * scipy.stats.norm.cdf(a*t)
 
 
 ##########################################################################################
@@ -219,7 +227,7 @@ def plotCube(shape=[80,80,60], position=[0,0,0], ax=None, color='blue'):
 	z_Strut = numpy.array([1,-1]) * (shape[2]/2.0)  + position[2]
 
 	if ax == None:
-		fig = plt.figure()
+		fig = plot.figure()
 		ax = fig.add_subplot(111, projection='3d')
 
 	ax.plot3D(x_bottom, y_bottom, z_bottom, c=color)
@@ -246,7 +254,7 @@ def plotSphere(radius=300, ax=None):
 	z=numpy.cos(v)
 
 	if ax == None:
-		fig = plt.figure()
+		fig = plot.figure()
 		ax = fig.add_subplot(111, projection='3d')
 
 	ax.plot_wireframe(x*radius, y*radius, z*radius, color="gray")
@@ -259,7 +267,7 @@ def parse(filename):
 	# Create the dictionary that will contain all of the results
 	events = {}
 
-	# Define the lists to store data
+	# Define the lists to store energy information for Compton events
 	energy_ComptonEvents = []
 	energy_ComptonEvents_error = []	
 	energy_TrackedComtonEvents = []
@@ -268,11 +276,31 @@ def parse(filename):
 	energy_firstScatteredPhoton_error = []
 	energy_recoiledElectron = []
 	energy_recoiledElectron_error = []
-	positions_originalPhoton = []
-	positions_firstInteraction = []
-	positions_firstInteraction_error = []
-	positions_secondInteraction = []
-	positions_secondInteraction_error = []
+
+	# Define the lists to store energy information for pair events
+	energy_pairElectron = []
+	energy_pairElectron_error = []
+	energy_pairPositron = []
+	energy_pairPositron_error = []
+	energy_pairDepositedInFirstLayer = []
+	energy_pairDepositedInFirstLayer_error = []
+
+	# Define the lists to store position information
+	position_originalPhoton = []
+	position_firstInteraction = []
+	position_firstInteraction_error = []
+	position_secondInteraction = []
+	position_secondInteraction_error = []
+	position_pairConversion = []
+	position_firstInteraction = []
+	position_firstInteraction_error = []
+
+	# Define the lists to store the direction vectors
+	direction_pairElectron = []
+	direction_pairPositron = []
+
+
+	# Define other lists
 	phi_Tracker = []
 
 	# Read the number of lines in the file
@@ -281,8 +309,10 @@ def parse(filename):
 	totalNumberOfLines = float(output.split()[0])
 
 	# Start the various event and line counters
+	numberOfUnknownEventTypes = 0
 	numberOfComptonEvents = 0
 	numberOfPairEvents = 0
+	numberOfPhotoElectricEffectEvents = 0
 	numberOfTrackedElectronEvents = 0
 	numberOfUntrackedElectronEvents = 0
 	lineNumber = 0
@@ -292,6 +322,9 @@ def parse(filename):
 	index_tracked = []
 	index_untracked = []
 
+	# Start by collecting all events
+	skipEvent = False
+
 	# Loop through the .tra file
 	print '\nParsing: %s' % filename	
 	for line in fileinput.input([filename]):
@@ -299,47 +332,79 @@ def parse(filename):
 		sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
 		sys.stdout.flush()
 
-		# Extract the Compton event energy information
-		if 'CE ' in line:
+
+		if 'ET ' in line:
 
 			# Split the line
-			LineContents = line.split()	
+			lineContents = line.split()	
+
+			eventType = lineContents[1]
+
+			# Skip the event if its of unknown type
+			if 'UN' in eventType:
+
+				numberOfUnknownEventTypes = numberOfUnknownEventTypes + 1
+				skipEvent = True
+				continue
+
+			else:
+				skipEvent = False
+
+			if 'CO' in eventType:
+				# Increment the Compton event counter
+				numberOfComptonEvents = numberOfComptonEvents + 1
+
+			if 'PA' in eventType:
+				# Increment the pair event counter
+				numberOfPairEvents = numberOfPairEvents + 1
+
+			if 'PH' in eventType:
+				# Increment the photo electron effect counter
+				numberOfPhotoElectricEffectEvents = numberOfPhotoElectricEffectEvents + 1
+
+
+		####### Compton Events #######
+
+		# Extract the Compton event energy information
+		if 'CE ' in line and skipEvent == False:
+
+			# Split the line
+			lineContents = line.split()	
 
 			# Get the energy of the first scattered gamma-ray
-			energy_firstScatteredPhoton.append(float(LineContents[1]))
-			energy_firstScatteredPhoton_error.append(float(LineContents[2]))
+			energy_firstScatteredPhoton.append(float(lineContents[1]))
+			energy_firstScatteredPhoton_error.append(float(lineContents[2]))
 
 			# Get the energy of the recoiled electron
-			energy_recoiledElectron.append(float(LineContents[3]))
-			energy_recoiledElectron_error.append(float(LineContents[4]))
+			energy_recoiledElectron.append(float(lineContents[3]))
+			energy_recoiledElectron_error.append(float(lineContents[4]))
 
-			numberOfComptonEvents = numberOfComptonEvents + 1
 
 		# Extract the Compton event hit information
-		if 'CD ' in line:
+		if 'CD ' in line and skipEvent == False:
 
 			# Split the line
-			LineContents = line.split()	
+			lineContents = line.split()	
 
 			# Get the position of the first scattered gamma-ray
-			x1 = float(LineContents[1])
-			y1 = float(LineContents[2])
-			z1 = float(LineContents[3])
+			x1 = float(lineContents[1])
+			y1 = float(lineContents[2])
+			z1 = float(lineContents[3])
 
 			# Get the position uncertainty of the first scattered gamma-ray		
-			x1_error = float(LineContents[4])
-			y1_error = float(LineContents[5])
-			z1_error = float(LineContents[6])
+			x1_error = float(lineContents[4])
+			y1_error = float(lineContents[5])
+			z1_error = float(lineContents[6])
 
 			# Get the position of the second scattered gamma-ray
-			x2 = float(LineContents[7])
-			y2 = float(LineContents[8])
-			z2 = float(LineContents[9])
+			x2 = float(lineContents[7])
+			y2 = float(lineContents[8])
+			z2 = float(lineContents[9])
 
 			# Get the position uncertainty of the second scattered gamma-ray		
-			x2_error = float(LineContents[10])
-			y2_error = float(LineContents[11])
-			z2_error = float(LineContents[12])
+			x2_error = float(lineContents[10])
+			y2_error = float(lineContents[11])
+			z2_error = float(lineContents[12])
 
 			# Get the origin position of the original gamma-ray
 			x0 = x1
@@ -347,14 +412,14 @@ def parse(filename):
 			z0 = 1000.0
 
 			# Get the position of the second scattered gamma-ray
-			x_electron = float(LineContents[13])
-			y_electron = float(LineContents[14])
-			z_electron = float(LineContents[15])
+			x_electron = float(lineContents[13])
+			y_electron = float(lineContents[14])
+			z_electron = float(lineContents[15])
 
 			# Get the position uncertainty of the second scattered gamma-ray		
-			x_electron_error = float(LineContents[16])
-			y_electron_error = float(LineContents[17])
-			z_electron_error = float(LineContents[18])
+			x_electron_error = float(lineContents[16])
+			y_electron_error = float(lineContents[17])
+			z_electron_error = float(lineContents[18])
 
 			# Record the energy of the Compton event (regardless of whether it was has a tracked or untrack electron)
 			energy_ComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
@@ -387,7 +452,7 @@ def parse(filename):
 				index_untracked.append(eventNumber)
 
 
-			# Store the coordinates of the first interaction in an array
+			# Store the origin coordinates of the original gamma-ray 
 			position0 = numpy.array([x0, y0, z0])
 			# position0Error = numpy.array([x1_error,y1_error,z1_error])
 
@@ -412,10 +477,10 @@ def parse(filename):
 			if product != 0:
 
 				# Calculate the dot product
-				dotProcution = numpy.dot(directionVector2, directionVector1)
+				dotProduct = numpy.dot(directionVector2, directionVector1)
 
 				# Make sure we have sane results
-				value = dotProcution/product 
+				value = dotProduct/product 
 				if (value >  1.0): value =  1.0;
 				if (value < -1.0): value = -1.0;
 
@@ -428,14 +493,85 @@ def parse(filename):
 				phi_Tracker.append(0.0)
 
 			# Add the position information to their respective list of positions
-			positions_originalPhoton.append(position0)
-			positions_firstInteraction.append(position1)
-			positions_firstInteraction_error.append(position1Error)
-			positions_secondInteraction.append(position2)
-			positions_secondInteraction_error.append(position2Error)
+			position_originalPhoton.append(position0)
+			position_firstInteraction.append(position1)
+			position_firstInteraction_error.append(position1Error)
+			position_secondInteraction.append(position2)
+			position_secondInteraction_error.append(position2Error)
 
 			# Increment the event number
 			eventNumber = eventNumber + 1
+
+
+		####### Pair Events #######
+
+		# Extract the pair conversion hit information
+		if 'PC ' in line and skipEvent == False:
+
+			# Split the line
+			lineContents = line.split()	
+
+			# Get the position of the pair conversion
+			x1 = float(lineContents[1])
+			y1 = float(lineContents[2])
+			z1 = float(lineContents[3])
+
+			# Save the position
+			position_pairConversion.append([x1,y1,z1])
+
+
+
+		# Extract the pair electron information
+		if 'PE ' in line and skipEvent == False:
+
+
+			# Split the line
+			lineContents = line.split()
+
+			# Get the electron information
+			energy_pairElectron.append(float(lineContents[1]))
+			energy_pairElectron_error.append(float(lineContents[2]))
+
+			# Get the direction of the pair electron
+			x = float(lineContents[3])
+			y = float(lineContents[4])
+			z = float(lineContents[5])
+
+			# Store the direction of the pair electron
+			direction_pairElectron.append([x,y,z])
+
+		# Extract the pair positron information
+		if 'PP ' in line and skipEvent == False:
+
+			# Split the line
+			lineContents = line.split()
+
+			# Get the electron information
+			energy_pairPositron.append(float(lineContents[1]))
+			energy_pairPositron_error.append(float(lineContents[2]))
+
+			# Get the direction of the pair electron
+			x = float(lineContents[3])
+			y = float(lineContents[4])
+			z = float(lineContents[5])
+
+			# Store the direction of the pair electron
+			direction_pairPositron.append([x,y,z])
+
+		# # Extract the energy deposition information
+		# if 'PI ' in line and skipEvent == False:
+
+		# 	print line
+
+
+		# 	# Split the line
+		# 	lineContents = line.split()
+
+		# 	# Get the electron information
+		# 	energy_pairDepositedInFirstLayer.append(float(lineContents[1]))
+		# 	energy_pairDepositedInFirstLayer_error.append(float(lineContents[2]))
+
+
 
 		# Increment the line number for the progress indicator
 		lineNumber = lineNumber + 1
@@ -450,11 +586,23 @@ def parse(filename):
 	events['energy_firstScatteredPhoton_error'] = numpy.array(energy_firstScatteredPhoton_error).astype(float)
 	events['energy_recoiledElectron'] = numpy.array(energy_recoiledElectron).astype(float)
 	events['energy_recoiledElectron_error'] = numpy.array(energy_recoiledElectron_error).astype(float)
-	events['positions_originalPhoton'] = numpy.array(positions_originalPhoton).astype(float)
-	events['positions_firstInteraction'] = numpy.array(positions_firstInteraction).astype(float)
-	events['positions_firstInteraction_error'] = numpy.array(positions_firstInteraction_error).astype(float)
-	events['positions_secondInteraction'] = numpy.array(positions_secondInteraction).astype(float)
-	events['positions_secondInteraction_error'] = numpy.array(positions_secondInteraction_error).astype(float)
+	events['energy_pairElectron'] = numpy.array(energy_pairElectron).astype(float)
+	events['energy_pairElectron_error'] = numpy.array(energy_pairElectron_error).astype(float)
+	events['energy_pairPositron'] = numpy.array(energy_pairPositron).astype(float)
+	events['energy_pairPositron_error'] = numpy.array(energy_pairPositron_error).astype(float)
+	events['energy_pairDepositedInFirstLayer'] = numpy.array(energy_pairDepositedInFirstLayer).astype(float)
+	events['energy_pairDepositedInFirstLayer_error'] = numpy.array(energy_pairDepositedInFirstLayer_error).astype(float)
+
+	events['position_originalPhoton'] = numpy.array(position_originalPhoton).astype(float)
+	events['position_firstInteraction'] = numpy.array(position_firstInteraction).astype(float)
+	events['position_firstInteraction_error'] = numpy.array(position_firstInteraction_error).astype(float)
+	events['position_secondInteraction'] = numpy.array(position_secondInteraction).astype(float)
+	events['position_secondInteraction_error'] = numpy.array(position_secondInteraction_error).astype(float)
+	events['position_pairConversion'] = numpy.array(position_pairConversion).astype(float)
+
+	events['direction_pairElectron'] = numpy.array(direction_pairElectron).astype(float)
+	events['direction_pairPositron'] = numpy.array(direction_pairPositron).astype(float)
+
 	events['phi_Tracker'] = numpy.array(phi_Tracker).astype(float)
 	events['numberOfComptonEvents'] =numberOfComptonEvents
 	events['numberOfPairEvents'] = numberOfPairEvents
@@ -467,8 +615,9 @@ def parse(filename):
 	print "***********************************"
 	print "Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents)
 	print ""
-	print "Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents))	
-	print "Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents))
+	print "Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))
+	print "Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))	
+	print "Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))
 	print " - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents))
 	print " - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents))
 	print ""
@@ -480,7 +629,7 @@ def parse(filename):
 
 ##########################################################################################
 
-def getARM(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=True, showPlots=True):
+def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=True, showPlots=True):
 
 	# Set some constants
 	electron_mc2 = 511.0
@@ -514,11 +663,11 @@ def getARM(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=Tr
 	selection = numpy.where( (dphi > (-1*phiRadius)) & (dphi < phiRadius) )
 
 	# Set the plot size
-	plt.figure(figsize=[10,9])
-	# plt.rcParams['figure.figsize'] = 10, 9
+	plot.figure(figsize=[10,9])
+	# plot.rcParams['figure.figsize'] = 10, 9
 
 	gs = gridspec.GridSpec(4,1)
-	ax1 = plt.subplot(gs[:3, :])
+	ax1 = plot.subplot(gs[:3, :])
 
 	# Create the histogram
 	histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -558,7 +707,7 @@ def getARM(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=Tr
 	print ""
 
 	# Annotate the plot
-	ax1.text(0.03, 0.9, "Mean = %.3f\nFWHM = %.3f" % (optimizedParameters[1], FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
+	ax1.text(0.03, 0.9, "Mean = %.3f deg\nFWHM = %.3f deg" % (optimizedParameters[1], FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
 
 	# Plot the data
 	ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
@@ -566,7 +715,7 @@ def getARM(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=Tr
 	# ax1.axes.xaxis.set_ticklabels([])
 
 	# Create a subplot for the residuals 
-	ax2 = plt.subplot(gs[3, :])
+	ax2 = plot.subplot(gs[3, :])
 
 	# Plot the residuals
 	ax2.step(bincenters, dphi_binned-y_fit, color='#3e4d8b', alpha=0.9)	
@@ -574,19 +723,309 @@ def getARM(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=Tr
 	ax2.set_xlim([-1*phiRadius,phiRadius])
 	ax2.set_xlabel('ARM - Compton Cone')
 
+	# Set the minor ticks
+	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
+	ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
+
+
 	# Show the plot
 	if showPlots == True:
-		plt.show()
+		plot.show()
 	else:
-		plt.close()
+		plot.close()
 
 
 	return FWHM, dphi
 
 
+
 ##########################################################################################
 
-def getEnergyResolution(events, numberOfBins=100, energyPlotRange=[0,10000], energyFitRange=[1800,2100], includeUntrackedElectrons=True, showPlots=True):
+def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,180], showPlots=True, numberOfPlots=0, finishExtraction=True):
+
+	# Define the list to contain the resulting angle measurements
+	angles = []
+
+	plotNumber = 0
+
+	for index in range(events['numberOfPairEvents']):
+
+		# Get the position of the gamma conversion
+		position_conversion = events['position_pairConversion'][index]
+
+		# Get the origin position of the original gamma-ray
+		position_source = [position_conversion[0], position_conversion[1], 1000.0]
+
+		# Get the electron and positron direction vectors
+		direction_electron = events['direction_pairElectron'][index]
+		direction_positron = events['direction_pairPositron'][index]
+
+		# Get the vector that bisects the electron and positron vectors
+		direction_bisect = (direction_electron + direction_positron)/2.0
+
+		# Invert the bisect vector to obtain the reconstructed source vector
+		direction_source_reconstructed = -1*direction_bisect
+
+		# Calculate the vector between the first interaction and the origin of the original gamma-ray
+		direction_source = -1*(position_conversion - position_source)
+
+		# Calculate the product of the vector magnitudes
+		product = numpy.linalg.norm(direction_source) * numpy.linalg.norm(direction_source_reconstructed)
+
+		# Make sure we don't devide by zero
+		if product != 0:
+
+			# Calculate the dot product
+			dotProduct = numpy.dot(direction_source, direction_source_reconstructed)
+
+			# Make sure we have sane results
+			value = dotProduct/product 
+			if (value >  1.0): value =  1.0;
+			if (value < -1.0): value = -1.0;
+
+			# Get the reconstructed angle (in degrees)
+			angle = numpy.degrees(numpy.arccos(value))
+
+			# Store the angle 
+			angles.append(angle)
+
+		else:
+
+			# Return zero in case the denominator is zero
+			angle = 0.0
+			angles.append(angle)
+
+
+		if plotNumber != numberOfPlots:
+
+			print 'Plot number: %s' % index
+			print ""
+			print "Photon conversion coordiantes: %s, %s, %s" % (position_conversion[0], position_conversion[1], position_conversion[2])
+			print ""
+			print 'Source vector (True): %s, %s, %s' % (direction_source[0], direction_source[1], direction_source[2])
+			print 'Source vector (Reconstructed): %s, %s, %s' % (direction_source_reconstructed[0], direction_source_reconstructed[1], direction_source_reconstructed[2])
+			print 'Angle = %s' % angle
+
+			fig = plot.figure()
+			ax = fig.add_subplot(111, projection='3d')
+
+
+			# Plot the geometry
+			plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+			plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+			plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+			# Set the plot limits
+			ax.set_xlim3d(-60,60)
+			ax.set_ylim3d(-60,60)
+			ax.set_zlim3d(-50,100)
+
+			# Set the plot labels
+			ax.set_xlabel('x')
+			ax.set_ylabel('y')
+			ax.set_zlabel('z')
+
+			# Plot the electron and positron vectors							
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_electron[0], direction_electron[1], direction_electron[2], pivot='tail', arrow_length_ratio=0.05, color='darkblue', length=50)
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_positron[0], direction_positron[1], direction_positron[2], pivot='tail', arrow_length_ratio=0.05, color='darkred', length=50)
+
+			# Plot the reconstructed photon direction, the true photon direction, and the vector bisecting the electron and positron trajectories
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source_reconstructed[0], direction_source_reconstructed[1], direction_source_reconstructed[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=100)
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_bisect[0], direction_bisect[1], direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source[0], direction_source[1], direction_source[2], pivot='tail', arrow_length_ratio=0, color='red', linestyle='--', length=100)
+
+			plotNumber = plotNumber + 1
+			plot.show()
+
+		elif finishExtraction == False:
+
+			return
+
+
+	# Select the events within the desired energy range
+	selection = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
+
+	# Set the plot size
+	plot.figure(figsize=[10,7])
+
+	# Create the axis
+	ax1 = plot.subplot(111)
+
+	# Create the histogram
+	histogramResults = ax1.hist(angles, bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	ax1.set_xlabel('Angular resolution (deg)')
+	ax1.set_xlim(anglePlotRange)
+
+	# Setup the minor ticks
+	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
+
+	# Convert the list of angles into a numpy array
+	angles = numpy.array(angles)
+
+	# Sort the angle array
+	angles.sort()
+
+	print angles
+
+	# Find the 68% containment of the cumulative sum of the angle distribution
+	contaimentData_68 = angles[int(len(angles)*.68)]
+
+	# Extract the binned data and bin locations
+	angles_binned = histogramResults[0]
+	bins = histogramResults[1]
+	bincenters = 0.5*(bins[1:]+bins[:-1])
+	
+	# Find the peak of the historgram
+	angles_max = numpy.max(angles_binned)
+
+	# Find the cumulative sum of the angle distribution and its max
+	angles_binned_cumulativeSum = numpy.cumsum(angles_binned)
+	angles_binned_cumulativeMax = angles_binned_cumulativeSum[-1]
+
+	# Find the index that corresponds to 68% of the max
+	index_68 = numpy.where(angles_binned_cumulativeSum >= angles_binned_cumulativeMax*0.68)[0][0]
+
+	# Get the 68% containment of the cumulative sum of the binned angle distribution
+	contaimentBinned_68 = bincenters[index_68]
+
+	# Add the containment values to the plot
+	ax1.plot([contaimentData_68,contaimentData_68], [0,ax1.get_ylim()[1]], color='green', linewidth=1.5, linestyle='--', label="68%% (data): %.2f deg" % contaimentData_68)
+	ax1.plot([contaimentBinned_68,contaimentBinned_68], [0,ax1.get_ylim()[1]], color='darkred', linewidth=1.5, linestyle='--', label="68%% (histogram): %.2f deg" %  contaimentBinned_68)
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper right')
+
+
+	# Print some statistics
+	print "\n\nStatistics of ARM histogram"
+	print "***********************************"
+	print "Compton and pair events in ARM histogram: %s (%s%%)" % ( len(angles[selection]), 100*len(angles[selection])/(len(angles)) )
+	print ""
+	print "Maximum: %s" % angles_max	
+	print "68%% containment (data): %.2f deg" % contaimentData_68
+	print "68%% containment (histogram): %.2f deg" %  contaimentBinned_68		
+	print ""
+
+
+	# Show the plot
+	if showPlots == True:
+		plot.show()
+	else:
+		plot.close()
+
+	return angles, contaimentData_68, contaimentBinned_68
+
+
+##########################################################################################
+
+def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[0,1e5], energyFitRange=[0,1e5], showPlots=True):
+
+	# Retrieve the event data
+	energy_pairElectron = events['energy_pairElectron']
+	energy_pairPositron = events['energy_pairPositron']
+	energy_pairElectron_error = events['energy_pairElectron_error']
+	energy_pairPositron_error = events['energy_pairPositron_error']
+
+	# Estimate the energy of the incoming photon and its associated error
+	energy_pairReconstructedPhoton = energy_pairElectron + energy_pairPositron
+	energy_pairReconstructedPhoton_error = numpy.sqrt((energy_pairElectron_error/energy_pairElectron)**2 + (energy_pairPositron_error/energy_pairPositron)**2) * energy_pairReconstructedPhoton
+
+	# Select the events within the desired energy range
+	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) )
+
+	# Create the histogram
+	histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.xlabel('Energy (keV)')
+	plot.xlim(energyPlotRange)
+	plot.close()
+
+	# Extract the binned data and bin locations
+	energy_binned = histogramResults[0]
+	bins = histogramResults[1]
+	bincenters = 0.5*(bins[1:]+bins[:-1])
+
+	# Get the bin center containing the maximum of the histogram
+	bin_max = bincenters[numpy.argmax(energy_binned)]
+
+	# Set the initial parameters
+	height = numpy.max(energy_binned)	# h
+	scale = 1e4							# w
+	location = bin_max					# epsilon
+	shape = -2							# alpha
+
+	# Fit the histogram data
+	optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
+
+	# Calculate the optimized curve
+	try:
+		y_fit = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
+	except Exception, message:
+	   print message
+
+
+
+	# Get the max of the fit
+	fitMax = bincenters[numpy.argmax(y_fit)]
+
+	# Get the fwhm of the fit
+	x1 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][0]]
+	x2 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][-1]]
+	FWHM = x2-x1
+
+	# Print some statistics
+	print "\n\nStatistics of energy histogram and fit"
+	print "***********************************"
+	print "Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) )
+	print ""
+	print "Max of fit: %s keV" % fitMax	
+	print "FWHM of fit: %s keV" % FWHM	
+	print ""
+
+
+	# Set the plot size
+	plot.figure(figsize=[10,9])
+
+	# Setup the plot grid
+	gs = gridspec.GridSpec(4,1)
+
+	# Create the first axis
+	ax1 = plot.subplot(gs[:3, :])
+
+	# Plot the histogram
+	histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	ax1.set_xlim(energyPlotRange)
+
+	# Overplot the fit
+	ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
+	ax1.plot([x1,x2],[numpy.max(y_fit)/2.,numpy.max(y_fit)/2.], color='darkred', linestyle='--', linewidth=2)
+
+	# Annotate the plot
+	ax1.text(0.03, 0.9, "Max = %.3f keV\nFWHM = %.3f keV" % (fitMax, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
+
+	# Create a subplot for the residuals 
+	ax2 = plot.subplot(gs[3, :])
+
+	# Plot the residuals
+	ax2.step(bincenters, energy_binned-y_fit, color='#3e4d8b', alpha=0.9)	
+	ax2.plot([bincenters[0],bincenters[-1]], [0,0], color='darkred', linewidth=2, linestyle='--')
+	ax2.set_xlim(energyPlotRange)
+	ax2.set_xlabel('Energy (keV)')
+
+	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
+	ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
+
+	# Show the plot
+	if showPlots == True:
+		plot.show()
+	else:
+		plot.close()
+
+	return fitMax, FWHM
+
+##########################################################################################
+
+def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=[0,10000], energyFitRange=[1800,2100], includeUntrackedElectrons=True, showPlots=True):
 
 	# Retrieve the event data
 	energy_ComptonEvents = events['energy_ComptonEvents']
@@ -607,7 +1046,7 @@ def getEnergyResolution(events, numberOfBins=100, energyPlotRange=[0,10000], ene
 	energySelection_plot = numpy.where( (energy_ComptonEvents >= energyPlotRange[0]) & (energy_ComptonEvents <= energyPlotRange[1]) )
 
 	# Create the binned data
-	histogram_energyResults = plt.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	histogram_energyResults = plot.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
 
 	# Extract the binned data and bin locations
 	energy_binned = histogram_energyResults[0]
@@ -623,18 +1062,23 @@ def getEnergyResolution(events, numberOfBins=100, energyPlotRange=[0,10000], ene
 	y_fit = mlab.normpdf( x, mu, sigma)
 
 	# Close the plots before remaking them
-	plt.close()
+	plot.close()
 
 	# Plot the histogram and the fit line, normalized to match the histogram data
-	histogram_energyResults = plt.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
-	plt.plot(x,(y_fit/numpy.max(y_fit))*numpy.max(energy_binned), color='darkred', linewidth=2)
-	plt.xlabel('Energy (keV)')
+	histogram_energyResults = plot.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.plot(x,(y_fit/numpy.max(y_fit))*numpy.max(energy_binned), color='darkred', linewidth=2)
+	plot.xlabel('Energy (keV)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 	# Calculate the fit statistics
 	FWHM = 2*math.sqrt(2*math.log(2))*sigma
 
 	# Annotate the plot
-	ax0 = plt.subplot(111)	
+	ax0 = plot.subplot(111)	
 	ax0.text(0.03, 0.9, "Mean = %.3f\nFWHM = %.3f" % (mu, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
 
 	# Print some statistics
@@ -649,9 +1093,9 @@ def getEnergyResolution(events, numberOfBins=100, energyPlotRange=[0,10000], ene
 
 	# Show the plot
 	if showPlots == True:
-		plt.show()
+		plot.show()
 	else:
-		plt.close()
+		plot.close()
 
 	return mu, FWHM
 
@@ -674,82 +1118,122 @@ def plotDiagnostics(events, showPlots=True):
 	index_tracked = events['index_tracked']
 
 	# Photon Energy vs ARM (Compton events)
-	plt.figure(figsize=[11,9])
+	plot.figure(figsize=[11,9])
 	if len(index_tracked) != 0:
-		plt.scatter(dphi[index_tracked], energy_ComptonEvents[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
+		plot.scatter(dphi[index_tracked], energy_ComptonEvents[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
 	if len(index_untracked) != 0:
-		plt.scatter(dphi[index_untracked], energy_ComptonEvents[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
-	plt.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
-	plt.ylabel('Reconstructed Photon Energy (keV)')
-	plt.xlabel(r'ARM ($\Delta\theta$)')
+		plot.scatter(dphi[index_untracked], energy_ComptonEvents[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
+	plot.ylabel('Reconstructed Photon Energy (keV)')
+	plot.xlabel(r'ARM ($\Delta\theta$)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# Incoming photon energy error vs ARM (Compton events)
-	plt.figure(figsize=[11,9])
+	plot.figure(figsize=[11,9])
 	percentError_ComptonEvents = 100. * energy_ComptonEvents_error/energy_ComptonEvents
 	if len(index_tracked) != 0:
-		plt.scatter(dphi[index_tracked], percentError_ComptonEvents[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
+		plot.scatter(dphi[index_tracked], percentError_ComptonEvents[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
 	if len(index_untracked) != 0:
-		plt.scatter(dphi[index_untracked], percentError_ComptonEvents[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
-	plt.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
-	plt.ylabel('Reconstructed Photon Energy Error (%)')
-	plt.xlabel(r'ARM ($\Delta\theta$)')
+		plot.scatter(dphi[index_untracked], percentError_ComptonEvents[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
+	plot.ylabel('Reconstructed Photon Energy Error (%)')
+	plot.xlabel(r'ARM ($\Delta\theta$)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# First scattered photon energy vs ARM (Compton events)
-	plt.figure(figsize=[11,9])
+	plot.figure(figsize=[11,9])
 	if len(index_tracked) != 0:
-		plt.scatter(dphi[index_tracked], energy_firstScatteredPhoton[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
+		plot.scatter(dphi[index_tracked], energy_firstScatteredPhoton[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
 	if len(index_untracked) != 0:
-		plt.scatter(dphi[index_untracked], energy_firstScatteredPhoton[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
-	plt.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
-	plt.ylabel('Scattered Photon Energy (keV)')
-	plt.xlabel(r'ARM ($\Delta\theta$)')
+		plot.scatter(dphi[index_untracked], energy_firstScatteredPhoton[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
+	plot.ylabel('Scattered Photon Energy (keV)')
+	plot.xlabel(r'ARM ($\Delta\theta$)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# Electron recoil energy vs ARM (Compton events)
-	plt.figure(figsize=[11,9])
+	plot.figure(figsize=[11,9])
 	if len(index_tracked) != 0:
-		plt.scatter(dphi[index_tracked], energy_recoiledElectron[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
+		plot.scatter(dphi[index_tracked], energy_recoiledElectron[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
 	if len(index_untracked) != 0:
-		plt.scatter(dphi[index_untracked], energy_recoiledElectron[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
-	plt.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
-	plt.ylabel('Electron Recoil Energy (keV)')
-	plt.xlabel(r'ARM ($\Delta\theta$)')
+		plot.scatter(dphi[index_untracked], energy_recoiledElectron[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
+	plot.ylabel('Electron Recoil Energy (keV)')
+	plot.xlabel(r'ARM ($\Delta\theta$)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# First scattered photon energy error vs ARM (Compton events)
-	plt.figure(figsize=[11,9])
+	plot.figure(figsize=[11,9])
 	percentError_firstScatteredPhoton = 100. * energy_firstScatteredPhoton_error/energy_firstScatteredPhoton
 	if len(index_tracked) != 0:
-		plt.scatter(dphi[index_tracked], percentError_firstScatteredPhoton[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
+		plot.scatter(dphi[index_tracked], percentError_firstScatteredPhoton[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
 	if len(index_untracked) != 0:
-		plt.scatter(dphi[index_untracked], percentError_firstScatteredPhoton[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
-	plt.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
-	plt.ylabel('Scattered Photon Energy Error (%)')
-	plt.xlabel(r'ARM ($\Delta\theta$)')
+		plot.scatter(dphi[index_untracked], percentError_firstScatteredPhoton[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
+	plot.ylabel('Scattered Photon Energy Error (%)')
+	plot.xlabel(r'ARM ($\Delta\theta$)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# Electron recoil energy error vs ARM (Compton events)
-	plt.figure(figsize=[11,9])
+	plot.figure(figsize=[11,9])
 	percentError_recoiledElectron = 100. * energy_recoiledElectron_error/energy_recoiledElectron
 	if len(index_tracked) != 0:
-		plt.scatter(dphi[index_tracked], percentError_recoiledElectron[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
+		plot.scatter(dphi[index_tracked], percentError_recoiledElectron[index_tracked], color='darkred', marker='.', s=0.5, label='tracked')
 	if len(index_untracked) != 0:
-		plt.scatter(dphi[index_untracked], percentError_recoiledElectron[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
-	plt.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
-	plt.ylabel('Electron Recoil Energy Error (%)')
-	plt.xlabel(r'ARM ($\Delta$\theta$)')
+		plot.scatter(dphi[index_untracked], percentError_recoiledElectron[index_untracked], color='#3e4d8b', marker='.', s=0.5, label='untracked')
+	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper left')
+	plot.ylabel('Electron Recoil Energy Error (%)')
+	plot.xlabel(r'ARM ($\Delta\theta$)')
+
+	# Set the minor ticks
+	ax = plot.gca()
+	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# Show the plot
 	if showPlots == True:
-		plt.show()
+		plot.show()
 	else:
-		plt.close()
+		plot.close()
 
 
 ##########################################################################################
+
+def visualizePairs(events, numberOfPlots=10):
+
+	getARMForPairEvents(events, numberOfPlots=numberOfPlots, finishExtraction=False)
+
+	return
+
+
+##########################################################################################
+
 
 # if __name__ == "__main__":
 
