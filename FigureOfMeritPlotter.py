@@ -46,6 +46,7 @@ import os
 import numpy
 import matplotlib.pylab as plot
 import math
+from astropy.io import ascii
 
 
 ##########################################################################################
@@ -148,10 +149,10 @@ def parseMimrecLog(filename, interactionType, verbose=False):
 def parse(sumlationsIDs=None):
 
 	# Define the path to the python repository
-	pythonPath = os.path.dirname(os.path.realpath(__file__))
+	pythonumpyath = os.path.dirname(os.path.realpath(__file__))
 
 	# Define the root path containg the ComPair repositories
-	rootPath = pythonPath.replace('python','')
+	rootPath = pythonumpyath.replace('python','')
 
 	# Define the PerformancePlotSourceFiles path
 	sourceDirectory = rootPath + 'Simulations/PerformancePlotSourceFiles'
@@ -174,7 +175,7 @@ def parse(sumlationsIDs=None):
 		lines = filehandle.readlines()
 
 	currentNumber = 1
-	print '\nParsing mimrec logs...'
+	print '\numpyarsing mimrec logs...'
 
 	# Loop through each of the lines
 	for line in lines:
@@ -870,7 +871,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=False, save=False):
+def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=False, doplot=False):
 
 	# Energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
 	# energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
@@ -901,7 +902,8 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=False, save=
 			numberOfReconstructedEvents_tracked = float(data[key][1][-1])
 			numberOfReconstructedEvents_untracked = float(data[key][2][-1])
 			numberOfReconstructedEvents_pair = float(data[key][3][-1])
-
+			#numberOfReconstructedEvents_pair = 100000.
+            
 			# Get the angular resolution
 			fwhm_tracked = data[key][1][7]
 			fwhm_untracked = data[key][2][7]
@@ -945,7 +947,8 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=False, save=
 	FWHM_tracked = FWHM_tracked[i]
 	FWHM_untracked = FWHM_untracked[i]
 	Containment68 = Containment68[i]
-
+	#Containment68 = 1.0
+    
 	print Energy
 
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
@@ -975,13 +978,75 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=False, save=
 	if save == True:
 		plot.savefig('SourceSensitivity.png', bbox_inches='tight')
 
-	plot.show()
+#	if doplot == True:
+#		plot.show()
 
 	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair
 
 
 ##########################################################################################
 
+def plotAllSourceSensitivities(data, angleSelection=0.8, xlog=True, ylog=True, save=False):
+
+	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=0.8,doplot=False)
+
+	a=ascii.read("digitized_alex_sensitivities.dat",names=['eng','sensit'])
+	l=ascii.read("differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
+
+	#print a['energy']
+	energy=a['eng']
+	sens=a['sensit']
+
+	erg2mev=624151.
+	lateng=(l["emin"]+l["emax"])/2.
+
+	plot.figure()
+	#LAT
+	plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
+	plot.gca().set_xscale('log')
+	plot.gca().set_yscale('log')
+	plot.gca().set_xlim([1e-2,1e6])
+	plot.gca().set_ylim([1e-8,1e-2])
+	plot.gca().set_xlabel('Energy (MeV)')
+	plot.gca().set_ylabel(r'Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]')
+	plot.annotate('Fermi-LAT', xy=(5e2,2e-6),xycoords='data',fontsize=14,color='magenta')
+
+	#EGRET
+	ind=numpy.arange(69,74,1)
+	plot.plot(energy[ind],sens[ind],color='blue',lw=2)
+	plot.annotate('EGRET', xy=(1e2,1e-4),xycoords='data',fontsize=14,color='blue')
+
+	#SPI
+	ind=numpy.arange(20,46)
+	plot.plot(energy[ind],sens[ind],color='green',lw=2)
+	plot.annotate('SPI', xy=(6e-2,1e-4),xycoords='data',fontsize=14,color='green')
+
+	#COMPTEL
+	comptel_energy=[0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747]
+	comptel_sens=[6.566103E-4,3.6115389E-4,1.4393721E-4,1.6548172E-4,2.36875E-4,3.390693E-4]
+	plot.plot(comptel_energy,comptel_sens,color='orange',lw=2)
+	plot.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=14,color='orange')
+
+	#NuSTAR
+	ind=numpy.arange(84,147)
+	plot.plot(energy[ind]*1e-3,sens[ind]*(energy[ind]/1e3)**2*1e3,color='purple',lw=2)
+	plot.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=14,color='purple')
+
+	#ComPair
+	compair_eng=numpy.array([0.316,1,3.16,10,31.6,100,316.])
+	tracked=ComPairSensitivity[1]#numpy.array([  1.54877155e-05,   4.84546681e-06,   5.28735667e-06, 6.53265846e-05, 0, 0, 0])
+	untracked=ComPairSensitivity[2]#numpy.array([  2.49626245e-06,   1.82264874e-06,   1.54100276e-05, 9.59603201e-05, 0, 0, 0])
+	pair=ComPairSensitivity[3]#numpy.array([ 0, 0,   5.62236032e-05, 3.19254897e-05,   1.71183233e-05,   1.61203804e-05, 2.19339e-05])
+	w=tracked > 0
+	plot.plot(compair_eng[w],tracked[w],color='black',lw=3)
+	w=pair > 0
+	plot.plot(compair_eng[w],pair[w],'r--',color='black',lw=3)
+	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=20)
+
+	plot.savefig('new_sensitivity.png')
+	plot.show()
+
+	return
 
 if __name__=='__main__':
 

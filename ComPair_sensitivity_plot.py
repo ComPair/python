@@ -21,28 +21,28 @@ plt.gca().set_xlim([1e-2,1e6])
 plt.gca().set_ylim([1e-8,1e-2])
 plt.gca().set_xlabel('Energy (MeV)')
 plt.gca().set_ylabel(r'Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]')
-plt.annotate('Fermi-LAT', xy=(5e2,2e-6),xycoords='data',fontsize=12,color='magenta')
+plt.annotate('Fermi-LAT', xy=(5e2,2e-6),xycoords='data',fontsize=14,color='magenta')
 
 #EGRET
 ind=np.arange(69,74,1)
 plt.plot(energy[ind],sens[ind],color='blue',lw=2)
-plt.annotate('EGRET', xy=(1e2,1e-4),xycoords='data',fontsize=12,color='blue')
+plt.annotate('EGRET', xy=(1e2,1e-4),xycoords='data',fontsize=14,color='blue')
 
 #SPI
 ind=np.arange(20,46)
 plt.plot(energy[ind],sens[ind],color='green',lw=2)
-plt.annotate('SPI', xy=(6e-2,1e-4),xycoords='data',fontsize=12,color='green')
+plt.annotate('SPI', xy=(6e-2,1e-4),xycoords='data',fontsize=14,color='green')
 
 #COMPTEL
 comptel_energy=[0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747]
 comptel_sens=[6.566103E-4,3.6115389E-4,1.4393721E-4,1.6548172E-4,2.36875E-4,3.390693E-4]
 plt.plot(comptel_energy,comptel_sens,color='orange',lw=2)
-plt.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=12,color='orange')
+plt.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=14,color='orange')
 
 #NuSTAR
 ind=np.arange(84,147)
 plt.plot(energy[ind]*1e-3,sens[ind]*(energy[ind]/1e3)**2*1e3,color='purple',lw=2)
-plt.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=12,color='purple')
+plt.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=14,color='purple')
 
 #ComPair
 compair_eng=np.array([0.316,1,3.16,10,31.6,100,316.])
@@ -53,6 +53,6 @@ w=tracked > 0
 plt.plot(compair_eng[w],tracked[w],color='black',lw=3)
 w=pair > 0
 plt.plot(compair_eng[w],pair[w],'r--',color='black',lw=3)
-plt.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=18)
+plt.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=20)
 
 plt.savefig('new_sensitivity.pdf')
