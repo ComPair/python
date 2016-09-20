@@ -12,7 +12,7 @@ Usage Examples:
 import FigureOfMeritPlotter
 
 simulationIDs = '../Simulations/PerformancePlotSourceFiles/FarFieldPointSourceIDs.txt'
-data = FigureOfMeritPlotter.parse()
+data = FigureOfMeritPlotter.parse(simulationIDs=simulationIDs)
 
 # Effecitive Area vs Energy
 FigureOfMeritPlotter.plotEffectiveArea(data)
@@ -152,10 +152,10 @@ def parseMimrecLog(filename, interactionType, verbose=False):
 def parse(sumlationsIDs=None):
 
 	# Define the path to the python repository
-	pythonumpyath = os.path.dirname(os.path.realpath(__file__))
+	pythonPath = os.path.dirname(os.path.realpath(__file__))
 
 	# Define the root path containg the ComPair repositories
-	rootPath = pythonumpyath.replace('python','')
+	rootPath = pythonPath.replace('python','')
 
 	# Define the PerformancePlotSourceFiles path
 	sourceDirectory = rootPath + 'Simulations/PerformancePlotSourceFiles'
@@ -169,7 +169,7 @@ def parse(sumlationsIDs=None):
 	if sumlationsIDs == None:
 		sumlationsIDs = sourceDirectory + '/FarFieldPointSourceIDs.txt'
 
-	# Create an dictionary to store the data
+	# Create a dictionary to store the data
 	data = {}
 
 
