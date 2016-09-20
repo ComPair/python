@@ -885,6 +885,7 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	EffectiveArea_Tracked = []
 	EffectiveArea_Untracked  = []
 	EffectiveArea_Pair  = []
+	EffectiveArea_Pair_ideal  = []
 
 	FWHM_tracked = []
 	FWHM_untracked = []
@@ -902,7 +903,7 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 			numberOfReconstructedEvents_tracked = float(data[key][1][-1])
 			numberOfReconstructedEvents_untracked = float(data[key][2][-1])
 			numberOfReconstructedEvents_pair = float(data[key][3][-1])
-			#numberOfReconstructedEvents_pair = 100000.
+			numberOfReconstructedEvents_pair_ideal = 100000.
             
 			# Get the angular resolution
 			fwhm_tracked = data[key][1][7]
@@ -913,12 +914,14 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 			effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
 			effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
 			effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+			effectiveArea_pair_ideal = (numberOfReconstructedEvents_pair_ideal/numberOfSimulatedEvents) * math.pi * 300**2
 
 			# Store the effective area results
 			Energy.append(energy)
 			EffectiveArea_Tracked.append(effectiveArea_tracked)
 			EffectiveArea_Untracked.append(effectiveArea_untracked)
 			EffectiveArea_Pair.append(effectiveArea_pair)
+			EffectiveArea_Pair_ideal.append(effectiveArea_pair_ideal)
 
 			# Store the angular resolution results
 			FWHM_tracked.append(fwhm_tracked)
@@ -932,6 +935,7 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
 	EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
 	EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
+	EffectiveArea_Pair_ideal = numpy.array(EffectiveArea_Pair_ideal)
 
 	FWHM_tracked = numpy.array(FWHM_tracked)
 	FWHM_untracked = numpy.array(FWHM_untracked)
@@ -943,17 +947,20 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	EffectiveArea_Tracked = EffectiveArea_Tracked[i]
 	EffectiveArea_Untracked = EffectiveArea_Untracked[i]
 	EffectiveArea_Pair = EffectiveArea_Pair[i]
+	EffectiveArea_Pair_ideal = EffectiveArea_Pair_ideal[i]
 
 	FWHM_tracked = FWHM_tracked[i]
 	FWHM_untracked = FWHM_untracked[i]
 	Containment68 = Containment68[i]
-	#Containment68 = 1.0
+	Containment68_idealang = 1.0
     
 	print Energy
 
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
 	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
 	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
+	Sensitivity_pair_ideal = Isrc(Energy, exposure, EffectiveArea_Pair_ideal, 3., omega(Containment68), background)
+	Sensitivity_pair_idealang = Isrc(Energy, exposure, EffectiveArea_Pair_ideal, 3., omega(Containment68_idealang), background)
 
 	plot.figure(figsize=(10, 6.39))
 	ax = plot.subplot(111)
@@ -978,10 +985,10 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	if save == True:
 		plot.savefig('SourceSensitivity.png', bbox_inches='tight')
 
-#	if doplot == True:
-#		plot.show()
+	if doplot == True:
+		plot.show()
 
-	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair
+	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair, Sensitivity_pair_ideal, Sensitivity_pair_idealang
 
 
 ##########################################################################################
@@ -1000,7 +1007,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, xlog=True, ylog=True, s
 	erg2mev=624151.
 	lateng=(l["emin"]+l["emax"])/2.
 
-	plot.figure()
+	plot.clf()
+#	plot.figure()
 	#LAT
 	plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
 	plot.gca().set_xscale('log')
@@ -1037,13 +1045,19 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, xlog=True, ylog=True, s
 	tracked=ComPairSensitivity[1]#numpy.array([  1.54877155e-05,   4.84546681e-06,   5.28735667e-06, 6.53265846e-05, 0, 0, 0])
 	untracked=ComPairSensitivity[2]#numpy.array([  2.49626245e-06,   1.82264874e-06,   1.54100276e-05, 9.59603201e-05, 0, 0, 0])
 	pair=ComPairSensitivity[3]#numpy.array([ 0, 0,   5.62236032e-05, 3.19254897e-05,   1.71183233e-05,   1.61203804e-05, 2.19339e-05])
-	w=tracked > 0
-	plot.plot(compair_eng[w],tracked[w],color='black',lw=3)
-	w=pair > 0
-	plot.plot(compair_eng[w],pair[w],'r--',color='black',lw=3)
+	pair_ideal=ComPairSensitivity[4]
+	pair_idealang=ComPairSensitivity[5]
+	w1=tracked > 0
+	plot.plot(compair_eng[w1],tracked[w1],color='black',lw=3)
+	w2=pair > 0
+	plot.plot(compair_eng[w2],pair[w2],'r--',color='black',lw=3)
+	w3=pair_ideal > 0
+	plot.plot(compair_eng[w3],pair_ideal[w3],'r:',color='black',lw=3)
+	plot.plot(compair_eng[2:],pair_idealang[2:],'r-.',color='black',lw=3)
 	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=20)
 
-	plot.savefig('new_sensitivity.png')
+	if save == True:
+		plot.savefig('new_sensitivity.png')
 	plot.show()
 
 	return
