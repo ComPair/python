@@ -118,89 +118,6 @@ def skewedGaussian(x,h=1, e=0,w=1,a=0):
 	# return 2 / w * scipy.stats.norm.pdf(t) * scipy.stats.norm.cdf(a*t)
 	return h * 2 * scipy.stats.norm.pdf(t) * scipy.stats.norm.cdf(a*t)
 
-
-##########################################################################################
-
-class Simulation(object):
-
-	def __init__(self):	
-
-		self.events = []
-
-
-##########################################################################################
-
-class Event(object):
-
-	def __init__(self):	
-
-		self.id_trigger = None
-		self.id_simulatedEvent = None
-		self.time = None
-		self.initialEnergy = None
-		self.depositedEnergy = None
-		self.escapedEnergy = None
-		self.depositedEnergy_NonSensitiveMaterial = None
-
-		self.interactions = None
-		self.hits = None
-		self.particleInformation = {}
-
-
-##########################################################################################
-
-class Interactions(object):
-
-	def __init__(self):	
-
-		self.interactionType = []
-		self.ID_interaction = []
-		self.ID_parentInteraction = []
-		self.ID_detector = []
-		self.timeStart = []
-		self.x = []
-		self.y = []
-		self.z = []
-		self.ID_parentParticleType = []
-		self.x_newDirection_OriginalParticle = []
-		self.y_newDirection_OriginalParticle = []
-		self.z_newDirection_OriginalParticle = []
-		self.x_polarization_OriginalParticle = []
-		self.y_polarization_OriginalParticle = []
-		self.z_polarization_OriginalParticle = []
-		self.newKineticEnergy_OriginalParticle = []
-		self.ID_childParticleType = []
-		self.x_direction_NewParticle = []
-		self.y_direction_NewParticle = []
-		self.z_direction_NewParticle = []
-		self.x_polarization_NewParticle = []
-		self.y_polarization_NewParticle = []
-		self.z_polarization_NewParticle = []
-		self.newKineticEnergy_NewParticle = []
-
-
-##########################################################################################
-
-class Hits(object):
-
-	def __init__(self):	
-
-		self.x = []
-		self.y = []
-		self.z = []
-		self.energy = []
-		self.detector = []
-
-        def __str__(self):
-
-                str = ""
-                hits = zip(self.detector,self.x,self.y,self.z,self.energy)
-                for hit in hits:
-                        str += "HTsim {:d}; {:f}; {:f}; {:f}; {:f}\n".format(*hit)
-                return str
-
-
-
 ##########################################################################################
 
 def plotCube(shape=[80,80,60], position=[0,0,0], ax=None, color='blue'):
@@ -262,6 +179,37 @@ def plotSphere(radius=300, ax=None):
 
 ##########################################################################################
 
+def angularSeperation(vector1, vector2):
+
+	# Calculate the product of the vector magnitudes
+	product = numpy.linalg.norm(vector2) * numpy.linalg.norm(vector1)
+
+	# Make sure we don't devide by zero
+	if product != 0:
+
+		# Calculate the dot product
+		dotProduct = numpy.dot(vector2, vector1)
+
+		# Make sure we have sane results
+		value = dotProduct/product 
+		if (value >  1.0): value =  1.0;
+		if (value < -1.0): value = -1.0;
+
+		# Get the reconstructed angle (in degrees)
+		angle = numpy.degrees(numpy.arccos(value))
+
+	else:
+
+		# Return zero in case the denominator is zero
+		angle = 0.0
+
+
+	return angle
+
+
+##########################################################################################
+
+
 def parse(filename):
 
 	# Create the dictionary that will contain all of the results
@@ -299,9 +247,11 @@ def parse(filename):
 	direction_pairElectron = []
 	direction_pairPositron = []
 
-
 	# Define other lists
 	phi_Tracker = []
+	qualityOfComptonReconstruction = []
+	qualityOfPairReconstruction = []
+
 
 	# Read the number of lines in the file
 	command = 'wc %s' % filename
@@ -558,19 +508,21 @@ def parse(filename):
 			# Store the direction of the pair electron
 			direction_pairPositron.append([x,y,z])
 
-		# # Extract the energy deposition information
-		# if 'PI ' in line and skipEvent == False:
+		# Extract the reconstruction quality
+		if 'TQ ' in line and skipEvent == False:
 
-		# 	print line
+			# Split the line
+			lineContents = line.split()
 
+			if 'CO' in eventType:
 
-		# 	# Split the line
-		# 	lineContents = line.split()
+				# Get the reconstruction quality
+				qualityOfComptonReconstruction.append(float(lineContents[1]))
 
-		# 	# Get the electron information
-		# 	energy_pairDepositedInFirstLayer.append(float(lineContents[1]))
-		# 	energy_pairDepositedInFirstLayer_error.append(float(lineContents[2]))
+			if 'PA' in eventType:
 
+				# Get the reconstruction quality
+				qualityOfPairReconstruction.append(float(lineContents[1]))
 
 
 		# Increment the line number for the progress indicator
@@ -608,12 +560,19 @@ def parse(filename):
 	events['numberOfPairEvents'] = numberOfPairEvents
 	events['index_tracked'] = numpy.array(index_tracked)
 	events['index_untracked']= numpy.array(index_untracked)
+	events['qualityOfComptonReconstruction'] = numpy.array(qualityOfComptonReconstruction).astype(float)
+	events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
 
 
 	# Print some event statistics
 	print "\n\nStatistics of Event Selection"
 	print "***********************************"
 	print "Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents)
+
+	if numberOfComptonEvents + numberOfPairEvents == 0:
+		print "No events pass selection"
+		return
+
 	print ""
 	print "Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))
 	print "Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))	
@@ -632,7 +591,7 @@ def parse(filename):
 def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntrackedElectrons=True, showPlots=True):
 
 	# Set some constants
-	electron_mc2 = 511.0
+	electron_mc2 = 511.0		# KeV
 
 	# Retrieve the event data
 	energy_firstScatteredPhoton = events['energy_firstScatteredPhoton']
@@ -742,13 +701,14 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 
 ##########################################################################################
 
-def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,180], showPlots=True, numberOfPlots=0, finishExtraction=True):
+def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,180], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut = 1):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
+	openingAngles = []
 
+	# Loop through each event and calculate the reconstructed photon direction and it's offset to the true direction
 	plotNumber = 0
-
 	for index in range(events['numberOfPairEvents']):
 
 		# Get the position of the gamma conversion
@@ -771,30 +731,37 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 		direction_source = -1*(position_conversion - position_source)
 
 		# Calculate the product of the vector magnitudes
-		product = numpy.linalg.norm(direction_source) * numpy.linalg.norm(direction_source_reconstructed)
+		angle = angularSeperation(direction_source, direction_source_reconstructed)
+		angles.append(angle)
 
-		# Make sure we don't devide by zero
-		if product != 0:
+		openingAngle = angularSeperation(direction_electron, direction_positron)
+		openingAngles.append(openingAngle)
 
-			# Calculate the dot product
-			dotProduct = numpy.dot(direction_source, direction_source_reconstructed)
+		# # Calculate the product of the vector magnitudes
+		# product = numpy.linalg.norm(direction_source) * numpy.linalg.norm(direction_source_reconstructed)
 
-			# Make sure we have sane results
-			value = dotProduct/product 
-			if (value >  1.0): value =  1.0;
-			if (value < -1.0): value = -1.0;
+		# # Make sure we don't devide by zero
+		# if product != 0:
 
-			# Get the reconstructed angle (in degrees)
-			angle = numpy.degrees(numpy.arccos(value))
+		# 	# Calculate the dot product
+		# 	dotProduct = numpy.dot(direction_source, direction_source_reconstructed)
 
-			# Store the angle 
-			angles.append(angle)
+		# 	# Make sure we have sane results
+		# 	value = dotProduct/product 
+		# 	if (value >  1.0): value =  1.0;
+		# 	if (value < -1.0): value = -1.0;
 
-		else:
+		# 	# Get the reconstructed angle (in degrees)
+		# 	angle = numpy.degrees(numpy.arccos(value))
 
-			# Return zero in case the denominator is zero
-			angle = 0.0
-			angles.append(angle)
+		# 	# Store the angle 
+		# 	angles.append(angle)
+
+		# else:
+
+		# 	# Return zero in case the denominator is zero
+		# 	angle = 0.0
+		# 	angles.append(angle)
 
 
 		if plotNumber != numberOfPlots:
@@ -842,9 +809,21 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 
 			return
 
+	# Conver the list of angles to a numpy array
+	angles = numpy.array(angles)
+
+	# Select the events within the desired quality range
+	selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
+
+	# Apply the selection filter
+	angles_unfiltered = angles
+	angles = angles[selection_quality]
 
 	# Select the events within the desired energy range
-	selection = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
+	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
+
+	# Apply the fit selection
+	angles_fit = angles[selection_fit]
 
 	# Set the plot size
 	plot.figure(figsize=[10,7])
@@ -853,7 +832,7 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	ax1 = plot.subplot(111)
 
 	# Create the histogram
-	histogramResults = ax1.hist(angles, bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	histogramResults = ax1.hist(angles_fit, bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
 	ax1.set_xlabel('Angular resolution (deg)')
 	ax1.set_xlim(anglePlotRange)
 
@@ -862,15 +841,13 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
 
 	# Convert the list of angles into a numpy array
-	angles = numpy.array(angles)
+	angles_fit = numpy.array(angles_fit)
 
 	# Sort the angle array
-	angles.sort()
-
-	print angles
+	angles_fit.sort()
 
 	# Find the 68% containment of the cumulative sum of the angle distribution
-	contaimentData_68 = angles[int(len(angles)*.68)]
+	contaimentData_68 = angles_fit[int(len(angles_fit)*.68)]
 
 	# Extract the binned data and bin locations
 	angles_binned = histogramResults[0]
@@ -899,7 +876,10 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	# Print some statistics
 	print "\n\nStatistics of ARM histogram"
 	print "***********************************"
-	print "Compton and pair events in ARM histogram: %s (%s%%)" % ( len(angles[selection]), 100*len(angles[selection])/(len(angles)) )
+	print ""
+	print "Total number of pair events: %s" % events['numberOfPairEvents']
+	print "Number of pair events passing quality cut: %s (%s%%)" % ( len(selection_quality[0]), 100*len(selection_quality[0])/(len(angles_unfiltered)) )
+	print "Number of pair events included in ARM histogram: %s (%s%%)" % ( len(angles_fit), 100*len(angles_fit)/(len(angles_unfiltered)) )
 	print ""
 	print "Maximum: %s" % angles_max	
 	print "68%% containment (data): %.2f deg" % contaimentData_68
@@ -913,25 +893,26 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	else:
 		plot.close()
 
-	return angles, contaimentData_68, contaimentBinned_68
+	return angles, openingAngles, contaimentData_68, contaimentBinned_68
 
 
 ##########################################################################################
 
-def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[0,1e5], energyFitRange=[0,1e5], showPlots=True):
+def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[0,1e5], energyFitRange=[0,1e5], showPlots=True, qualityCut = 0.0):
 
 	# Retrieve the event data
 	energy_pairElectron = events['energy_pairElectron']
 	energy_pairPositron = events['energy_pairPositron']
 	energy_pairElectron_error = events['energy_pairElectron_error']
 	energy_pairPositron_error = events['energy_pairPositron_error']
+	qualityOfPairReconstruction = events['qualityOfPairReconstruction']
 
 	# Estimate the energy of the incoming photon and its associated error
 	energy_pairReconstructedPhoton = energy_pairElectron + energy_pairPositron
 	energy_pairReconstructedPhoton_error = numpy.sqrt((energy_pairElectron_error/energy_pairElectron)**2 + (energy_pairPositron_error/energy_pairPositron)**2) * energy_pairReconstructedPhoton
 
 	# Select the events within the desired energy range
-	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) )
+	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) & (qualityOfPairReconstruction > qualityCut))
 
 	# Create the histogram
 	histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -1104,7 +1085,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 def plotDiagnostics(events, showPlots=True):
 
 	# Get the angular resolution measurements
-	FWHM, dphi = getARM(events, showPlots=False)
+	FWHM, dphi = getARMForComptonEvents(events, showPlots=False)
 
 	# Retrieve the event information
 	energy_ComptonEvents = events['energy_ComptonEvents']

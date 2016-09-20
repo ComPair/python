@@ -48,6 +48,25 @@ import matplotlib.pylab as plot
 import math
 
 
+##########################################################################################
+
+def omega(PSF):
+    return 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
+
+##########################################################################################
+
+def Isrc(E,time, Aeff, nsig, domega, Bbkg):
+    
+    # print E
+    # print time
+    # print Aeff
+    # print nsig
+    # print domega
+    # print Bbkg
+    arg = numpy.sqrt((nsig**4/4.)+(nsig**2*Bbkg*Aeff*time*domega/E))
+    num = E/(Aeff*time)*(nsig**2/2+arg)
+    return num
+
 
 ##########################################################################################
 
@@ -198,7 +217,7 @@ def parse(sumlationsIDs=None):
 
 ##########################################################################################
 
-def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=True):
+def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False):
 	
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
@@ -290,14 +309,16 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	# plot.savefig('Aeff.png')
+	if save == True:
+		plot.savefig('AngularResolution.png', bbox_inches='tight')
+
 	plot.show()
 
 	plot.close()
 
 ##########################################################################################
 
-def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=True):
+def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=False, save=False):
 	
 	if hasattr(energySelections, '__iter__') == False:
 		energySelections = [energySelections]
@@ -389,7 +410,9 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	# plot.savefig('Aeff.png')
+	if save == True:
+		plot.savefig('AngularResolutionVsAngle.png', bbox_inches='tight')
+
 	plot.show()
 
 	plot.close()
@@ -397,7 +420,7 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 
 ##########################################################################################
 
-def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=True):
+def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False):
 	
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
@@ -499,7 +522,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	# plot.savefig('Aeff.png')
+	if save == True:
+		plot.savefig('EnergyResolution.png', bbox_inches='tight')
+
 	plot.show()
 
 	plot.close()
@@ -507,7 +532,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 ##########################################################################################
 
-def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=True):
+def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=False, save=False):
 	
 	if hasattr(energySelections, '__iter__') == False:
 		energySelections = [energySelections]
@@ -580,8 +605,9 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 		plot.errorbar(Angle, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
 		plot.plot(Angle, Sigma_pair, color='darkred', alpha=0.75, label='Pair')
 
-		plot.title('Energy Resolution')						
-		plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+		if plotNumber == 1:
+			plot.title('Energy Resolution')						
+			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
 		if xlog == True:
 			plot.xscale('log')
@@ -607,14 +633,16 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	# plot.savefig('Aeff.png')
+	if save == True:
+		plot.savefig('EnergyResolutionVsAngle.png', bbox_inches='tight')
+
 	plot.show()
 
 	plot.close()
 
 ##########################################################################################
 
-def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=True):
+def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False):
 
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
@@ -687,7 +715,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, 
 		        color='black', fontsize=12)
 
 		if plotNumber == 1:
-			plot.title('Affective Area')			
+			plot.title('Effective Area')			
 
 		if xlog == True:
 			plot.xscale('log')
@@ -707,13 +735,15 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, 
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	# plot.savefig('Aeff.png')
+	if save == True:
+		plot.savefig('EffectiveArea.png', bbox_inches='tight')
+
 	plot.show()
 
 
  ##########################################################################################
 
-def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=True, collapse=False):
+def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=False, save=False, collapse=False):
 
 	if hasattr(energySelections, '__iter__') == False:
 		energySelections = [energySelections]
@@ -832,32 +862,15 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	# plot.savefig('Aeff.png')
+	if save == True:
+		plot.savefig('EffectiveAreaVsAngle.png', bbox_inches='tight')
+
 	plot.show()
 
 
-##########################################################################################
-
-def omega(PSF):
-    return 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
-
-##########################################################################################
-
-def Isrc(E,time, Aeff, nsig, domega, Bbkg):
-    
-    # print E
-    # print time
-    # print Aeff
-    # print nsig
-    # print domega
-    # print Bbkg
-    arg = numpy.sqrt((nsig**4/4.)+(nsig**2*Bbkg*Aeff*time*domega/E))
-    num = E/(Aeff*time)*(nsig**2/2+arg)
-    return num
-
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True):
+def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=False, save=False):
 
 	# Energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
 	# energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
@@ -958,6 +971,9 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True):
 		plot.yscale('log')
 
 	plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+
+	if save == True:
+		plot.savefig('SourceSensitivity.png', bbox_inches='tight')
 
 	plot.show()
 
