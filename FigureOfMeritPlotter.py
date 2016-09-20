@@ -52,7 +52,10 @@ from astropy.io import ascii
 ##########################################################################################
 
 def omega(PSF):
-    return 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
+
+	omega_solidAngle = 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
+
+    return omega_solidAngle
 
 ##########################################################################################
 
@@ -893,6 +896,7 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 
 
 	for key in data.keys():
+
 		energy = float(key.split('_')[1].replace('MeV',''))
 		angle = float(key.split('_')[2].replace('Cos',''))
 
@@ -928,8 +932,6 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 			FWHM_untracked.append(fwhm_untracked)
 			Containment68.append(containment68)
 
-	print Energy
-
 	# Convert everything to a numpy array
 	Energy = numpy.array(Energy)
 	EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
@@ -953,9 +955,7 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	FWHM_untracked = FWHM_untracked[i]
 	Containment68 = Containment68[i]
 	Containment68_idealang = 1.0
-    
-	print Energy
-
+   
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
 	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
 	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
