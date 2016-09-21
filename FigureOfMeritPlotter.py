@@ -47,6 +47,7 @@ import numpy
 import matplotlib.pylab as plot
 import math
 from astropy.io import ascii
+from scipy import interpolate
 
 
 ##########################################################################################
@@ -1020,37 +1021,41 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 	plot.gca().set_xlim([1e-2,1e6])
 	plot.gca().set_ylim([1e-8,1e-2])
 	plot.gca().set_xlabel('Energy (MeV)')
-	plot.gca().set_ylabel(r'Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]')
-	plot.annotate('Fermi-LAT', xy=(5e2,2e-6),xycoords='data',fontsize=14,color='magenta')
+	plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]')
+	plot.annotate('Fermi-LAT', xy=(1e3,1e-6),xycoords='data',fontsize=16,color='magenta')
 
 	#EGRET from https://heasarc.gsfc.nasa.gov/docs/cgro/egret/egret_tech.html#N_4_
 	ind=numpy.arange(69,74,1)
 	plot.plot(energy[ind],sens[ind],color='blue',lw=2)
 	egret_energy=numpy.array([35,100,200,500,3000,10000.])
-	egret_aeff=numpy.array([0.3,1.1,1.5,1.6,1.1,0.7])
-	egret_psf=numpy.array([4.3,2.6,1.4,0.7,0.4,0.4])
-	egret_back=7.32e-9*(egret_energy/451.)**(-2.1) #from Sreekumar et al. 1998
-	egret_exposure=86400.*7.*3.*0.4 #seconds in 3 weeks *0.4 efficiency
-	print egret_exposure
+	egret_aeff=numpy.array([0.3,1.1,1.5,1.6,1.1,0.7])*1e3
+	egret_psf_eng_low=numpy.array([35,70,150,500,2000])
+	egret_psf_eng_high=numpy.array([70,150,500,2000,30000])
+	egret_psf_eng_mid=(egret_psf_eng_high+egret_psf_eng_low)/2.
+	egret_psf_4eng=numpy.array([4.3,2.6,1.4,0.7,0.4])
+	tck=interpolate.splrep(egret_psf_eng_mid,egret_psf_4eng,s=0)
+	egret_psf=interpolate.splev(egret_energy,tck,der=0)
+	egret_back=7.32e-9*(egret_energy/451.)**(-2.1) #from Sreekumar et al. 1998 in photons/cm2/s/MeV
+	egret_exposure=86400.*7.*2.*0.4 #seconds in 2 weeks *0.4 efficiency
 	egret_sensitivity=Isrc(egret_energy,egret_exposure,egret_aeff,3,egret_psf,egret_back)
 	plot.plot(egret_energy,egret_sensitivity,'r--',color='blue',lw=2)
-	plot.annotate('EGRET', xy=(1e2,1e-4),xycoords='data',fontsize=14,color='blue')
+	plot.annotate('EGRET', xy=(4e2,1e-4),xycoords='data',fontsize=16,color='blue')
 
 	#SPI
 	ind=numpy.arange(20,46)
 	plot.plot(energy[ind],sens[ind],color='green',lw=2)
-	plot.annotate('SPI', xy=(6e-2,1e-4),xycoords='data',fontsize=14,color='green')
+	plot.annotate('SPI', xy=(6e-2,1e-4),xycoords='data',fontsize=16,color='green')
 
 	#COMPTEL
 	comptel_energy=[0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747]
 	comptel_sens=[6.566103E-4,3.6115389E-4,1.4393721E-4,1.6548172E-4,2.36875E-4,3.390693E-4]
 	plot.plot(comptel_energy,comptel_sens,color='orange',lw=2)
-	plot.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=14,color='orange')
+	plot.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=16,color='orange')
 
 	#NuSTAR
 	ind=numpy.arange(84,147)
 	plot.plot(energy[ind]*1e-3,sens[ind]*(energy[ind]/1e3)**2*1e3,color='purple',lw=2)
-	plot.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=14,color='purple')
+	plot.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=16,color='purple')
 
 	#ComPair
 	compair_eng=ComPairSensitivity[0]
@@ -1068,8 +1073,13 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 		plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
 		plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)
 
+	#Alex's numbers
+	ind=numpy.arange(158,167)
+	plot.plot(energy[ind],sens[ind],'r--',color='red',lw=2)
+	plot.annotate('Alex ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
+
 	#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
-	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=20)
+	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=22)
 
 	if save == True:
 		plot.savefig('new_sensitivity.png')
