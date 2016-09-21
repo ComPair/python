@@ -1023,9 +1023,17 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 	plot.gca().set_ylabel(r'Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]')
 	plot.annotate('Fermi-LAT', xy=(5e2,2e-6),xycoords='data',fontsize=14,color='magenta')
 
-	#EGRET
+	#EGRET from https://heasarc.gsfc.nasa.gov/docs/cgro/egret/egret_tech.html#N_4_
 	ind=numpy.arange(69,74,1)
 	plot.plot(energy[ind],sens[ind],color='blue',lw=2)
+	egret_energy=numpy.array([35,100,200,500,3000,10000.])
+	egret_aeff=numpy.array([0.3,1.1,1.5,1.6,1.1,0.7])
+	egret_psf=numpy.array([4.3,2.6,1.4,0.7,0.4,0.4])
+	egret_back=7.32e-9*(egret_energy/451.)**(-2.1) #from Sreekumar et al. 1998
+	egret_exposure=86400.*7.*3.*0.4 #seconds in 3 weeks *0.4 efficiency
+	print egret_exposure
+	egret_sensitivity=Isrc(egret_energy,egret_exposure,egret_aeff,3,egret_psf,egret_back)
+	plot.plot(egret_energy,egret_sensitivity,'r--',color='blue',lw=2)
 	plot.annotate('EGRET', xy=(1e2,1e-4),xycoords='data',fontsize=14,color='blue')
 
 	#SPI
