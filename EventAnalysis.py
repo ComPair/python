@@ -1,4 +1,38 @@
 #!/usr/bin/env python
+"""
+------------------------------------------------------------------------
+
+A script to replace the energy and angular resolution measurements performed by mimrec 
+
+Author: Daniel Kocevski (dankocevski@gmail.com)
+Date: September 3rd, 2016
+
+Usage Examples:
+import EventAnalysis
+
+# Parse the .tra file obtained from revan
+events = EventAnalysis.parse('EffectiveArea_2MeV.inc1.id1.tra')
+ 
+# Calculate the angular resolution measurement (ARM) for Compton events
+FWHM_ARM, dphi = EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=5)
+ 
+# Calculate the angular resolution measurement (ARM) for pair events
+angles, openingAngles, contaimentData_68, contaimentBinned_68 = EventAnalysis.getARMForPairEvents(events, numberOfBins=100, phiRadius=5)
+
+# Calculate the energy resolution for Compton events
+mean, FWHM = EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=[0,10000], energyFitRange=[1800,2100])
+ 
+# Calculate the energy resolution for Pair events
+fitMax, FWHM = EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[0,10000], energyFitRange=[1800,2100])
+
+# Display some diagnostic plots
+EventAnalysis.plotDiagnostics(events)
+
+# Visualize the pair events
+EventAnalysis.visualizePairs(events, numberOfPlots=10)
+
+------------------------------------------------------------------------
+"""
 
 import os
 import time
@@ -18,25 +52,6 @@ import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib.ticker import AutoMinorLocator
 
-
-"""
-------------------------------------------------------------------------
-
-Script to reconstruct events created by cosima:
-
-Title: 
-Reference: 
-Link:
-
-Author: Daniel Kocevski (dankocevski@gmail.com)
-Date: September 3rd, 2016
-
-Usage Examples:
-import EventReconstruction
-EventReconstruction.getGammaARM('MyComPair_Tower.inc1.id1.tra')
-
-------------------------------------------------------------------------
-"""
 
 
 ##########################################################################################
@@ -701,15 +716,41 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 
 ##########################################################################################
 
-def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,180], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut = 1):
+def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=False, showDiagnosticPlots=True):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
 	openingAngles = []
 
-	# Loop through each event and calculate the reconstructed photon direction and it's offset to the true direction
+	# Start some counters
 	plotNumber = 0
+	numberOfRejectedEvents = 0
+
+	# Create a list to contain an index of events passing the quality cut
+	index_goodQuality = []
+
+	# Loop through each event and calculate the reconstructed photon direction and it's offset to the true direction
 	for index in range(events['numberOfPairEvents']):
+
+		# Make a cut on the quality of the pair reconstruction
+		if events['qualityOfPairReconstruction'][index] > qualityCut:
+			numberOfRejectedEvents = numberOfRejectedEvents + 1
+			continue
+
+		# Get the electron and positron energies
+		energy_pairElectron = events['energy_pairElectron'][index]
+		energy_pairPositron = events['energy_pairPositron'][index]
+
+		# Get total energy
+		energy_PairSum = energy_pairElectron + energy_pairPositron
+
+		# Make a cut on the total summed energy of the pair
+		if energy_PairSum < energyCut:
+			numberOfRejectedEvents = numberOfRejectedEvents + 1
+			continue
+
+		# Register this pair as 'good'
+		index_goodQuality.append(index)
 
 		# Get the position of the gamma conversion
 		position_conversion = events['position_pairConversion'][index]
@@ -717,9 +758,14 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 		# Get the origin position of the original gamma-ray
 		position_source = [position_conversion[0], position_conversion[1], 1000.0]
 
-		# Get the electron and positron direction vectors
+		# Get the electron and positron direction vectors. These are unit vectors.
 		direction_electron = events['direction_pairElectron'][index]
 		direction_positron = events['direction_pairPositron'][index]
+
+		# Weight the direction vectors by the electron and positron energies
+		if wieghtByEnergy == True:		
+			direction_electron = direction_electron * (energy_pairElectron/energy_PairSum)
+			direction_positron = direction_positron * (energy_pairPositron/energy_PairSum)
 
 		# Get the vector that bisects the electron and positron vectors
 		direction_bisect = (direction_electron + direction_positron)/2.0
@@ -797,10 +843,14 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_electron[0], direction_electron[1], direction_electron[2], pivot='tail', arrow_length_ratio=0.05, color='darkblue', length=50)
 			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_positron[0], direction_positron[1], direction_positron[2], pivot='tail', arrow_length_ratio=0.05, color='darkred', length=50)
 
-			# Plot the reconstructed photon direction, the true photon direction, and the vector bisecting the electron and positron trajectories
+			# Plot the reconstructed photon direction and the true photon direction
 			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source_reconstructed[0], direction_source_reconstructed[1], direction_source_reconstructed[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=100)
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_bisect[0], direction_bisect[1], direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
 			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source[0], direction_source[1], direction_source[2], pivot='tail', arrow_length_ratio=0, color='red', linestyle='--', length=100)
+
+			# Plot the vector bisecting the electron and positron trajectories
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_bisect[0], direction_bisect[1], direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], -1*direction_bisect[0], -1*direction_bisect[1], -1*direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
+
 
 			plotNumber = plotNumber + 1
 			plot.show()
@@ -809,15 +859,35 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 
 			return
 
+	if showDiagnosticPlots == True:
+		plot.hist(events['energy_pairElectron'][index_goodQuality]/(events['energy_pairElectron'][index_goodQuality]+events['energy_pairPositron'][index_goodQuality]), bins=100, alpha=0.8, color='#3e4d8b', label=r'$e^{-}$')
+		plot.hist(events['energy_pairPositron'][index_goodQuality]/(events['energy_pairElectron'][index_goodQuality]+events['energy_pairPositron'][index_goodQuality]), bins=100, alpha=0.8, color='darkred', label=r'$e^{+}$')
+		plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper center')	
+		plot.xlabel('Fractional Energy')
+		ax = plot.subplot(111)
+		ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+		ax.yaxis.set_minor_locator(AutoMinorLocator(4))
+		plot.show()
+
+		plot.hist(events['energy_pairElectron'][index_goodQuality], bins=100, alpha=0.8, color='#3e4d8b', label=r'$e^{-}$')
+		plot.hist(events['energy_pairPositron'][index_goodQuality], bins=100, alpha=0.75, color='darkred', label=r'$e^{+}$')
+		plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper right')	
+		plot.xlabel('Energy (KeV)')
+		ax = plot.subplot(111)
+		ax.xaxis.set_minor_locator(AutoMinorLocator(4))
+		ax.yaxis.set_minor_locator(AutoMinorLocator(4))		
+		plot.show()
+
+
 	# Conver the list of angles to a numpy array
 	angles = numpy.array(angles)
 
-	# Select the events within the desired quality range
-	selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
+	# # Select the events within the desired quality range
+	# selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
 
-	# Apply the selection filter
-	angles_unfiltered = angles
-	angles = angles[selection_quality]
+	# # Apply the selection filter
+	# angles_unfiltered = angles
+	# angles = angles[selection_quality]
 
 	# Select the events within the desired energy range
 	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
@@ -878,8 +948,8 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	print "***********************************"
 	print ""
 	print "Total number of pair events: %s" % events['numberOfPairEvents']
-	print "Number of pair events passing quality cut: %s (%s%%)" % ( len(selection_quality[0]), 100*len(selection_quality[0])/(len(angles_unfiltered)) )
-	print "Number of pair events included in ARM histogram: %s (%s%%)" % ( len(angles_fit), 100*len(angles_fit)/(len(angles_unfiltered)) )
+	print "Number of pair events passing quality cut: %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) 
+	print "Number of pair events included in ARM histogram: %s (%s%%)" % ( len(angles_fit), 100*len(angles_fit)/(len(angles_fit)) )
 	print ""
 	print "Maximum: %s" % angles_max	
 	print "68%% containment (data): %.2f deg" % contaimentData_68
@@ -1208,7 +1278,7 @@ def plotDiagnostics(events, showPlots=True):
 
 def visualizePairs(events, numberOfPlots=10):
 
-	getARMForPairEvents(events, numberOfPlots=numberOfPlots, finishExtraction=False)
+	getARMForPairEvents(events, numberOfPlots=numberOfPlots, finishExtraction=False, showDiagnosticPlots=False)
 
 	return
 
