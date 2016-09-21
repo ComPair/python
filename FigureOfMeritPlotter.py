@@ -55,7 +55,7 @@ def omega(PSF):
 
 	omega_solidAngle = 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
 
-    return omega_solidAngle
+	return omega_solidAngle
 
 ##########################################################################################
 
@@ -178,7 +178,7 @@ def parse(sumlationsIDs=None):
 		lines = filehandle.readlines()
 
 	currentNumber = 1
-	print '\numpyarsing mimrec logs...'
+	print 'parsing mimrec logs...'
 
 	# Loop through each of the lines
 	for line in lines:
@@ -874,26 +874,17 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=False, doplot=False):
+def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False):
 
-	# Energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
-	# energy = numpy.array([0.316, 1.0, 3.16, 10., 31.6, 100., 316.])
-
-	A_eff = numpy.array([10., 10., 10., 10., 10., 10., 10.])
 	background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
-	exposure = 6.3*10**6
 
 	Energy = []
-
 	EffectiveArea_Tracked = []
 	EffectiveArea_Untracked  = []
 	EffectiveArea_Pair  = []
-	EffectiveArea_Pair_ideal  = []
-
 	FWHM_tracked = []
 	FWHM_untracked = []
 	Containment68 = []
-
 
 	for key in data.keys():
 
@@ -904,10 +895,19 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 
 			# Get the number of reconstructed events
 			numberOfSimulatedEvents = float(data[key][0])
-			numberOfReconstructedEvents_tracked = float(data[key][1][-1])
-			numberOfReconstructedEvents_untracked = float(data[key][2][-1])
-			numberOfReconstructedEvents_pair = float(data[key][3][-1])
-			numberOfReconstructedEvents_pair_ideal = 100000.
+
+			if ideal:
+				#This removes the event selection on the final Aeff calculation
+				#It does not change anything from the FWHM or the 68% containment
+				#(RC) We should think about the tracked vs. untracked here 
+				#I've naively put them both at 100k events, and only plot tracked in ideal
+				numberOfReconstructedEvents_tracked = 100000.
+				numberOfReconstructedEvents_untracked = 100000.
+				numberOfReconstructedEvents_pair = 100000.
+			else:
+				numberOfReconstructedEvents_tracked = float(data[key][1][-1])
+				numberOfReconstructedEvents_untracked = float(data[key][2][-1])
+				numberOfReconstructedEvents_pair = float(data[key][3][-1])
             
 			# Get the angular resolution
 			fwhm_tracked = data[key][1][7]
@@ -918,15 +918,13 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 			effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
 			effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
 			effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
-			effectiveArea_pair_ideal = (numberOfReconstructedEvents_pair_ideal/numberOfSimulatedEvents) * math.pi * 300**2
-
+		
 			# Store the effective area results
 			Energy.append(energy)
 			EffectiveArea_Tracked.append(effectiveArea_tracked)
 			EffectiveArea_Untracked.append(effectiveArea_untracked)
 			EffectiveArea_Pair.append(effectiveArea_pair)
-			EffectiveArea_Pair_ideal.append(effectiveArea_pair_ideal)
-
+		
 			# Store the angular resolution results
 			FWHM_tracked.append(fwhm_tracked)
 			FWHM_untracked.append(fwhm_untracked)
@@ -937,7 +935,6 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
 	EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
 	EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
-	EffectiveArea_Pair_ideal = numpy.array(EffectiveArea_Pair_ideal)
 
 	FWHM_tracked = numpy.array(FWHM_tracked)
 	FWHM_untracked = numpy.array(FWHM_untracked)
@@ -949,27 +946,33 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	EffectiveArea_Tracked = EffectiveArea_Tracked[i]
 	EffectiveArea_Untracked = EffectiveArea_Untracked[i]
 	EffectiveArea_Pair = EffectiveArea_Pair[i]
-	EffectiveArea_Pair_ideal = EffectiveArea_Pair_ideal[i]
 
 	FWHM_tracked = FWHM_tracked[i]
 	FWHM_untracked = FWHM_untracked[i]
 	Containment68 = Containment68[i]
-	Containment68_idealang = 1.0
+	if doPSF is not None:
+		#Note: this only changes the PSF for Pair events, not Compton!
+		Containment68 = doPSF	
    
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
 	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
 	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
-	Sensitivity_pair_ideal = Isrc(Energy, exposure, EffectiveArea_Pair_ideal, 3., omega(Containment68), background)
-	Sensitivity_pair_idealang = Isrc(Energy, exposure, EffectiveArea_Pair_ideal, 3., omega(Containment68_idealang), background)
-
-	plot.figure(figsize=(10, 6.39))
-	ax = plot.subplot(111)
+	if doPSF:
+		Sensitivity_pair[0]=numpy.nan
+		Sensitivity_pair[1]=numpy.nan
+	
+	if plot.fignum_exists(1):
+		plot.clf()
+	else:
+		plot.figure(figsize=(10, 6.39))
+		ax = plot.subplot(111)
 
 	plot.scatter(Energy, Sensitivity_tracked, color='darkgreen')
 	plot.plot(Energy, Sensitivity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
 
-	plot.scatter(Energy, Sensitivity_untracked, color='blue')
-	plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+	if not ideal:
+		plot.scatter(Energy, Sensitivity_untracked, color='blue')
+		plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
 
 	plot.scatter(Energy, Sensitivity_pair, color='darkred')
 	plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
@@ -988,14 +991,16 @@ def plotSourceSensitivity(data, angleSelection=0.7, xlog=True, ylog=True, save=F
 	if doplot == True:
 		plot.show()
 
-	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair, Sensitivity_pair_ideal, Sensitivity_pair_idealang
+	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair 
 
 
 ##########################################################################################
 
-def plotAllSourceSensitivities(data, angleSelection=0.8, xlog=True, ylog=True, save=False):
+def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=True, save=False):
 
-	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=0.8,doplot=False)
+	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angle,doplot=False)
+	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angle,ideal=True,doplot=False)
+	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angle,ideal=True,doPSF=1.0,doplot=False)
 
 	a=ascii.read("digitized_alex_sensitivities.dat",names=['eng','sensit'])
 	l=ascii.read("differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
@@ -1008,7 +1013,6 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, xlog=True, ylog=True, s
 	lateng=(l["emin"]+l["emax"])/2.
 
 	plot.clf()
-#	plot.figure()
 	#LAT
 	plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
 	plot.gca().set_xscale('log')
@@ -1041,19 +1045,22 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, xlog=True, ylog=True, s
 	plot.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=14,color='purple')
 
 	#ComPair
-	compair_eng=numpy.array([0.316,1,3.16,10,31.6,100,316.])
-	tracked=ComPairSensitivity[1]#numpy.array([  1.54877155e-05,   4.84546681e-06,   5.28735667e-06, 6.53265846e-05, 0, 0, 0])
-	untracked=ComPairSensitivity[2]#numpy.array([  2.49626245e-06,   1.82264874e-06,   1.54100276e-05, 9.59603201e-05, 0, 0, 0])
-	pair=ComPairSensitivity[3]#numpy.array([ 0, 0,   5.62236032e-05, 3.19254897e-05,   1.71183233e-05,   1.61203804e-05, 2.19339e-05])
-	pair_ideal=ComPairSensitivity[4]
-	pair_idealang=ComPairSensitivity[5]
-	w1=tracked > 0
-	plot.plot(compair_eng[w1],tracked[w1],color='black',lw=3)
-	w2=pair > 0
-	plot.plot(compair_eng[w2],pair[w2],'r--',color='black',lw=3)
-	w3=pair_ideal > 0
-	plot.plot(compair_eng[w3],pair_ideal[w3],'r:',color='black',lw=3)
-	plot.plot(compair_eng[2:],pair_idealang[2:],'r-.',color='black',lw=3)
+	compair_eng=ComPairSensitivity[0]
+	tracked=ComPairSensitivity[1]	
+	untracked=ComPairSensitivity[2]
+	pair=ComPairSensitivity[3]
+	if plotIdeal:
+		tracked_ideal=ComPairIdealSensitivity[1]
+		pair_ideal=ComPairIdealSensitivity[3]
+		pair_idealang=ComPairGoodPSFSensitivity[3]
+
+	plot.plot(compair_eng,tracked,color='black',lw=3)	
+	plot.plot(compair_eng,pair,'r--',color='black',lw=3)
+	if plotIdeal:
+		plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
+		plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)
+
+	#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
 	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=20)
 
 	if save == True:
