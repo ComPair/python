@@ -499,7 +499,6 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 
 ##########################################################################################
 
-
 # if __name__ == "__main__":
 
 

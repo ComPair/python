@@ -17,7 +17,7 @@ events = EventAnalysis.parse('EffectiveArea_2MeV.inc1.id1.tra')
 FWHM_ARM, dphi = EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=5)
  
 # Calculate the angular resolution measurement (ARM) for pair events
-angles, openingAngles, contaimentData_68, contaimentBinned_68 = EventAnalysis.getARMForPairEvents(events, numberOfBins=100, phiRadius=5)
+angles, openingAngles, contaimentData_68, contaimentBinned_68 = EventAnalysis.getARMForPairEvents(events, numberOfBins=100)
 
 # Calculate the energy resolution for Compton events
 mean, FWHM = EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=[0,10000], energyFitRange=[1800,2100])
@@ -51,7 +51,11 @@ import math
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib.ticker import AutoMinorLocator
+import glob
 
+
+# Set the default title font dict
+titleFormat = {'fontsize': 12, 'fontweight' : plot.rcParams['axes.titleweight'], 'verticalalignment': 'baseline', 'horizontalalignment': 'center'}
 
 
 ##########################################################################################
@@ -672,7 +676,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 	FWHM = x2-x1
 
 	# Print some statistics
-	print "\n\nStatistics of ARM histogram and fit"
+	print "\n\nStatistics of ARM histogram and fit (Compton Events)"
 	print "***********************************"
 	print "Compton and pair events in ARM histogram: %s (%s%%)" % ( len(dphi[selection]), 100*len(dphi[selection])/(len(dphi)) )
 	print ""
@@ -686,6 +690,8 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 	# Plot the data
 	ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
 	ax1.plot([x1,x2],[numpy.max(y_fit)/2.,numpy.max(y_fit)/2.], color='darkred', linestyle='--', linewidth=2)
+	ax1.set_title('Angular Resolution (Compton Events)', fontdict=titleFormat)
+
 	# ax1.axes.xaxis.set_ticklabels([])
 
 	# Create a subplot for the residuals 
@@ -695,7 +701,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 	ax2.step(bincenters, dphi_binned-y_fit, color='#3e4d8b', alpha=0.9)	
 	ax2.plot([bincenters[0],bincenters[-1]], [0,0], color='darkred', linewidth=2, linestyle='--')
 	ax2.set_xlim([-1*phiRadius,phiRadius])
-	ax2.set_xlabel('ARM - Compton Cone')
+	ax2.set_xlabel('ARM - Compton Cone (deg)')
 
 	# Set the minor ticks
 	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
@@ -716,7 +722,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 
 ##########################################################################################
 
-def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=False, showDiagnosticPlots=True):
+def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -905,6 +911,7 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	histogramResults = ax1.hist(angles_fit, bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
 	ax1.set_xlabel('Angular resolution (deg)')
 	ax1.set_xlim(anglePlotRange)
+	ax1.set_title('Angular Resolution (Pair Events)', fontdict=titleFormat)
 
 	# Setup the minor ticks
 	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
@@ -944,8 +951,8 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 
 
 	# Print some statistics
-	print "\n\nStatistics of ARM histogram"
-	print "***********************************"
+	print "\n\nStatistics of ARM histogram and fit (Pair Events)"
+	print "*****************************************************"
 	print ""
 	print "Total number of pair events: %s" % events['numberOfPairEvents']
 	print "Number of pair events passing quality cut: %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) 
@@ -963,12 +970,12 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	else:
 		plot.close()
 
-	return angles, openingAngles, contaimentData_68, contaimentBinned_68
+	return angles, contaimentData_68, contaimentBinned_68
 
 
 ##########################################################################################
 
-def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[0,1e5], energyFitRange=[0,1e5], showPlots=True, qualityCut = 0.0):
+def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[0,1e5], showPlots=True, qualityCut=1.0):
 
 	# Retrieve the event data
 	energy_pairElectron = events['energy_pairElectron']
@@ -982,7 +989,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[
 	energy_pairReconstructedPhoton_error = numpy.sqrt((energy_pairElectron_error/energy_pairElectron)**2 + (energy_pairPositron_error/energy_pairPositron)**2) * energy_pairReconstructedPhoton
 
 	# Select the events within the desired energy range
-	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) & (qualityOfPairReconstruction > qualityCut))
+	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) & (qualityOfPairReconstruction <= qualityCut))
 
 	# Create the histogram
 	histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -1024,8 +1031,8 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[
 	FWHM = x2-x1
 
 	# Print some statistics
-	print "\n\nStatistics of energy histogram and fit"
-	print "***********************************"
+	print "\n\nStatistics of energy histogram and fit (pair events)"
+	print "********************************************************"
 	print "Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) )
 	print ""
 	print "Max of fit: %s keV" % fitMax	
@@ -1044,7 +1051,9 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[
 
 	# Plot the histogram
 	histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
-	ax1.set_xlim(energyPlotRange)
+	ax1.set_title('Energy Resolution (Pair Events)', fontdict=titleFormat)
+	if energyPlotRange != None:
+		ax1.set_xlim(energyPlotRange)
 
 	# Overplot the fit
 	ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
@@ -1059,8 +1068,9 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[
 	# Plot the residuals
 	ax2.step(bincenters, energy_binned-y_fit, color='#3e4d8b', alpha=0.9)	
 	ax2.plot([bincenters[0],bincenters[-1]], [0,0], color='darkred', linewidth=2, linestyle='--')
-	ax2.set_xlim(energyPlotRange)
 	ax2.set_xlabel('Energy (keV)')
+	if energyPlotRange != None:		
+		ax2.set_xlim(energyPlotRange)
 
 	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
 	ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
@@ -1076,7 +1086,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=[
 
 ##########################################################################################
 
-def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=[0,10000], energyFitRange=[1800,2100], includeUntrackedElectrons=True, showPlots=True):
+def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[1800,2100], includeUntrackedElectrons=True, showPlots=True):
 
 	# Retrieve the event data
 	energy_ComptonEvents = events['energy_ComptonEvents']
@@ -1094,30 +1104,101 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	energy_ComptonEvents = numpy.array(energy_ComptonEvents)
 
 	# Select the events within the desired energy range
-	energySelection_plot = numpy.where( (energy_ComptonEvents >= energyPlotRange[0]) & (energy_ComptonEvents <= energyPlotRange[1]) )
+	if energyPlotRange != None:
+		energySelection_plot = numpy.where( (energy_ComptonEvents >= energyPlotRange[0]) & (energy_ComptonEvents <= energyPlotRange[1]) )
+	else:
+		energySelection_plot = numpy.arange(len(energy_ComptonEvents))
 
 	# Create the binned data
 	histogram_energyResults = plot.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.close()
 
 	# Extract the binned data and bin locations
 	energy_binned = histogram_energyResults[0]
 	bins_energy = histogram_energyResults[1]
 	bincenters_energy = 0.5*(bins_energy[1:]+bins_energy[:-1])
 
+	# Set the range of the energy fit by finding the inflection points in the histogram. This will not work with poorly sampled data
+	if energyFitRange == None:
+
+		bin_max = numpy.argmax(energy_binned)
+
+		for i in range(bin_max):
+			# print  bin_max-i, bin_max-i-1, energy_binned[bin_max-i], energy_binned[bin_max-i-1]
+			if energy_binned[bin_max-i-1] > energy_binned[bin_max-i]:
+				bin_start = bincenters_energy[bin_max-i]
+				break
+
+		for i in range(len(bins_energy-1)-bin_max-2):
+			# print  bin_max+i, bin_max+i+1, energy_binned[bin_max+i], energy_binned[bin_max+i+1]
+			if energy_binned[bin_max+i+1] > energy_binned[bin_max+i]:
+				bin_stop = bincenters_energy[bin_max+i]
+				break
+			else:
+				bin_stop = bincenters_energy[bin_max+i]
+
+		energyFitRange = [bin_start, bin_stop]
+
+	# Set the range of the energy fit to a hard coded percentage of the maximum value
+	# if energyFitRange == None:
+		# energyFitRange = [bincenters_energy[numpy.argmax(energy_binned)]*0.91, bincenters_energy[numpy.argmax(energy_binned)]*1.15]
+
+
 	# Fit a gaussian to the energy data within the user specified energy range
 	energySelection_fit = numpy.where( (energy_ComptonEvents >= energyFitRange[0]) & (energy_ComptonEvents <= energyFitRange[1]) )	
 	mu, sigma = norm.fit(energy_ComptonEvents[energySelection_fit])
 
-	# Create a fit line
-	x = numpy.array(range(energyFitRange[0],energyFitRange[1], 1))
+	# Create the Guassian fit line
+	x = numpy.array(range(int(energyFitRange[0]),int(energyFitRange[1]), 1))
 	y_fit = mlab.normpdf( x, mu, sigma)
 
-	# Close the plots before remaking them
-	plot.close()
+
+
+	###### Begin asymmetric fit to the binned data ###### 
+
+	# Create the binned data
+	histogram_energyResults = plot.hist(energy_ComptonEvents, numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.close()	
+
+	# Extract the binned data and bin locations
+	energy_binned = histogram_energyResults[0]
+	bins_energy = histogram_energyResults[1]
+	bincenters = 0.5*(bins_energy[1:]+bins_energy[:-1])
+
+	# Select only the data within the desires energy fit range 
+	energySelection_fit = numpy.where( (bincenters >= energyFitRange[0]) & (bincenters <= energyFitRange[1]) )	
+	energy_binned = energy_binned[energySelection_fit]
+	bincenters = bincenters[energySelection_fit]
+
+	# Get the bin center containing the maximum of the histogram
+	bin_max = bincenters[numpy.argmax(energy_binned)]
+
+	# Set the initial parameters
+	height = numpy.max(energy_binned)	# h
+	scale = 1e4							# w
+	location = bin_max					# epsilon
+	shape = -2							# alpha
+
+	# Fit the histogram data
+	optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
+
+	# Calculate the optimized curve to an asymmetric gaussian
+	try:
+		y_fit2 = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
+	except Exception, message:
+	   print message
+
+	# Get the max of the fit
+	fitMax = bincenters[numpy.argmax(y_fit2)]
+
+	# Get the fwhm of the fit
+	x1 = bincenters[numpy.where(y_fit2 >= numpy.max(y_fit2)/2)[0][0]]
+	x2 = bincenters[numpy.where(y_fit2 >= numpy.max(y_fit2)/2)[0][-1]]
+	FWHM2 = x2-x1
 
 	# Plot the histogram and the fit line, normalized to match the histogram data
 	histogram_energyResults = plot.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
-	plot.plot(x,(y_fit/numpy.max(y_fit))*numpy.max(energy_binned), color='darkred', linewidth=2)
+	plot.title('Energy Resolution (Compton Events)', fontdict=titleFormat)
 	plot.xlabel('Energy (keV)')
 
 	# Set the minor ticks
@@ -1125,22 +1206,38 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
 	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
-	# Calculate the fit statistics
+	# Overplot the asymetric Gaussian fit
+	plot.plot(bincenters, y_fit2, color='darkred', linestyle='dotted', linewidth=2)
+	plot.plot([x1,x2],[numpy.max(y_fit2)/2.,numpy.max(y_fit2)/2.], color='darkgreen', linestyle='--', linewidth=2)
+
+	# Plot the range of the fit
+	plot.plot([energyFitRange[0],energyFitRange[0]], [0,ax.get_ylim()[1]], color='lightblue', linestyle='--', linewidth=1)
+	plot.plot([energyFitRange[1],energyFitRange[1]], [0,ax.get_ylim()[1]], color='lightblue', linestyle='--', linewidth=1)
+
+	###### End asymmetric fit to the binned data ###### 
+
+
+	# Overplot the Gaussian fit
+	plot.plot(x,(y_fit/numpy.max(y_fit))*numpy.max(energy_binned), color='darkred', linewidth=2)
+	
+	# Calculate the Gaussian fit statistics
 	FWHM = 2*math.sqrt(2*math.log(2))*sigma
 
 	# Annotate the plot
 	ax0 = plot.subplot(111)	
-	ax0.text(0.03, 0.9, "Mean = %.3f\nFWHM = %.3f" % (mu, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
+	# ax0.text(0.03, 0.9, "Mean = %.3f\nFWHM = %.3f" % (mu, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
+	ax0.text(0.03, 0.9, "Max = %.3f\nFWHM = %.3f" % (fitMax, FWHM2), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
 
 	# Print some statistics
-	print "\n\nStatistics of energy histogram and fit"
-	print "***********************************"
+	print "\n\nStatistics of energy histogram and fit (Compton events)"
+	print "***********************************************************"
 	print "Compton and pair events in energy histogram: %s (%s%%)" % ( len(energy_ComptonEvents[energySelection_fit]), 100*len(energy_ComptonEvents[energySelection_fit])/(numberOfComptonEvents + numberOfPairEvents))
 	print ""
-	print "Mean of fit: %s" % mu
-	print "FWHM of fit: %s" % FWHM	
+	print "Mean of Guassian fit: %s" % mu
+	print "FWHM of Guassian fit: %s" % FWHM	
 	print ""
-	print ""
+	print "Max of asymmetric Guassianfit: %s keV" % fitMax	
+	print "FWHM of asymmetric Guassian fit: %s keV" % FWHM2	
 
 	# Show the plot
 	if showPlots == True:
@@ -1148,7 +1245,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	else:
 		plot.close()
 
-	return mu, FWHM
+	return fitMax, FWHM2
 
 ##########################################################################################
 
@@ -1285,6 +1382,125 @@ def visualizePairs(events, numberOfPlots=10):
 
 ##########################################################################################
 
+
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=True, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+	"""
+	A function to plot the cosima output simulation file.
+	Example Usage: 
+	EventViewer.performCompleteAnalysis(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.tra')
+	"""
+
+	if filename == None and directory == None:
+		print "*** No filename or directory provide ***"
+		print "Please provide a  filename, a list of filenames, or a directory name"
+		return
+
+	# Check to see if the user supplied a directory.  If so, include all .tra files in the directory
+	if directory != None:
+		filenames = glob.glob(directory + '/*.tra')
+
+
+	# Check if the user supplied a single file vs a list of files
+	if isinstance(filename, list) == False and filename != None:
+		filenames = [filename]
+
+
+	# Try to get the energy from the filename
+	if energies == None:
+		energies = []
+		for filename in filenames:
+			try:
+				energy = float(filename.split('_')[1].replace(energySearchUnit,''))
+				energies.append(energy)
+
+			except:
+				print "*** Unable to resolve energy from filename ***"
+				print "Expected filename format: FarFieldPointSource_100MeV_Cos1.inc1.id1.tra"
+				return
+
+	# Try to get the angle from the filename
+	if angles == None:
+		angles = []
+		for filename in filenames:
+			try:
+				angle = float(filename.split('_')[2].split('.inc1')[0].replace('Cos',''))
+				angles.append(angle)
+
+			except:
+				print "*** Unable to resolve angle from filename ***"
+				print "Expected filename format: FarFieldPointSource_100MeV_Cos1.inc1.id1.tra"
+				return
+
+	# Print the identified files
+	print "\nFiles identified for analysis:"
+	for filename, energy, angle in zip(filenames, energies, angles):
+		print "%s %s Cos %s %s" % (energy, energySearchUnit, angle, filename)
+	print ""
+
+	# Loop through the user specified filename(s) and extract the energy and angular resolution measurements
+	for filename, energy, angle in zip(filenames, energies, angles):
+
+		print "Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename)
+
+		# Parse the .tra file obtained from revan
+		events = parse(filename)
+
+		# Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
+		if energy <= maximumComptonEnergy:
+
+			# Calculate the energy resolution for Compton events
+			print "Calculating the energy resolution for Compton events..."
+			print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
+			mean, FWHM_energyComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
+		 
+			# Calculate the angular resolution measurement (ARM) for Compton events
+			print "\n\nCalculating the angular resolution measurement for Compton events..."
+			print "EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton)			
+			FWHM_angleComptonEvents, dphi = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, showPlots=showPlots)
+		 
+		else:
+
+			mean = numpy.nan
+			FWHM_energyComptonEvents = numpy.nan
+			FWHM_angleComptonEvents = numpy.nan
+
+		# Don't bother measuring the energy and angular resolutuon values for pair events below the specified minimumPairEnergy
+		if energy >= minimumPairEnergy:
+
+			# Calculate the energy resolution for Pair events
+			print "\n\nCalculating the energy resolution for pair events..."
+			print "EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)"
+			fitMax, FWHM_pairComptonEvents = getEnergyResolutionForPairEvents(events, numberOfBins=100, showPlots=showPlots)
+
+			# Calculate the angular resolution measurement (ARM) for pair events
+			print "\n\nCalculating the angular resolution measurement for pair events..."
+			print "EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)"						
+			angles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
+		 
+		else:
+
+			contaimentData_68 = numpy.nan
+			FWHM_pairComptonEvents = numpy.nan
+
+		# Open the results filename for writing
+		output_filename = filename.replace('.tra','.txt')
+		output = open(output_filename, 'w')
+		
+		# Write the results to disk
+		output.write("Results for simulation: %s %s Cos %s %s\n" % (energy, energySearchUnit, angle, filename))
+		output.write("Compton Energy Resolution (keV): %s\n" % FWHM_energyComptonEvents)
+		output.write("Compton Angular Resolution (deg): %s\n" % FWHM_angleComptonEvents)
+		output.write("Pair Energy Resolution (keV): %s\n" % FWHM_pairComptonEvents)
+		output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
+
+		# Close the file
+		output.close()
+
+		print "Results saved to:\n%s" % output_filename
+
+
+
+##########################################################################################
 
 # if __name__ == "__main__":
 
