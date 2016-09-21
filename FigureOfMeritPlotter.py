@@ -229,7 +229,10 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 
 	plotNumber = 1
-	plot.figure(figsize=(10,12))
+	if len(angleSelections)==1:
+		plot.figure(figsize=(8,6))
+	else:
+		plot.figure(figsize=(10,12))
 
 	for angleSelection in angleSelections:
 
@@ -431,7 +434,10 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		angleSelections = [angleSelections]
 
 	plotNumber = 1
-	plot.figure(figsize=(10,12))
+	if len(angleSelections)==1:
+		plot.figure(figsize=(8,6))
+	else:
+		plot.figure(figsize=(10,12))
 
 	for angleSelection in angleSelections:
 
@@ -647,13 +653,16 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 
 ##########################################################################################
 
-def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False):
+def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, save=False):
 
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
 
 	plotNumber = 1
-	plot.figure(figsize=(10,12))
+	if len(angleSelections)==1:
+		plot.figure(figsize=(8,6))
+	else:
+		plot.figure(figsize=(10,12))
 
 	for angleSelection in angleSelections:
 
@@ -668,9 +677,23 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, 
 
 			if angle == angleSelection:
 				numberOfSimulatedEvents = float(data[key][0])
-				numberOfReconstructedEvents_tracked = float(data[key][1][-1])
-				numberOfReconstructedEvents_untracked = float(data[key][2][-1])
-				numberOfReconstructedEvents_pair = float(data[key][3][-1])
+
+				if ideal:
+					#This removes the event selection on the final Aeff calculation
+					#It does not change anything from the FWHM or the 68% containment
+					#Compton events are multiplied by the ratio of tracked vs. untracked
+					total_compton_events = float(data[key][2][-1])+float(data[key][1][-1])
+					numberOfReconstructedEvents_tracked = 100000.*float(data[key][1][-1])/(total_compton_events)
+					numberOfReconstructedEvents_untracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+					numberOfReconstructedEvents_pair = 100000.
+				else:
+					numberOfReconstructedEvents_tracked = float(data[key][1][-1])
+					numberOfReconstructedEvents_untracked = float(data[key][2][-1])
+					numberOfReconstructedEvents_pair = float(data[key][3][-1])
+
+				#numberOfReconstructedEvents_tracked = float(data[key][1][-1])
+				#numberOfReconstructedEvents_untracked = float(data[key][2][-1])
+				#numberOfReconstructedEvents_pair = float(data[key][3][-1])
 
 				# Calculate the effective area
 				effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
@@ -697,6 +720,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, 
 		EffectiveArea_Untracked = EffectiveArea_Untracked[i]
 		EffectiveArea_Pair = EffectiveArea_Pair[i]
 
+		if ideal:
+			EffectiveArea_Pair[0]=numpy.nan
+			EffectiveArea_Pair[1]=numpy.nan
+
 
 		# Create the new subplot
 		ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
@@ -718,6 +745,8 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, 
 		        verticalalignment='bottom', horizontalalignment='right',
 		        transform=ax.transAxes,
 		        color='black', fontsize=12)
+
+		plot.gca().set_ylim([0.001,10000.])
 
 		if plotNumber == 1:
 			plot.title('Effective Area')			
@@ -748,7 +777,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, 
 
  ##########################################################################################
 
-def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=False, save=False, collapse=False):
+def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], ideal=False, xlog=False, ylog=False, save=False, collapse=False):
 
 	if hasattr(energySelections, '__iter__') == False:
 		energySelections = [energySelections]
@@ -776,10 +805,21 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
+
+				if ideal:
+					#This removes the event selection on the final Aeff calculation
+					#It does not change anything from the FWHM or the 68% containment
+					#Compton events are multiplied by the ratio of tracked vs. untracked
+					total_compton_events = float(data[key][2][-1])+float(data[key][1][-1])
+					numberOfReconstructedEvents_tracked = 100000.*float(data[key][1][-1])/(total_compton_events)
+					numberOfReconstructedEvents_untracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+					numberOfReconstructedEvents_pair = 100000.
+				else:
+					numberOfReconstructedEvents_tracked = float(data[key][1][-1])
+					numberOfReconstructedEvents_untracked = float(data[key][2][-1])
+					numberOfReconstructedEvents_pair = float(data[key][3][-1])
+
 				numberOfSimulatedEvents = float(data[key][0])
-				numberOfReconstructedEvents_tracked = float(data[key][1][-1])
-				numberOfReconstructedEvents_untracked = float(data[key][2][-1])
-				numberOfReconstructedEvents_pair = float(data[key][3][-1])
 
 				# Calculate the effective area
 				effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
@@ -900,10 +940,10 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 			if ideal:
 				#This removes the event selection on the final Aeff calculation
 				#It does not change anything from the FWHM or the 68% containment
-				#(RC) We should think about the tracked vs. untracked here 
-				#I've naively put them both at 100k events, and only plot tracked in ideal
-				numberOfReconstructedEvents_tracked = 100000.
-				numberOfReconstructedEvents_untracked = 100000.
+				#Compton events are multiplied by the ratio of tracked vs. untracked
+				total_compton_events = float(data[key][2][-1])+float(data[key][1][-1])
+				numberOfReconstructedEvents_tracked = 100000.*float(data[key][1][-1])/(total_compton_events)
+				numberOfReconstructedEvents_untracked = 100000.*float(data[key][2][-1])/(total_compton_events)
 				numberOfReconstructedEvents_pair = 100000.
 			else:
 				numberOfReconstructedEvents_tracked = float(data[key][1][-1])
@@ -970,11 +1010,8 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 
 	plot.scatter(Energy, Sensitivity_tracked, color='darkgreen')
 	plot.plot(Energy, Sensitivity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
-
-	if not ideal:
-		plot.scatter(Energy, Sensitivity_untracked, color='blue')
-		plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
-
+	plot.scatter(Energy, Sensitivity_untracked, color='blue')	
+	plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
 	plot.scatter(Energy, Sensitivity_pair, color='darkred')
 	plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
 
@@ -1076,7 +1113,7 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 	#Alex's numbers
 	ind=numpy.arange(158,167)
 	plot.plot(energy[ind],sens[ind],'r--',color='red',lw=2)
-	plot.annotate('Alex ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
+	plot.annotate('Previous ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
 
 	#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
 	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=22)
