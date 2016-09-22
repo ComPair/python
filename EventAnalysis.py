@@ -298,9 +298,11 @@ def parse(filename):
 	print '\nParsing: %s' % filename	
 	for line in fileinput.input([filename]):
 
-		sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
-		sys.stdout.flush()
-
+		try:
+			sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
+			sys.stdout.flush()
+		except:
+			pass
 
 		if 'ET ' in line:
 
