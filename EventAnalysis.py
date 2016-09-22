@@ -1501,8 +1501,93 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		print "Results saved to:\n%s" % output_filename
 
 
+##########################################################################################
+
+def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
+	"""
+	A function to extract the number of simulated events from a cosima .sim file
+	Usage Examples: 
+	EventViewer.getNumberOfSimulatedEvents(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.sim')
+	EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
+	"""
+
+	if filename == None and directory == None:
+		print "*** No filename or directory provide ***"
+		print "Please provide a  filename, a list of filenames, or a directory name"
+		return
+
+	# Check to see if the user supplied a directory.  If so, include all .tra files in the directory
+	if directory != None:
+		print "\nSearching: %s\n" % directory
+		filenames = glob.glob(directory + '/*.sim')
+
+	# Check if the user supplied a single file vs a list of files
+	if isinstance(filename, list) == False and filename != None:
+		filenames = [filename]
+
+	# Create a dictionary to return the results
+	triggerEfficiency = {} 		
+
+
+	# Loop through each file
+	for filename in filenames:
+
+		print "Parsing: %s" % filename
+
+		# Use grep to find all lines with ID and pipe the results to the tail command to read only the last line
+		command = "grep 'ID ' %s | tail -n 1" % filename
+		output = os.popen(command).read()
+
+		# Extract the number of triggers
+		numberOfTriggers = float(output.split()[1])
+
+		# Extract the number of simulated events
+		numberOfSimulatedEvents = float(output.split()[2])
+
+		# Add the values to the results dictionary
+		triggerEfficiency[filename] = [numberOfTriggers, numberOfSimulatedEvents]
+
+
+	print "\nTrigger Efficiencies:"
+	for filename in filenames:
+
+		# Extract the values
+		numberOfTriggers = triggerEfficiency[filename][0]
+		numberOfSimulatedEvents = triggerEfficiency[filename][1]
+	
+		# Print the results
+		print filename, numberOfTriggers, numberOfSimulatedEvents, ' %.2f%%' % (100*numberOfTriggers/numberOfSimulatedEvents)
+
+	# Check to see if the results should be written to disk
+	if save == True:
+
+		# Set a default filename if none was provided
+		if savefile == None:
+			savefile = 'TriggerEfficiency.txt'
+
+		# Open the file for writing
+		output = open(savefile, 'w')
+
+		# Write the results to disk
+		for filename in filenames:
+
+			# Extract the values
+			numberOfTriggers = triggerEfficiency[filename][0]
+			numberOfSimulatedEvents = triggerEfficiency[filename][1]
+
+			# Write out the values
+			output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
+
+		# Close the file
+		output.close()
+
+		print "\nResults saved to:\n./%s\n" % savefile
+
+
+	return triggerEfficiency
 
 ##########################################################################################
+
 
 # if __name__ == "__main__":
 

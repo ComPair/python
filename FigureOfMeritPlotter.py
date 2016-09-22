@@ -80,7 +80,7 @@ def parseSimLog(filename):
 	for line in fileinput.input([filename]):
 
 		# Parse the lines
-		if 'ID 100000 ' in line:
+		if 'ID ' in line:
 			NumberOfSimulatedEvents = float(line.split()[2])
 
 	fileinput.close()
