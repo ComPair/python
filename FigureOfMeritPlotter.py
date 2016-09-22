@@ -220,6 +220,72 @@ def parse(sumlationsIDs=None):
 	print 'Done.'
 	return data
 
+
+
+##########################################################################################
+
+def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
+
+
+	if triggerEfficiencyFilename == None:
+		triggerEfficiencyFilename = directory + '/TriggerEfficiency.txt'
+
+	# Read the sim file
+	with open(triggerEfficiencyFilename) as filehandle:
+		triggerEfficiencyLines = filehandle.readlines()
+
+	# Create a dictionary to store the data
+	data = {}
+
+	for triggerEfficiencyLine in triggerEfficiencyLines:
+		lineContents = triggerEfficiencyLine.split()
+
+		# Get the filename
+		simulationName = lineContents[0].split('/')[-1]	
+
+		# Create a key for this simulation name
+		data[simulationName] = []
+
+		# Get the number of triggered and simulated events
+		numberOfTriggeredEvents = lineContents[1]		
+		numberOfSimulatedEvents = lineContents[2]
+
+		# Generate the log filename
+		analysisLog = directory + '/' + simulationName.replace('.sim', '.log')
+
+		try:
+			print "Parsing: %s" % analysisLog
+			with open(analysisLog) as filehandle:
+				analysisLogLines = filehandle.readlines()
+
+		except:
+			print "*** Could not find log file: %s" % analysisLog
+
+		# Loop through the analysis log file
+		for analysisLogLine in analysisLogLines:
+
+			if "Results for simulation:" in analysisLogLine:
+				analysisLogLine = analysisLogLine.replace("Results for simulation: ",'')
+				energy, energySearchUnit, cos, angle, filename = analysisLogLine.split()
+
+			if "Compton Energy Resolution (keV): " in analysisLogLine:
+				FWHM_energyComptonEvents = analysisLogLine.split()[-1]
+
+			if "Compton Angular Resolution (deg): " in analysisLogLine:
+				FWHM_angleComptonEvents = analysisLogLine.split()[-1]
+
+			if "Pair Energy Resolution (keV): " in analysisLogLine:
+				FWHM_pairComptonEvents = analysisLogLine.split()[-1]
+
+			if "Pair Angular Containment " in analysisLogLine:
+				contaimentData_68 = analysisLogLine.split()[-1]
+
+		# Add all the values to the results dictionary
+		data[simulationName].append([energy, angle, FWHM_energyComptonEvents, FWHM_angleComptonEvents, FWHM_pairComptonEvents, contaimentData_68])
+
+	return data		
+
+
 ##########################################################################################
 
 def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False):

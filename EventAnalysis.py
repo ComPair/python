@@ -1485,7 +1485,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			FWHM_pairComptonEvents = numpy.nan
 
 		# Open the results filename for writing
-		output_filename = filename.replace('.tra','.txt')
+		output_filename = filename.replace('.tra','.log')
 		output = open(output_filename, 'w')
 		
 		# Write the results to disk
