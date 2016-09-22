@@ -1146,15 +1146,17 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 
 	# Fit a gaussian to the energy data within the user specified energy range
 	energySelection_fit = numpy.where( (energy_ComptonEvents >= energyFitRange[0]) & (energy_ComptonEvents <= energyFitRange[1]) )	
-	mu, sigma = norm.fit(energy_ComptonEvents[energySelection_fit])
+	mu_Guassian, sigma = norm.fit(energy_ComptonEvents[energySelection_fit])
 
 	# Create the Guassian fit line
 	x = numpy.array(range(int(energyFitRange[0]),int(energyFitRange[1]), 1))
-	y_fit = mlab.normpdf( x, mu, sigma)
+	y_fit = mlab.normpdf( x, mu_Guassian, sigma)
+
+	# Calculate the Gaussian fit statistics
+	FWHM_Guassian = 2*math.sqrt(2*math.log(2))*sigma
 
 
-
-	###### Begin asymmetric fit to the binned data ###### 
+	############  Begin asymmetric fit to the binned data ############  
 
 	# Create the binned data
 	histogram_energyResults = plot.hist(energy_ComptonEvents, numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -1189,12 +1191,15 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	   print message
 
 	# Get the max of the fit
-	fitMax = bincenters[numpy.argmax(y_fit2)]
+	fitMax_skewedGuassian = bincenters[numpy.argmax(y_fit2)]
 
 	# Get the fwhm of the fit
 	x1 = bincenters[numpy.where(y_fit2 >= numpy.max(y_fit2)/2)[0][0]]
 	x2 = bincenters[numpy.where(y_fit2 >= numpy.max(y_fit2)/2)[0][-1]]
-	FWHM2 = x2-x1
+	FWHM_skewedGuassian = x2-x1
+
+	############  End asymmetric fit to the binned data ############  
+
 
 	# Plot the histogram and the fit line, normalized to match the histogram data
 	histogram_energyResults = plot.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -1206,38 +1211,34 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	ax.xaxis.set_minor_locator(AutoMinorLocator(4))
 	ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
+	# Overplot the Gaussian fit
+	y_fitNormalized = y_fit/numpy.max(y_fit)*numpy.max(energy_binned)
+	plot.plot(x, y_fitNormalized, color='darkred', linewidth=2)
+	plot.plot([mu_Guassian-(FWHM_Guassian/2.), mu_Guassian+(FWHM_Guassian/2.)], [numpy.max(y_fitNormalized)/2.,numpy.max(y_fitNormalized)/2.], color='darkred', linestyle='dotted', linewidth=2)
+
 	# Overplot the asymetric Gaussian fit
-	plot.plot(bincenters, y_fit2, color='darkred', linestyle='dotted', linewidth=2)
-	plot.plot([x1,x2],[numpy.max(y_fit2)/2.,numpy.max(y_fit2)/2.], color='darkgreen', linestyle='--', linewidth=2)
+	plot.plot(bincenters, y_fit2, color='green', linewidth=2)
+	plot.plot([x1,x2],[numpy.max(y_fit2)/2.,numpy.max(y_fit2)/2.], color='green', linestyle='dotted', linewidth=2)
 
 	# Plot the range of the fit
 	plot.plot([energyFitRange[0],energyFitRange[0]], [0,ax.get_ylim()[1]], color='lightblue', linestyle='--', linewidth=1)
 	plot.plot([energyFitRange[1],energyFitRange[1]], [0,ax.get_ylim()[1]], color='lightblue', linestyle='--', linewidth=1)
 
-	###### End asymmetric fit to the binned data ###### 
-
-
-	# Overplot the Gaussian fit
-	plot.plot(x,(y_fit/numpy.max(y_fit))*numpy.max(energy_binned), color='darkred', linewidth=2)
-	
-	# Calculate the Gaussian fit statistics
-	FWHM = 2*math.sqrt(2*math.log(2))*sigma
-
 	# Annotate the plot
 	ax0 = plot.subplot(111)	
-	# ax0.text(0.03, 0.9, "Mean = %.3f\nFWHM = %.3f" % (mu, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
-	ax0.text(0.03, 0.9, "Max = %.3f\nFWHM = %.3f" % (fitMax, FWHM2), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
+	ax0.text(0.03, 0.85, "Gaussian\nMean = %.3f keV\nFWHM = %.3f keV" % (mu_Guassian, FWHM_Guassian), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
+	ax0.text(0.03, 0.70, "Skewed Gaussian\nMax = %.3f keV\nFWHM = %.3f keV" % (fitMax_skewedGuassian, FWHM_skewedGuassian), verticalalignment='bottom', horizontalalignment='left', transform=ax0.transAxes, color='black', fontsize=12)
 
 	# Print some statistics
 	print "\n\nStatistics of energy histogram and fit (Compton events)"
 	print "***********************************************************"
 	print "Compton and pair events in energy histogram: %s (%s%%)" % ( len(energy_ComptonEvents[energySelection_fit]), 100*len(energy_ComptonEvents[energySelection_fit])/(numberOfComptonEvents + numberOfPairEvents))
 	print ""
-	print "Mean of Guassian fit: %s" % mu
-	print "FWHM of Guassian fit: %s" % FWHM	
+	print "Mean of Guassian fit: %s keV" % mu_Guassian
+	print "FWHM of Guassian fit: %s keV" % FWHM_Guassian	
 	print ""
-	print "Max of asymmetric Guassianfit: %s keV" % fitMax	
-	print "FWHM of asymmetric Guassian fit: %s keV" % FWHM2	
+	print "Max of asymmetric Guassian fit: %s keV" % fitMax_skewedGuassian
+	print "FWHM of asymmetric Guassian fit: %s keV" % FWHM_skewedGuassian	
 
 	# Show the plot
 	if showPlots == True:
@@ -1245,7 +1246,8 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	else:
 		plot.close()
 
-	return fitMax, FWHM2
+	return mu_Guassian, FWHM_Guassian, fitMax_skewedGuassian, FWHM_skewedGuassian
+
 
 ##########################################################################################
 
@@ -1451,7 +1453,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			# Calculate the energy resolution for Compton events
 			print "Calculating the energy resolution for Compton events..."
 			print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
-			mean, FWHM_energyComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
+			mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
 		 
 			# Calculate the angular resolution measurement (ARM) for Compton events
 			print "\n\nCalculating the angular resolution measurement for Compton events..."
