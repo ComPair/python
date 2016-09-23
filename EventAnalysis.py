@@ -228,6 +228,40 @@ def angularSeperation(vector1, vector2):
 
 ##########################################################################################
 
+def extractCoordinates(coordinateData):
+
+	x = []
+	y = []
+	z = []
+
+	for coordinates in coordinateData:
+		x.append(coordinates[0])
+		y.append(coordinates[1])
+		z.append(coordinates[2])
+
+	return x, y, z
+
+##########################################################################################
+
+def plotPairConversionCoordinates(events):
+
+	# Get the individual pair conversion coordinates
+	x, y, z = extractCoordinates(events['position_pairConversion'])
+
+	plot.figure(figsize=[10,9], color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.hist(x, bins=50)
+	plot.xlabel('x')
+
+	plot.figure(figsize=[10,9], color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.hist(y, bins=50)
+	plot.xlabel('y')
+
+	plot.figure(figsize=[10,9], color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+	plot.hist(z, bins=50)
+	plot.xlabel('z')
+
+
+##########################################################################################
 
 def parse(filename):
 
@@ -741,6 +775,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	# Define the list to contain the resulting angle measurements
 	angles = []
 	openingAngles = []
+	distances = []
 
 	# Start some counters
 	plotNumber = 0
@@ -803,6 +838,11 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
 		# Calculate the vector between the first interaction and the origin of the original gamma-ray
 		direction_source = -1*(position_conversion - position_source)
+
+		# Calculate the distance of the conversion point to the top-center of the spacecraft
+		position_topCenter = numpy.array([0,0,60])
+		distance = numpy.linalg.norm(position_conversion-position_topCenter)
+		distances.append(distance)
 
 		# Calculate the product of the vector magnitudes
 		angle = angularSeperation(direction_source, direction_source_reconstructed)
@@ -906,9 +946,21 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		# plot.xlim([0,45])
 		# plot.show()
 
-		print len(angles)
-		print len(events['qualityOfPairReconstruction'])
-		print len(energy_PairSum)
+
+		# plot.figure(figsize=[10,7])
+		# plot.scatter(angles, distances, marker='.', s=0.5, color='#3e4d8b')
+		# plot.xlabel('Angular Resolution (deg)')		
+		# plot.ylabel('distance')		
+		# plot.show()
+
+		x, y, z = extractCoordinates(events['position_pairConversion'])
+
+		plot.figure(figsize=[10,7])
+		plot.scatter(angles, z, marker='.', s=0.5, color='#3e4d8b')
+		plot.xlabel('Angular Resolution (deg)')		
+		plot.ylabel('z')		
+		plot.show()
+
 
 		plot.figure(figsize=[10,7])
 		cm = plot.cm.get_cmap('jet')
@@ -1357,6 +1409,38 @@ def plotDiagnostics(events, showPlots=True):
 
 	index_untracked = events['index_untracked']
 	index_tracked = events['index_tracked']
+
+
+	# Plot the conversion coordinates
+	fig = plot.figure()
+	ax = fig.add_subplot(111, projection='3d')
+
+	# Plot the geometry
+	plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+	plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+	plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+	# Set the plot limits
+	ax.set_xlim3d(-60,60)
+	ax.set_ylim3d(-60,60)
+	ax.set_zlim3d(-50,100)
+
+	# Set the plot labels
+	ax.set_xlabel('x')
+	ax.set_ylabel('y')
+	ax.set_zlabel('z')
+
+	x = []
+	y = []
+	z = []
+	for coordinates in events['position_pairConversion']:
+		x.append(coordinates[0])
+		y.append(coordinates[1])
+		z.append(coordinates[2])
+
+	ax.scatter(x, y, z, marker='.', s=1)
+	plot.show()
+
 
 	# Photon Energy vs ARM (Compton events)
 	plot.figure(figsize=[11,9])
