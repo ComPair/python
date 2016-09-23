@@ -7,12 +7,22 @@ Script to parse and visualize results created by mimrec:
 Author: Daniel Kocevski (dankocevski@gmail.com)
 Date: August 25st, 2016
 
+
 Usage Examples:
 
 import FigureOfMeritPlotter
 
+# Get the number of triggered and simulated events for a set of simulation files
+
+
+# Import Mimrec data
 simulationIDs = '../Simulations/PerformancePlotSourceFiles/FarFieldPointSourceIDs.txt'
-data = FigureOfMeritPlotter.parse(simulationIDs=simulationIDs)
+data = FigureOfMeritPlotter.parseMimrecLogs(simulationIDs=simulationIDs)
+
+# Import EventAnalysis data (Check the EventAnalysis doc string to see how to generate the TriggerEfficiency.txt file)
+directory = '../Simulations/MyCustomSimulationRun'
+triggerEfficiencyFilename = "../Simulations/MyCustomSimulationRun/TriggerEfficiency.txt"
+data = FigureOfMeritPlotter.parseEventAnalysisLogs(directory, triggerEfficiencyFilename=triggerEfficiencyFilename)
 
 # Effecitive Area vs Energy
 FigureOfMeritPlotter.plotEffectiveArea(data)
@@ -81,16 +91,16 @@ def parseSimLog(filename):
 
 		# Parse the lines
 		if 'ID ' in line:
-			NumberOfSimulatedEvents = float(line.split()[2])
+			numberOfSimulatedEvents = float(line.split()[2])
 
 	fileinput.close()
 
-	return NumberOfSimulatedEvents
+	return numberOfSimulatedEvents
 
 
 ##########################################################################################
 
-def parseMimrecLog(filename, interactionType, verbose=False):
+def getMimrecValues(filename, interactionType, verbose=False):
 
 	# Return nan values if the file doesn't exist
 	if os.path.isfile(filename) == False:
@@ -150,7 +160,7 @@ def parseMimrecLog(filename, interactionType, verbose=False):
 
 ##########################################################################################
 
-def parse(sumlationsIDs=None):
+def parseMimrecLogs(sumlationsIDs=None):
 
 	# Define the path to the python repository
 	pythonPath = os.path.dirname(os.path.realpath(__file__))
@@ -201,17 +211,17 @@ def parse(sumlationsIDs=None):
 
 		# Get the mimrec figures of merit and add the dictionary
 		# print "Parsing: %s" % mimrecFilename_tracked
-		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = parseMimrecLog(mimrecFilename_tracked, interactionType='Compton')
+		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = getMimrecValues(mimrecFilename_tracked, interactionType='Compton')
 		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
 
 		# Get the mimrec figures of merit and add the dictionary
 		# print "Parsing: %s" % mimrecFilename_untracked	
-		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = parseMimrecLog(mimrecFilename_untracked, interactionType='Compton')
+		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = getMimrecValues(mimrecFilename_untracked, interactionType='Compton')
 		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
 
 		# Get the mimrec figures of merit and add the dictionary
 		# print "Parsing: %s" % mimrecFsilename_pair		
-		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents = parseMimrecLog(mimrecFilename_pair, interactionType='Pair')
+		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents = getMimrecValues(mimrecFilename_pair, interactionType='Pair')
 		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents])
 
 		currentNumber = currentNumber + 1
@@ -225,7 +235,6 @@ def parse(sumlationsIDs=None):
 ##########################################################################################
 
 def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
-
 
 	if triggerEfficiencyFilename == None:
 		triggerEfficiencyFilename = directory + '/TriggerEfficiency.txt'
