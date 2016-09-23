@@ -1141,7 +1141,8 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 	egret_psf=interpolate.splev(egret_energy,tck,der=0)
 	egret_back=7.32e-9*(egret_energy/451.)**(-2.1) #from Sreekumar et al. 1998 in photons/cm2/s/MeV
 	egret_exposure=86400.*7.*2.*0.4 #seconds in 2 weeks *0.4 efficiency
-	egret_sensitivity=Isrc(egret_energy,egret_exposure,egret_aeff,3,omega(egret_psf),egret_back)
+	off_angle=1/0.5 #from sensitivity vs inclination angle = 15 deg
+	egret_sensitivity=off_angle*Isrc(egret_energy,egret_exposure,egret_aeff,3,omega(egret_psf),egret_back)
 	plot.plot(egret_energy,egret_sensitivity,'r--',color='blue',lw=2)
 	plot.annotate('EGRET', xy=(4e2,1e-4),xycoords='data',fontsize=16,color='blue')
 
@@ -1154,6 +1155,19 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 	comptel_energy=[0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747]
 	comptel_sens=[6.566103E-4,3.6115389E-4,1.4393721E-4,1.6548172E-4,2.36875E-4,3.390693E-4]
 	plot.plot(comptel_energy,comptel_sens,color='orange',lw=2)
+	# from Schonfelder et al. (1993)
+	#comptel_psf=1.247/(1-exp(-0.854*energy**0.9396))
+	#comptel_sensitivity=Isrc(energy,comptel_exposure,comptel_aeff,3,omega(comptel_psf),comptel_back)
+	comptel_energy_low=numpy.array([0.7,1,3,10])
+	comptel_energy_high=numpy.array([1,3,10,30])
+	comptel_energy=10**((numpy.log10(comptel_energy_low)+numpy.log10(comptel_energy_high))/2.)
+	comptel_aeff=44.95*(numpy.log(comptel_energy)+0.853)**1.655*comptel_energy**(-0.8593)
+#	comptel_back=numpy.array([9600,51000,16900,1150.])
+#	comptel_exposure=numpy.array([2.3e6,3.9e6,7.1e6,10.8e6])
+#	comptel_sensitivity=3*comptel_back**0.5/(comptel_aeff*comptel_exposure)#*comptel_energy**2
+	comptel_sensitivity=numpy.array([1.2e-4,1.9e-4,7.9e-5,1.6e-5])*comptel_energy**2/(comptel_energy_high-comptel_energy_low)
+
+	plot.plot(comptel_energy,comptel_sensitivity,'r--',color='orange',lw=2)
 	plot.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=16,color='orange')
 
 	#NuSTAR
