@@ -52,7 +52,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib.ticker import AutoMinorLocator
 import glob
-
+from matplotlib.colors import LogNorm
 
 # Set the default title font dict
 titleFormat = {'fontsize': 12, 'fontweight' : plot.rcParams['axes.titleweight'], 'verticalalignment': 'baseline', 'horizontalalignment': 'center'}
@@ -529,6 +529,18 @@ def parse(filename):
 			# Store the direction of the pair electron
 			direction_pairPositron.append([x,y,z])
 
+
+		if 'PI ' in line and skipEvent == False:
+
+			# Split the line
+			lineContents = line.split()
+
+			# Get the electron information
+			energy_pairDepositedInFirstLayer.append(float(lineContents[1]))
+
+
+
+
 		# Extract the reconstruction quality
 		if 'TQ ' in line and skipEvent == False:
 
@@ -724,7 +736,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 
 ##########################################################################################
 
-def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -733,6 +745,11 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 	# Start some counters
 	plotNumber = 0
 	numberOfRejectedEvents = 0
+
+	# Define a default position to the source
+	dz = 1000.0
+	dx = 0
+	dy = 0
 
 	# Create a list to contain an index of events passing the quality cut
 	index_goodQuality = []
@@ -763,8 +780,11 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 		# Get the position of the gamma conversion
 		position_conversion = events['position_pairConversion'][index]
 
-		# Get the origin position of the original gamma-ray
-		position_source = [position_conversion[0], position_conversion[1], 1000.0]
+		# Get the x-axis offset based on the theta of the source.  This assumes phi=0
+		dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] + dz)
+
+		# Set the origin position of the original gamma-ray
+		position_source = [position_conversion[0]-dx, position_conversion[1], dz]
 
 		# Get the electron and positron direction vectors. These are unit vectors.
 		direction_electron = events['direction_pairElectron'][index]
@@ -868,6 +888,74 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 			return
 
 	if showDiagnosticPlots == True:
+
+		# Get the sum energy
+		energy_PairSum = events['energy_pairElectron'] + events['energy_pairPositron']
+
+		# Generate the color map
+		norm = plot.Normalize()
+		colors = plot.cm.jet(norm(energy_PairSum))
+		# colors = plot.cm.jet(norm(numpy.log(energy_PairSum)))
+
+		# plot.hist(energy_PairSum, bins=100, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+		# plot.xlabel('Energy (keV)')
+		# plot.show()
+
+		# plot.hist(openingAngles, bins=150, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+		# plot.xlabel('Opening Angle (deg)')
+		# plot.xlim([0,45])
+		# plot.show()
+
+		print len(angles)
+		print len(events['qualityOfPairReconstruction'])
+		print len(energy_PairSum)
+
+		plot.figure(figsize=[10,7])
+		cm = plot.cm.get_cmap('jet')
+		plot.scatter(angles, events['qualityOfPairReconstruction'], c=energy_PairSum, s=10, cmap=cm, edgecolor='none')
+		cbar = plot.colorbar(pad = 0.02)
+		cbar.set_label('Energy (keV)')
+		plot.xlabel('Angular Resolution (deg)')
+		plot.ylabel('Quality Factor')
+		plot.xlim([0,10])
+		plot.ylim([0,1])
+
+		plot.figure(figsize=[10,7])
+		plot.hist2d(angles, events['qualityOfPairReconstruction'], bins=300, norm=LogNorm())
+		plot.xlabel('Angular Resolution (deg)')		
+		plot.ylabel('Quality Factor')		
+		plot.xlim([0,10])
+		plot.ylim([0,1])
+		plot.show()
+
+		plot.figure(figsize=[11,9])
+		plot.scatter(angles, events['energy_pairElectron'] / events['energy_pairPositron'], marker='.', s=0.5, color='#3e4d8b')
+		plot.xlabel('Angular Resolution (deg)')
+		plot.ylabel(r'$E_{e-}$/$E_{e+}$')		
+		plot.yscale('log')
+		plot.xlim([-5,90])
+		plot.ylim([1e-3,1e3])
+		plot.show()
+
+		plot.figure(figsize=[11,9])
+		plot.scatter(angles, events['energy_pairElectron'] + events['energy_pairPositron'], marker='.', s=0.5, color='#3e4d8b')
+		plot.xlabel('Angular Resolution (deg)')		
+		plot.ylabel(r'$E_{e-}$ + $E_{e+}$')		
+		# plot.yscale('log')
+		plot.xlim([-5,90])	
+		plot.ylim([0,1e5])		
+		plot.show()
+
+		plot.figure(figsize=[11,9])
+		plot.scatter(angles, events['energy_pairDepositedInFirstLayer'], marker='.', s=0.5, color='#3e4d8b')
+		plot.xlabel('Angular Resolution (deg)')		
+		plot.ylabel(r'Deposited Energy (keV)')		
+		# plot.yscale('log')
+		plot.xlim([-5,90])	
+		# plot.ylim([0,1e5])		
+		plot.show()
+
+
 		plot.hist(events['energy_pairElectron'][index_goodQuality]/(events['energy_pairElectron'][index_goodQuality]+events['energy_pairPositron'][index_goodQuality]), bins=100, alpha=0.8, color='#3e4d8b', label=r'$e^{-}$')
 		plot.hist(events['energy_pairPositron'][index_goodQuality]/(events['energy_pairElectron'][index_goodQuality]+events['energy_pairPositron'][index_goodQuality]), bins=100, alpha=0.8, color='darkred', label=r'$e^{+}$')
 		plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper center')	
@@ -885,6 +973,7 @@ def getARMForPairEvents(events, numberOfBins=100, angleFitRange=[0,180], anglePl
 		ax.xaxis.set_minor_locator(AutoMinorLocator(4))
 		ax.yaxis.set_minor_locator(AutoMinorLocator(4))		
 		plot.show()
+
 
 
 	# Conver the list of angles to a numpy array
@@ -1377,9 +1466,9 @@ def plotDiagnostics(events, showPlots=True):
 
 ##########################################################################################
 
-def visualizePairs(events, numberOfPlots=10):
+def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 
-	getARMForPairEvents(events, numberOfPlots=numberOfPlots, finishExtraction=False, showDiagnosticPlots=False)
+	getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfPlots=numberOfPlots, finishExtraction=False, showDiagnosticPlots=False)
 
 	return
 
