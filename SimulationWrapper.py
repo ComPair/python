@@ -5,11 +5,62 @@
 A Wrapper script to run the entire MEGAlib simulation and Compair analysis pipeline 
 
 Author: Daniel Kocevski (dankocevski@gmail.com)
-Date: June 21st, 2016
+Date: September 23rd, 2016
 
 Usage Examples:
 import EventViewer
-EventViewer.plot('MyComPair_Tower.inc1.id1.sim')
+SimulatonWrapper.Run('file.txt')
 
 ------------------------------------------------------------------------
 """
+
+import glob
+import numpy
+import os
+import EventAnalysis
+
+
+def run(directory, revanConfigFile=None, seed=None):
+
+	# Get the list of source files
+	sourcefiles = glob.glob(directory + '/*.source')
+
+	# Get the revan config file if one was not provided
+	revanConfigFile = glob.glob(directory + '/*.cfg')[0]
+
+	# Generate a list of seeds
+	seeds = int(numpy.random(len(sourcefiles))*100)
+
+	# Loop through each of the source files and run them through cosima and revan, and analyze their output with EventAnalysis
+	for sourcefile, seed in zip(sourcefiles, seeds):
+
+		# Generate the cosima command
+		command_cosima = "cosima -s %s %s" % (seed, sourcefile)
+
+		# Issued the cosima command
+		print command_cosima
+		output = os.system(command_cosima)
+
+
+		# Generate the sim filename
+		simfile = sourcefile.replace('.source','.sim')
+
+		# Generate the revan command
+		command_revan = "revan -f %s -c %s" % (simfile, revanConfigFile)
+
+		# Issued the revan command
+		print command_revan
+		output = os.system(command_revan)
+
+
+		# Extract the number of triggered and simulated events
+		EventAnalysis.getTriggerEfficiency(filename=simfile)
+
+		# Generate the .tra filename
+		trafile = simfile.replace('.sim', '.tra')
+
+		# Analyze the results of the .tra file
+		# EventAnalysis.performCompleteAnalysis(filename=trafile)
+
+
+	return
