@@ -38,25 +38,29 @@ import os
 import time
 import sys
 import fileinput
-import matplotlib.pyplot as plot
-from mpl_toolkits.mplot3d import Axes3D
 import numpy
 from itertools import product, combinations
 from collections import OrderedDict
 from scipy.stats import norm
-import matplotlib.mlab as mlab
 from scipy.optimize import leastsq
 import scipy.optimize
 import math
-import matplotlib.gridspec as gridspec
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-from matplotlib.ticker import AutoMinorLocator
 import glob
-from matplotlib.colors import LogNorm
 
-# Set the default title font dict
-titleFormat = {'fontsize': 12, 'fontweight' : plot.rcParams['axes.titleweight'], 'verticalalignment': 'baseline', 'horizontalalignment': 'center'}
+try:
+	import matplotlib.pyplot as plot
+	from mpl_toolkits.mplot3d import Axes3D
+	import matplotlib.mlab as mlab
+	import matplotlib.gridspec as gridspec
+	from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+	from matplotlib.ticker import AutoMinorLocator
+	from matplotlib.colors import LogNorm
+	
+	# Set the default title font dict
+	titleFormat = {'fontsize': 12, 'fontweight' : plot.rcParams['axes.titleweight'], 'verticalalignment': 'baseline', 'horizontalalignment': 'center'}
 
+except:
+	print "\n**** Warning: matplotlib not found. Do not try to make plots or bad things will happen! ****"
 
 ##########################################################################################
 
@@ -1560,7 +1564,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=True, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
