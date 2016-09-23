@@ -717,15 +717,25 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 	height2 = 0
 
 	# Fit the histogram data
-	optimizedParameters, covariance = scipy.optimize.curve_fit(DoubleLorentzian, bincenters, dphi_binned, [offset, mean, width1, height1, width2, height2])
+	try:
+		optimizedParameters, covariance = scipy.optimize.curve_fit(DoubleLorentzian, bincenters, dphi_binned, [offset, mean, width1, height1, width2, height2])
 
-	# Calculate the optimized curve
-	y_fit = DoubleLorentzian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3], optimizedParameters[4], optimizedParameters[5])
+		# Calculate the optimized curve
+		y_fit = DoubleLorentzian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3], optimizedParameters[4], optimizedParameters[5])
 
-	# Get the fwhm of the fit
-	x1 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][0]]
-	x2 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][-1]]
-	FWHM = x2-x1
+		# Get the fwhm of the fit
+		x1 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][0]]
+		x2 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][-1]]	
+
+		mean = optimizedParameters[1]
+		FWHM = x2-x1
+
+	except:
+
+		print "**** Warning: fit failed to converge! ****"
+		mean = numpy.nan
+		FWHM = numpy.nan
+
 
 	# Print some statistics
 	print "\n\nStatistics of ARM histogram and fit (Compton Events)"
