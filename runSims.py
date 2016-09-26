@@ -112,8 +112,8 @@ def cli():
     parser.add_argument("--sourcePath",help="Where the source files live.  If not given, will get from COMPAIRPATH.")
     parser.add_argument("--simPath", help="Where the sim files live (from cosima).")
     parser.add_argument("--revanCfg", help="Revan config file (need full path).")
-    parser.add_argument("--partition", nargs='+', type=int, default=[0,-1],
-                        help="Python like slice statement to divide lists.") 
+    parser.add_argument("--partition", nargs=2, type=int, default=[0,-1],
+                        help="Python like slice statement to divide lists.  Need to provide two numbers (default is 0 -1).") 
     
     args = parser.parse_args()
 
@@ -122,7 +122,7 @@ def cli():
     else:
         print "COMPAIRPATH set to " + os.environ['COMPAIRPATH']
 
-    print args.partition
+    p1,p2 = args.partition
         
     if args.runCosima:
         srcFiles = getFiles(args.sourcePath,'source')
@@ -133,7 +133,7 @@ def cli():
             print "Got this many source files: " + str(len(srcFiles))
             print "Spawing jobs"
             pool = Pool(processes=args.jobs)
-            pool.map(runCosima,srcFiles)
+            pool.map(runCosima,srcFiles[p1,p2])
 
     if args.runRevan:
         simFiles = getFiles(args.simPath,'sim')
@@ -147,7 +147,8 @@ def cli():
             print "Got this many sim files: " + str(len(simFiles))
             print "Spawning jobs"
             pool = Pool(processes=args.jobs)
-            pool.map(runRevan_star, izip(simFiles,repeat(args.revanCfg)))
+            pool.map(runRevan_star,
+                     izip(simFiles[p1,p2],repeat(args.revanCfg)))
 
 if __name__ == '__main__': cli()
     
