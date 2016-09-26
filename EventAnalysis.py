@@ -38,25 +38,29 @@ import os
 import time
 import sys
 import fileinput
-import matplotlib.pyplot as plot
-from mpl_toolkits.mplot3d import Axes3D
 import numpy
 from itertools import product, combinations
 from collections import OrderedDict
 from scipy.stats import norm
-import matplotlib.mlab as mlab
 from scipy.optimize import leastsq
 import scipy.optimize
 import math
-import matplotlib.gridspec as gridspec
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-from matplotlib.ticker import AutoMinorLocator
 import glob
-from matplotlib.colors import LogNorm
 
-# Set the default title font dict
-titleFormat = {'fontsize': 12, 'fontweight' : plot.rcParams['axes.titleweight'], 'verticalalignment': 'baseline', 'horizontalalignment': 'center'}
+try:
+	import matplotlib.pyplot as plot
+	from mpl_toolkits.mplot3d import Axes3D
+	import matplotlib.mlab as mlab
+	import matplotlib.gridspec as gridspec
+	from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+	from matplotlib.ticker import AutoMinorLocator
+	from matplotlib.colors import LogNorm
+	
+	# Set the default title font dict
+	titleFormat = {'fontsize': 12, 'fontweight' : plot.rcParams['axes.titleweight'], 'verticalalignment': 'baseline', 'horizontalalignment': 'center'}
 
+except:
+	print "\n**** Warning: matplotlib not found. Do not try to make plots or bad things will happen! ****"
 
 ##########################################################################################
 
@@ -713,15 +717,25 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 	height2 = 0
 
 	# Fit the histogram data
-	optimizedParameters, covariance = scipy.optimize.curve_fit(DoubleLorentzian, bincenters, dphi_binned, [offset, mean, width1, height1, width2, height2])
+	try:
+		optimizedParameters, covariance = scipy.optimize.curve_fit(DoubleLorentzian, bincenters, dphi_binned, [offset, mean, width1, height1, width2, height2])
 
-	# Calculate the optimized curve
-	y_fit = DoubleLorentzian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3], optimizedParameters[4], optimizedParameters[5])
+		# Calculate the optimized curve
+		y_fit = DoubleLorentzian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3], optimizedParameters[4], optimizedParameters[5])
 
-	# Get the fwhm of the fit
-	x1 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][0]]
-	x2 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][-1]]
-	FWHM = x2-x1
+		# Get the fwhm of the fit
+		x1 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][0]]
+		x2 = bincenters[numpy.where(y_fit >= numpy.max(y_fit)/2)[0][-1]]	
+
+		mean = optimizedParameters[1]
+		FWHM = x2-x1
+
+	except:
+
+		print "**** Warning: fit failed to converge! ****"
+		mean = numpy.nan
+		FWHM = numpy.nan
+
 
 	# Print some statistics
 	print "\n\nStatistics of ARM histogram and fit (Compton Events)"
@@ -1560,7 +1574,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=True, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
