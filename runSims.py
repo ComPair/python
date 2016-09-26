@@ -78,7 +78,7 @@ def runRevan(simFile, cfgFile):
             f.write(err)
     
             
-def getFiles(searchDir = ''):
+def getFiles(searchDir = '', extension = 'source'):
 
     from glob import glob    
 
@@ -87,22 +87,25 @@ def getFiles(searchDir = ''):
         return ""
 
     if searchDir:
-        return glob(searchDir+'/*.source')
+        return glob(searchDir+'/*.'+extension)
     else:
-        return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.source')
+        return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.'+extension)
 
 def cli():
 
     from multiprocessing import Pool
     
-    helpString = "Submits cosima jobs to multiple cores."
+    helpString = "Submits cosima or revan jobs to multiple cores."
 
     import argparse
     parser = argparse.ArgumentParser(description=helpString)
 
     parser.add_argument("jobs", type=int, help="The number of jobs you wish to spawn (usually the number of cores on your machine).")
+    parser.add_argument("--runCosima", type=bool, default=False, help="Run cosima (default is false)")
+    parser.add_argument("--runRevan", type=bool, default=False, help="Run revan (default is false)")
     parser.add_argument("--COMPAIRPATH",help="Path to compair files.  You can set this via an environment variable")
-    parser.add_argument("--sourcePath",help="Where the source files live.  If not give, will get from COMPAIRPATH.")
+    parser.add_argument("--sourcePath",help="Where the source files live.  If not given, will get from COMPAIRPATH.")
+    parser.add_argument("--simPath", help="Where the sim fils liver (from cosima). If not given, will get from COMPAIRPATH.")
 
     args = parser.parse_args()
 
@@ -111,16 +114,22 @@ def cli():
     else:
         print "COMPAIRPATH set to " + os.environ['COMPAIRPATH']
 
-    srcFiles = getFiles(args.sourcePath)
-    if not srcFiles:
-        print "No source files found"
-        exit()
-    else:
-        print "Got this many source files: " + str(len(srcFiles))
-        print "Spawing jobs"
-        pool = Pool(processes=args.jobs)
-        pool.map(runCosima,srcFiles)
-    
+    if args.runCosima:
+        srcFiles = getFiles(args.sourcePath,'source')
+        if not srcFiles:
+            print "No source files found"
+            exit()
+        else:
+            print "Got this many source files: " + str(len(srcFiles))
+            print "Spawing jobs"
+            pool = Pool(processes=args.jobs)
+            pool.map(runCosima,srcFiles)
+
+    if args.runRevan:
+        simFiles = getFiles(args.simPath,'sim')
+        if not simFiles:
+            print "No sim files found"
+            exit()
 
 if __name__ == '__main__': cli()
     
