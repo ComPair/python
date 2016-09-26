@@ -64,20 +64,18 @@ def runRevan(simFile, cfgFile):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
 
-    print ['revan', '-f', simFile, '-c', cfgFile, '-n', '-a']
-    
-    #out, err = p.communicate()
+    out, err = p.communicate()
 
     base = os.path.splitext(os.path.basename(simFile))
 
     print "Writing Log for " + simFile
-    #with gzip.open(base[0]+'.revan.stdout.gz', 'wb') as f:
-    #    f.write(out)
+    with gzip.open(base[0]+'.revan.stdout.gz', 'wb') as f:
+        f.write(out)
 
-    #if (len(err) > 0):
-    #    print "Errors exist, might want to check " + simFile
-    #    with gzip.open(base[0]+'.revan.stderr.gz', 'wb') as f:
-    #        f.write(err)
+    if (len(err) > 0):
+        print "Errors exist, might want to check " + simFile
+        with gzip.open(base[0]+'.revan.stderr.gz', 'wb') as f:
+            f.write(err)
 
 def runRevan_star(files):
     """Convert `f([1,2])` to `f(1,2)` call."""
@@ -113,7 +111,9 @@ def cli():
     parser.add_argument("--COMPAIRPATH",help="Path to compair files.  You can set this via an environment variable")
     parser.add_argument("--sourcePath",help="Where the source files live.  If not given, will get from COMPAIRPATH.")
     parser.add_argument("--simPath", help="Where the sim files live (from cosima).")
-    parser.add_argument("--revanCfg", help="revan config file")
+    parser.add_argument("--revanCfg", help="Revan config file (need full path).")
+    parser.add_argument("--partition", nargs='+', type=int, default=[0,-1],
+                        help="Python like slice statement to divide lists.") 
     
     args = parser.parse_args()
 
@@ -122,6 +122,8 @@ def cli():
     else:
         print "COMPAIRPATH set to " + os.environ['COMPAIRPATH']
 
+    print args.partition
+        
     if args.runCosima:
         srcFiles = getFiles(args.sourcePath,'source')
         if not srcFiles:
