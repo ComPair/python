@@ -46,7 +46,7 @@ cos_ang =ang2cos(angles)
 for myene in energies:
    for cosTh,ang in zip(cos_ang,angles):
       
-      # this is to print all the combination of values
+      # this is to print all the parameters combinations
       #print (geofile, OneBeam, myene/1000., cosTh, OneBeam, ang, myene)
       
       #this is just a long string, with all the raws of the .source file, and the energies/angles values
