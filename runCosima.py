@@ -60,7 +60,7 @@ def runRevan(simFile, cfgFile):
 
     print "Running revan on " + simFile
 
-    p = subprocess.Popen(['revan', '-f', simFile, '-c', cfgFile],
+    p = subprocess.Popen(['revan', '-f', simFile, '-c', cfgFile, '-n', '-a'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
 
@@ -69,12 +69,12 @@ def runRevan(simFile, cfgFile):
     base = os.path.splitext(os.path.basename(simFile))
 
     print "Writing Log for " + simFile
-    with gzip.open(base[0]+'.stdout.gz', 'wb') as f:
+    with gzip.open(base[0]+'.revan.stdout.gz', 'wb') as f:
         f.write(out)
 
     if (len(err) > 0):
         print "Errors exist, might want to check " + simFile
-        with gzip.open(base[0]+'.stderr.gz', 'wb') as f:
+        with gzip.open(base[0]+'.revan.stderr.gz', 'wb') as f:
             f.write(err)
     
             
