@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+------------------------------------------------------------------------
+A script that runs the ComPair analysis chain on a multicore system.
+
+Probably not useful in other cases...
+
+Author: Jeremy Perkins (jeremy.s.perkins@nasa.gov)
+
+------------------------------------------------------------------------
+"""
+
 import os
 
 def setPath(comPath = ""):
@@ -40,7 +52,32 @@ def runCosima(srcFile):
         print "Errors exist, might want to check " + srcFile
         with gzip.open(base[0]+'.stderr.gz', 'wb') as f:
             f.write(err)
+
+def runRevan(simFile, cfgFile):
+
+    import subprocess
+    import gzip
+
+    print "Running revan on " + simFile
+
+    p = subprocess.Popen(['revan', '-f', simFile, '-c', cfgFile],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+
+    out, err = p.communicate()
+
+    base = os.path.splitext(os.path.basename(simFile))
+
+    print "Writing Log for " + simFile
+    with gzip.open(base[0]+'.stdout.gz', 'wb') as f:
+        f.write(out)
+
+    if (len(err) > 0):
+        print "Errors exist, might want to check " + simFile
+        with gzip.open(base[0]+'.stderr.gz', 'wb') as f:
+            f.write(err)
     
+            
 def getFiles(searchDir = ''):
 
     from glob import glob    
