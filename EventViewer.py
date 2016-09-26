@@ -1,4 +1,18 @@
 #!/usr/bin/env python
+"""
+------------------------------------------------------------------------
+
+Script to visualize events created by cosima:
+
+Author: Daniel Kocevski (dankocevski@gmail.com)
+Date: June 21st, 2016
+
+Usage Examples:
+import EventViewer
+EventViewer.plot('MyComPair_Tower.inc1.id1.sim')
+
+------------------------------------------------------------------------
+"""
 
 import os
 import time
@@ -11,24 +25,7 @@ from itertools import product, combinations
 from collections import OrderedDict
 
 
-"""
-------------------------------------------------------------------------
 
-Script to visualize events created by cosima:
-
-Title: 
-Reference: 
-Link:
-
-Author: Daniel Kocevski (dankocevski@gmail.com)
-Date: June 21st, 2016
-
-Usage Examples:
-import EventViewer
-EventViewer.plot('MyComPair_Tower.inc1.id1.sim')
-
-------------------------------------------------------------------------
-"""
 
 ##########################################################################################
 
