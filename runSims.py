@@ -133,7 +133,7 @@ def cli():
             print "Got this many source files: " + str(len(srcFiles))
             print "Spawing jobs"
             pool = Pool(processes=args.jobs)
-            pool.map(runCosima,srcFiles[p1,p2])
+            pool.map(runCosima,srcFiles[p1:p2])
 
     if args.runRevan:
         simFiles = getFiles(args.simPath,'sim')
@@ -148,7 +148,7 @@ def cli():
             print "Spawning jobs"
             pool = Pool(processes=args.jobs)
             pool.map(runRevan_star,
-                     izip(simFiles[p1,p2],repeat(args.revanCfg)))
+                     izip(simFiles[p1:p2],repeat(args.revanCfg)))
 
 if __name__ == '__main__': cli()
     
