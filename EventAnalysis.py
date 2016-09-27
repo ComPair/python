@@ -1812,18 +1812,17 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
                 #Counter to look keep track of section dividers.
                 counter = 0
 
-                with open("FarFieldPointSource_100.000MeV_Cos0.6.inc1.id1.tra") as infile:
+                with open(filename) as infile:
                         for line in infile:
                         # Loop until you find these dividers.  Four dividers.
                                 if line[0:5] == '-----':
                                         counter += 1
-                                        if counter == 2:
-                                                split_line = line.split(':')
-                                                if len(split_line) > 1:
-                                                        if split_line[1] != '\n':
-                                                                value = int(split_line[1].translate(None, '.'))
-                                                                triggerStats[split_line[0].strip()] = value
-
+				if counter == 2:
+					split_line = line.split(':')
+					if len(split_line) > 1:
+						if split_line[1] != '\n':
+							value = int(split_line[1].translate(None, '.'))
+							triggerStats[split_line[0].strip()] = value
                 revanStats[filename] = triggerStats
                               
 	print "\nTrigger Efficiencies:"

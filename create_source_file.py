@@ -14,7 +14,7 @@ from numpy import *
 from math import *
 
 #here put your geometry file and source type
-geofile= 'MY_GEOMETRY_FILE'
+geofile= '$COMPAIRPATH/Geometry/TowerModel/CompairBase.geo.setup'
 OneBeam= 'FarFieldPointSource'
 
 #define your energies and angles 
