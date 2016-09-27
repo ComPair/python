@@ -1751,15 +1751,22 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		numberOfSimulatedEvents = float(output.split()[2])
 
 		# Add the values to the results dictionary
-		triggerEfficiency[filename] = [numberOfTriggers, numberOfSimulatedEvents]
+		triggerEfficiency[filename] = {
+			'numberOfTriggers' : numberOfTriggers,
+			'numberOfSimulatedEvents' : numberOfSimulatedEvents}
+
+		# Add the details from the file.
+		details = getDetailsFromFilename(filename)
+		for key in details:
+			triggerEfficiency[filename][key] = details[key]
 
 
 	print "\nTrigger Efficiencies:"
 	for filename in filenames:
 
 		# Extract the values
-		numberOfTriggers = triggerEfficiency[filename][0]
-		numberOfSimulatedEvents = triggerEfficiency[filename][1]
+		numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
+		numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
 	
 		# Print the results
 		print filename, numberOfTriggers, numberOfSimulatedEvents, ' %.2f%%' % (100*numberOfTriggers/numberOfSimulatedEvents)
@@ -1778,8 +1785,8 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		for filename in filenames:
 
 			# Extract the values
-			numberOfTriggers = triggerEfficiency[filename][0]
-			numberOfSimulatedEvents = triggerEfficiency[filename][1]
+			numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
+			numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
 
 			# Write out the values
 			output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
@@ -1823,13 +1830,15 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
 
 		print "Parsing: %s" % filename
                               
-                #Dictionary to save individual file results
-                triggerStats = {}
-
                 #Counter to look keep track of section dividers.
                 counter = 0
 
-		triggerStats['details'] = getDetailsFromFilename(filename)
+                #Dictionary to save individual file results
+		triggerStats = {}
+		#Fill the details from the filname
+		details = getDetailsFromFilename(filename)
+		for key in details:
+			triggerStats[key] = details[key]
 
                 with open(filename) as infile:
                         for line in infile:
