@@ -64,6 +64,23 @@ except:
 
 ##########################################################################################
 
+def getDetailsFromFilename(filename):
+
+	'''Function to get the energy and angle from a filename.
+	Really should be meta data.'''
+
+	details = {}
+	info = filename.split('_')
+
+	details['MeV'] = info[1][:-3]
+
+	angle = info[2].split('.')
+	details['Cos'] = "{}.{}".format(angle[0][3:], angle[1])
+
+	return details
+
+
+
 def DoubleLorentzAsymGausArm(x, par):
 	"""
 	DoubleLorentzAsymGausArm(x, par)
