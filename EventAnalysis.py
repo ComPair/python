@@ -1829,6 +1829,8 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
                 #Counter to look keep track of section dividers.
                 counter = 0
 
+		triggerStats['details'] = getDetailsFromFilename(filename)
+
                 with open(filename) as infile:
                         for line in infile:
                         # Loop until you find these dividers.  Four dividers.
