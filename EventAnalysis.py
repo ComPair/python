@@ -801,7 +801,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -1057,10 +1057,19 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		ax.yaxis.set_minor_locator(AutoMinorLocator(4))		
 		plot.show()
 
+		plot.figure(figsize=[10,7])
+		ax2=plot.subplot(111)
+		ARMvOpeningAngle=ax2.plot(angles,openingAngles,'ro')
+		ax2.set_xlabel('Angular Resolution (deg)')
+		ax2.set_ylabel('Opening Angle (deg)')
+		plot.show()
+		#plot.clf()
 
 
-	# Conver the list of angles to a numpy array
+
+	# Convert the list of angles and opening angles to numpy arrays 
 	angles = numpy.array(angles)
+	openingAngles = numpy.array(openingAngles)
 
 	# # Select the events within the desired quality range
 	# selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
@@ -1069,8 +1078,10 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	# angles_unfiltered = angles
 	# angles = angles[selection_quality]
 
-	# Select the events within the desired energy range
+	# Select the events within the desired angle range and opening angle
 	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
+	selection_fit = numpy.where( (openingAngles <= openingAngleMax) )
+	oa_len = len(angles[selection_fit])
 
 	# Apply the fit selection
 	angles_fit = angles[selection_fit]
@@ -1129,7 +1140,8 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	print "*****************************************************"
 	print ""
 	print "Total number of pair events: %s" % events['numberOfPairEvents']
-	print "Number of pair events passing quality cut: %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) 
+	print "Number of pair events passing quality cut  : %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) 
+	print "Number of pair events passing opening angle: %s (%s%%)" % ( oa_len, 100*oa_len/(events['numberOfPairEvents']) ) 
 	print "Number of pair events included in ARM histogram: %s (%s%%)" % ( len(angles_fit), 100*len(angles_fit)/(len(angles_fit)) )
 	print ""
 	print "Maximum: %s" % angles_max	
@@ -1144,7 +1156,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	else:
 		plot.close()
 
-	return angles, contaimentData_68, contaimentBinned_68
+	return angles, openingAngles, contaimentData_68, contaimentBinned_68
 
 
 ##########################################################################################
