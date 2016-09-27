@@ -1705,7 +1705,7 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		print "Please provide a  filename, a list of filenames, or a directory name"
 		return
 
-	# Check to see if the user supplied a directory.  If so, include all .tra files in the directory
+	# Check to see if the user supplied a directory.  If so, include all .sim files in the directory
 	if directory != None:
 		print "\nSearching: %s\n" % directory
 		filenames = glob.glob(directory + '/*.sim')
@@ -1774,6 +1774,68 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 
 
 	return triggerEfficiency
+
+def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
+
+	"""
+	A function to extract the statistics from a revan tra file (used to check things)
+	Usage Examples: 
+	EventViewer.getNumberOfSimulatedEvents(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.sim')
+	EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
+	"""
+
+        if filename == None and directory == None:
+                print "*** No filename or directory provide ***"
+                print "Please provide a  filename, a list of filenames, or a directory name"
+                return
+
+	# Check to see if the user supplied a directory.  If so, include all .tra files in the directory
+	if directory != None:
+                print "\nSearching: %s\n" % directory
+                filenames = glob.glob(directory + '/*.tra')
+
+	# Check if the user supplied a single file vs a list of files
+	if isinstance(filename, list) == False and filename != None:
+                filenames = [filename]
+
+	# Create a dictionary to return the results
+	revanStats = {} 		
+
+	# Loop through each file
+	for filename in filenames:
+
+		print "Parsing: %s" % filename
+                              
+                #Dictionary to save individual file results
+                triggerStats = {}
+
+                #Counter to look keep track of section dividers.
+                counter = 0
+
+                with open("FarFieldPointSource_100.000MeV_Cos0.6.inc1.id1.tra") as infile:
+                        for line in infile:
+                        # Loop until you find these dividers.  Four dividers.
+                                if line[0:5] == '-----':
+                                        counter += 1
+                                        if counter == 2:
+                                                split_line = line.split(':')
+                                                if len(split_line) > 1:
+                                                        if split_line[1] != '\n':
+                                                                value = int(split_line[1].translate(None, '.'))
+                                                                triggerStats[split_line[0].strip()] = value
+
+                revanStats[filename] = triggerStats
+                              
+	print "\nTrigger Efficiencies:"
+	for filename in filenames:
+
+                print revanStats[filename]
+
+	return revanStats
+
+                              
+
+
 
 ##########################################################################################
 
