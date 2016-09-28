@@ -747,6 +747,30 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 		mean = optimizedParameters[1]
 		FWHM = x2-x1
 
+		# Annotate the plot
+		ax1.text(0.03, 0.9, "Mean = %.3f deg\nFWHM = %.3f deg" % (mean, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
+
+		# Plot the data
+		ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
+		ax1.plot([x1,x2],[numpy.max(y_fit)/2.,numpy.max(y_fit)/2.], color='darkred', linestyle='--', linewidth=2)
+		ax1.set_title('Angular Resolution (Compton Events)', fontdict=titleFormat)
+
+		# ax1.axes.xaxis.set_ticklabels([])
+
+		# Create a subplot for the residuals 
+		ax2 = plot.subplot(gs[3, :])
+
+		# Plot the residuals
+		ax2.step(bincenters, dphi_binned-y_fit, color='#3e4d8b', alpha=0.9)	
+		ax2.plot([bincenters[0],bincenters[-1]], [0,0], color='darkred', linewidth=2, linestyle='--')
+		ax2.set_xlim([-1*phiRadius,phiRadius])
+		ax2.set_xlabel('ARM - Compton Cone (deg)')
+
+		# Set the minor ticks
+		ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
+		ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
+		ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
+
 	except:
 
 		print "**** Warning: fit failed to converge! ****"
@@ -759,33 +783,9 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 	print "***********************************"
 	print "Compton and pair events in ARM histogram: %s (%s%%)" % ( len(dphi[selection]), 100*len(dphi[selection])/(len(dphi)) )
 	print ""
-	print "Mean of fit: %s" % optimizedParameters[1]	
+	print "Mean of fit: %s" % mean	
 	print "FWHM of fit: %s" %  FWHM	
 	print ""
-
-	# Annotate the plot
-	ax1.text(0.03, 0.9, "Mean = %.3f deg\nFWHM = %.3f deg" % (optimizedParameters[1], FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
-
-	# Plot the data
-	ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
-	ax1.plot([x1,x2],[numpy.max(y_fit)/2.,numpy.max(y_fit)/2.], color='darkred', linestyle='--', linewidth=2)
-	ax1.set_title('Angular Resolution (Compton Events)', fontdict=titleFormat)
-
-	# ax1.axes.xaxis.set_ticklabels([])
-
-	# Create a subplot for the residuals 
-	ax2 = plot.subplot(gs[3, :])
-
-	# Plot the residuals
-	ax2.step(bincenters, dphi_binned-y_fit, color='#3e4d8b', alpha=0.9)	
-	ax2.plot([bincenters[0],bincenters[-1]], [0,0], color='darkred', linewidth=2, linestyle='--')
-	ax2.set_xlim([-1*phiRadius,phiRadius])
-	ax2.set_xlabel('ARM - Compton Cone (deg)')
-
-	# Set the minor ticks
-	ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
-	ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
-	ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
 
 
 	# Show the plot
@@ -1198,13 +1198,17 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 	shape = -2							# alpha
 
 	# Fit the histogram data
-	optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
+	try:
+		optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
+	except Exception, message:
+	   print message
 
 	# Calculate the optimized curve
 	try:
 		y_fit = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
 	except Exception, message:
 	   print message
+	   return numpy.nan, numpy.nan
 
 
 
@@ -1368,13 +1372,17 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	shape = -2							# alpha
 
 	# Fit the histogram data
-	optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
+	try:
+		optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
+	except Exception, message:
+		print message
 
 	# Calculate the optimized curve to an asymmetric gaussian
 	try:
 		y_fit2 = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
 	except Exception, message:
 	   print message
+	   return numpy.nan, numpy.nan, numpy.nan, numpy.nan
 
 	# Get the max of the fit
 	fitMax_skewedGuassian = bincenters[numpy.argmax(y_fit2)]
@@ -1695,7 +1703,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			# Calculate the angular resolution measurement (ARM) for pair events
 			print "\n\nCalculating the angular resolution measurement for pair events..."
 			print "EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)"						
-			angles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
+			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
 		 
 		else:
 
