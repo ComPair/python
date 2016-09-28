@@ -60,7 +60,7 @@ def runRevan(simFile, cfgFile):
 
     print "Running revan on " + simFile
 
-    p = subprocess.Popen(['revan', '-f', simFile, '-c', cfgFile],
+    p = subprocess.Popen(['revan', '-f', simFile, '-c', cfgFile, '-n', '-a'],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
 
@@ -69,16 +69,20 @@ def runRevan(simFile, cfgFile):
     base = os.path.splitext(os.path.basename(simFile))
 
     print "Writing Log for " + simFile
-    with gzip.open(base[0]+'.stdout.gz', 'wb') as f:
+    with gzip.open(base[0]+'.revan.stdout.gz', 'wb') as f:
         f.write(out)
 
     if (len(err) > 0):
         print "Errors exist, might want to check " + simFile
-        with gzip.open(base[0]+'.stderr.gz', 'wb') as f:
+        with gzip.open(base[0]+'.revan.stderr.gz', 'wb') as f:
             f.write(err)
-    
+
+def runRevan_star(files):
+    """Convert `f([1,2])` to `f(1,2)` call."""
+    return runRevan(*files)
+
             
-def getFiles(searchDir = ''):
+def getFiles(searchDir = '', extension = 'source'):
 
     from glob import glob    
 
@@ -87,23 +91,28 @@ def getFiles(searchDir = ''):
         return ""
 
     if searchDir:
-        return glob(searchDir+'/*.source')
+        return glob(searchDir+'/*.'+extension)
     else:
-        return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.source')
+        return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.'+extension)
 
 def cli():
 
     from multiprocessing import Pool
+    from itertools import izip, repeat
     
-    helpString = "Submits cosima jobs to multiple cores."
+    helpString = "Submits cosima or revan jobs to multiple cores."
 
     import argparse
     parser = argparse.ArgumentParser(description=helpString)
 
     parser.add_argument("jobs", type=int, help="The number of jobs you wish to spawn (usually the number of cores on your machine).")
+    parser.add_argument("--runCosima", type=bool, default=False, help="Run cosima (default is false)")
+    parser.add_argument("--runRevan", type=bool, default=False, help="Run revan (default is false)")
     parser.add_argument("--COMPAIRPATH",help="Path to compair files.  You can set this via an environment variable")
-    parser.add_argument("--sourcePath",help="Where the source files live.  If not give, will get from COMPAIRPATH.")
-
+    parser.add_argument("--sourcePath",help="Where the source files live.  If not given, will get from COMPAIRPATH.")
+    parser.add_argument("--simPath", help="Where the sim files live (from cosima).")
+    parser.add_argument("--revanCfg", help="Revan config file (need full path).")
+    
     args = parser.parse_args()
 
     if setPath(args.COMPAIRPATH):
@@ -111,16 +120,31 @@ def cli():
     else:
         print "COMPAIRPATH set to " + os.environ['COMPAIRPATH']
 
-    srcFiles = getFiles(args.sourcePath)
-    if not srcFiles:
-        print "No source files found"
-        exit()
-    else:
-        print "Got this many source files: " + str(len(srcFiles))
-        print "Spawing jobs"
-        pool = Pool(processes=args.jobs)
-        pool.map(runCosima,srcFiles)
-    
+    if args.runCosima:
+        srcFiles = getFiles(args.sourcePath,'source')
+        if not srcFiles:
+            print "No source files found"
+            exit()
+        else:
+            print "Got this many source files: " + str(len(srcFiles))
+            print "Spawing jobs"
+            pool = Pool(processes=args.jobs)
+            pool.map(runCosima,srcFiles)
+
+    if args.runRevan:
+        simFiles = getFiles(args.simPath,'sim')
+        if not args.revanCfg:
+            print "Need to specify the config file for revan (--revanCfg)"
+            exit()
+        elif not simFiles:
+            print "No sim files found"
+            exit() 
+        else:
+            print "Got this many sim files: " + str(len(simFiles))
+            print "Spawning jobs"
+            pool = Pool(processes=args.jobs)
+            pool.map(runRevan_star,
+                     izip(simFiles,repeat(args.revanCfg)))
 
 if __name__ == '__main__': cli()
     

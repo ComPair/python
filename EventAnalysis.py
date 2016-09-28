@@ -64,6 +64,23 @@ except:
 
 ##########################################################################################
 
+def getDetailsFromFilename(filename):
+
+	'''Function to get the energy and angle from a filename.
+	Really should be meta data.'''
+
+	details = {}
+	info = filename.split('_')
+
+	details['MeV'] = info[1][:-3]
+
+	angle = info[2].split('.')
+	details['Cos'] = "{}.{}".format(angle[0][3:], angle[1])
+
+	return details
+
+
+
 def DoubleLorentzAsymGausArm(x, par):
 	"""
 	DoubleLorentzAsymGausArm(x, par)
@@ -784,7 +801,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, includeUntra
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -1040,10 +1057,19 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		ax.yaxis.set_minor_locator(AutoMinorLocator(4))		
 		plot.show()
 
+		plot.figure(figsize=[10,7])
+		ax2=plot.subplot(111)
+		ARMvOpeningAngle=ax2.plot(angles,openingAngles,'ro')
+		ax2.set_xlabel('Angular Resolution (deg)')
+		ax2.set_ylabel('Opening Angle (deg)')
+		plot.show()
+		#plot.clf()
 
 
-	# Conver the list of angles to a numpy array
+
+	# Convert the list of angles and opening angles to numpy arrays 
 	angles = numpy.array(angles)
+	openingAngles = numpy.array(openingAngles)
 
 	# # Select the events within the desired quality range
 	# selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
@@ -1052,8 +1078,10 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	# angles_unfiltered = angles
 	# angles = angles[selection_quality]
 
-	# Select the events within the desired energy range
+	# Select the events within the desired angle range and opening angle
 	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
+	selection_fit = numpy.where( (openingAngles <= openingAngleMax) )
+	oa_len = len(angles[selection_fit])
 
 	# Apply the fit selection
 	angles_fit = angles[selection_fit]
@@ -1112,7 +1140,8 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	print "*****************************************************"
 	print ""
 	print "Total number of pair events: %s" % events['numberOfPairEvents']
-	print "Number of pair events passing quality cut: %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) 
+	print "Number of pair events passing quality cut  : %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) 
+	print "Number of pair events passing opening angle: %s (%s%%)" % ( oa_len, 100*oa_len/(events['numberOfPairEvents']) ) 
 	print "Number of pair events included in ARM histogram: %s (%s%%)" % ( len(angles_fit), 100*len(angles_fit)/(len(angles_fit)) )
 	print ""
 	print "Maximum: %s" % angles_max	
@@ -1127,7 +1156,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	else:
 		plot.close()
 
-	return angles, contaimentData_68, contaimentBinned_68
+	return angles, openingAngles, contaimentData_68, contaimentBinned_68
 
 
 ##########################################################################################
@@ -1705,7 +1734,7 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		print "Please provide a  filename, a list of filenames, or a directory name"
 		return
 
-	# Check to see if the user supplied a directory.  If so, include all .tra files in the directory
+	# Check to see if the user supplied a directory.  If so, include all .sim files in the directory
 	if directory != None:
 		print "\nSearching: %s\n" % directory
 		filenames = glob.glob(directory + '/*.sim')
@@ -1734,15 +1763,22 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		numberOfSimulatedEvents = float(output.split()[2])
 
 		# Add the values to the results dictionary
-		triggerEfficiency[filename] = [numberOfTriggers, numberOfSimulatedEvents]
+		triggerEfficiency[filename] = {
+			'numberOfTriggers' : numberOfTriggers,
+			'numberOfSimulatedEvents' : numberOfSimulatedEvents}
+
+		# Add the details from the file.
+		details = getDetailsFromFilename(filename)
+		for key in details:
+			triggerEfficiency[filename][key] = details[key]
 
 
 	print "\nTrigger Efficiencies:"
 	for filename in filenames:
 
 		# Extract the values
-		numberOfTriggers = triggerEfficiency[filename][0]
-		numberOfSimulatedEvents = triggerEfficiency[filename][1]
+		numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
+		numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
 	
 		# Print the results
 		print filename, numberOfTriggers, numberOfSimulatedEvents, ' %.2f%%' % (100*numberOfTriggers/numberOfSimulatedEvents)
@@ -1761,8 +1797,8 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		for filename in filenames:
 
 			# Extract the values
-			numberOfTriggers = triggerEfficiency[filename][0]
-			numberOfSimulatedEvents = triggerEfficiency[filename][1]
+			numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
+			numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
 
 			# Write out the values
 			output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
@@ -1774,6 +1810,71 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 
 
 	return triggerEfficiency
+
+def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
+
+	"""
+	A function to extract the statistics from a revan tra file (used to check things)
+	Usage Examples: 
+	EventViewer.getNumberOfSimulatedEvents(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.sim')
+	EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
+	"""
+
+        if filename == None and directory == None:
+                print "*** No filename or directory provide ***"
+                print "Please provide a  filename, a list of filenames, or a directory name"
+                return
+
+	# Check to see if the user supplied a directory.  If so, include all .tra files in the directory
+	if directory != None:
+                print "\nSearching: %s\n" % directory
+                filenames = glob.glob(directory + '/*.tra')
+
+	# Check if the user supplied a single file vs a list of files
+	if isinstance(filename, list) == False and filename != None:
+                filenames = [filename]
+
+	# Create a dictionary to return the results
+	revanStats = {} 		
+
+	# Loop through each file
+	for filename in filenames:
+
+		print "Parsing: %s" % filename
+                              
+                #Counter to look keep track of section dividers.
+                counter = 0
+
+                #Dictionary to save individual file results
+		triggerStats = {}
+		#Fill the details from the filname
+		details = getDetailsFromFilename(filename)
+		for key in details:
+			triggerStats[key] = details[key]
+
+                with open(filename) as infile:
+                        for line in infile:
+                        # Loop until you find these dividers.  Four dividers.
+                                if line[0:5] == '-----':
+                                        counter += 1
+				if counter == 2:
+					split_line = line.split(':')
+					if len(split_line) > 1:
+						if split_line[1] != '\n':
+							value = int(split_line[1].translate(None, '.'))
+							triggerStats[split_line[0].strip()] = value
+                revanStats[filename] = triggerStats
+                              
+	print "\nTrigger Efficiencies:"
+	for filename in filenames:
+
+                print revanStats[filename]
+
+	return revanStats
+
+                              
+
+
 
 ##########################################################################################
 

@@ -20,10 +20,22 @@ import os
 import EventAnalysis
 
 
-def run(directory, revanConfigFile=None, seed=None):
+def run(filename=None, directory=None, revanConfigFile=None, seed=None):
 
-	# Get the list of source files
-	sourcefiles = glob.glob(directory + '/*.source')
+	if filename == None and directory == None:
+		print "*** No filename or directory provide ***"
+		print "Please provide a  filename, a list of filenames, or a directory name"
+		return
+
+
+	# Check to see if the user supplied a directory.  If so, get the list of source files
+	if directory != None:
+		sourcefiles = glob.glob(directory + '/*.source')
+
+	# Check if the user supplied a single file vs a list of files
+	if isinstance(filename, list) == False and filename != None:
+		sourcefiles = [filename]
+
 
 	# Get the revan config file if one was not provided
 	revanConfigFile = glob.glob(directory + '/*.cfg')[0]
