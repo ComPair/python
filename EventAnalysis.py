@@ -1234,7 +1234,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 		y_fit = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
 	except Exception, message:
 	   print message
-	   return numpy.nan, numpy.nan
+	   return numpy.nan, numpy.nan, numpy.nan
 
 	# Get the max of the fit
 	fitMax = bincenters[numpy.argmax(y_fit)]
@@ -1408,18 +1408,13 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	location = bin_max					# epsilon
 	shape = -2							# alpha
 
-	# Fit the histogram data
+	# Fit the histogram data and Calculate the optimized curve to an asymmetric gaussian
 	try:
 		optimizedParameters, covariance = scipy.optimize.curve_fit(skewedGaussian, bincenters, energy_binned, [height, scale, location, shape])
-	except Exception, message:
-		print message
-
-	# Calculate the optimized curve to an asymmetric gaussian
-	try:
 		y_fit2 = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
 	except Exception, message:
 	   print message
-	   return numpy.nan, numpy.nan, numpy.nan, numpy.nan
+	   return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
 
 	# Get the max of the fit
 	fitMax_skewedGuassian = bincenters[numpy.argmax(y_fit2)]
@@ -1734,10 +1729,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			print "EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton)			
 			FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots)
 
-		 	print " "
 		 	print "Calculating the energy resolution for Tracked Compton events..."
 			print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
-			mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
+			mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton= getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
 
 			print "\n\nCalculating the angular resolution measurement for Tracked Compton events..."
 			print "EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton)			
