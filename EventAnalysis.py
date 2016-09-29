@@ -1727,7 +1727,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			#FWHM_angleTrackedComptonEvents = numpy.nan
 			mean_untracked = numpy.nan
 			FWHM_energyUntrackedComptonEvents = numpy.nan
-			F#WHM_angleUntrackedComptonEvents = numpy.nan
+			FWHM_angleUntrackedComptonEvents = numpy.nan
 
 		# Don't bother measuring the energy and angular resolutuon values for pair events below the specified minimumPairEnergy
 		if energy >= minimumPairEnergy:
