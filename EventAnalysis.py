@@ -284,7 +284,7 @@ def plotPairConversionCoordinates(events):
 
 ##########################################################################################
 
-def parse(filename):
+def parse(filename,sourceTheta=0.7):
 
 	# Create the dictionary that will contain all of the results
 	events = {}
@@ -482,6 +482,12 @@ def parse(filename):
 			position0 = numpy.array([x0, y0, z0])
 			# position0Error = numpy.array([x1_error,y1_error,z1_error])
 
+			# Get the x-axis offset based on the theta of the source.  This assumes phi=0
+			# dx = numpy.tan(numpy.radians(sourceTheta)) * (z1 + z0)
+
+			# Set the origin position of the original gamma-ray
+			# position0 = [x1-dx, y1, z0]
+
 			# Store the coordinates of the first interaction in an array
 			position1 = numpy.array([x1, y1, z1])
 			position1Error = numpy.array([x1_error, y1_error, z1_error])
@@ -510,8 +516,8 @@ def parse(filename):
 				if (value >  1.0): value =  1.0;
 				if (value < -1.0): value = -1.0;
 
-				# Get the reconstructed phi angle (in radians)
-				phi_Tracker.append(numpy.arccos(value))
+				# Get the reconstructed phi angle (in radians) and add the known angle to the source 
+				phi_Tracker.append(numpy.arccos(value)+numpy.arccos(sourceTheta))
 
 			else:
 
@@ -1278,7 +1284,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 
 ##########################################################################################
 
-def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[1800,2100], onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True):
+def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=None, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True):
 
 	# Retrieve the event data
 	energy_ComptonEvents = events['energy_ComptonEvents']
@@ -1626,8 +1632,8 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 
 ##########################################################################################
 
-
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+ 
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', useTrackedEventsOnly = False, useUntrackedEventsOnly = False, maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
