@@ -1646,7 +1646,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
  
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', useTrackedEventsOnly = False, useUntrackedEventsOnly = False, maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5, sourceTheta=None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5, sourceTheta=None):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
