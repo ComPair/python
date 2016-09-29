@@ -284,7 +284,7 @@ def plotPairConversionCoordinates(events):
 
 ##########################################################################################
 
-def parse(filename,sourceTheta=0.7):
+def parse(filename,sourceTheta=None):
 
 	# Create the dictionary that will contain all of the results
 	events = {}
@@ -1357,8 +1357,8 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 
 
 	# Fit a gaussian to the energy data within the user specified energy range
-	energySelection_fit = numpy.where( (energy_ComptonEvents >= energyFitRange[0]) & (energy_ComptonEvents <= energyFitRange[1]) )	
-	mu_Guassian, sigma = norm.fit(energy_ComptonEvents[energySelection_fit])
+	energySelection_fit1 = numpy.where( (energy_ComptonEvents >= energyFitRange[0]) & (energy_ComptonEvents <= energyFitRange[1]) )	
+	mu_Guassian, sigma = norm.fit(energy_ComptonEvents[energySelection_fit1])
 
 	# Create the Guassian fit line
 	x = numpy.array(range(int(energyFitRange[0]),int(energyFitRange[1]), 1))
@@ -1448,7 +1448,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	# Print some statistics
 	print "\n\nStatistics of energy histogram and fit (Compton events)"
 	print "***********************************************************"
-	print "Compton and pair events in energy histogram: %s (%s%%)" % ( len(energy_ComptonEvents[energySelection_fit]), 100*len(energy_ComptonEvents[energySelection_fit])/(numberOfComptonEvents + numberOfPairEvents))
+	print "Compton and pair events in energy histogram: %s (%s%%)" % ( len(energy_ComptonEvents[energySelection_fit1]), 100*len(energy_ComptonEvents[energySelection_fit1])/(numberOfComptonEvents + numberOfPairEvents))
 	print ""
 	print "Mean of Guassian fit: %s keV" % mu_Guassian
 	print "FWHM of Guassian fit: %s keV" % FWHM_Guassian	
@@ -1633,7 +1633,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
  
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', useTrackedEventsOnly = False, useUntrackedEventsOnly = False, maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', useTrackedEventsOnly = False, useUntrackedEventsOnly = False, maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5, sourceTheta=None):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -1693,7 +1693,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		print "Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename)
 
 		# Parse the .tra file obtained from revan
-		events = parse(filename)
+		events = parse(filename, sourceTheta=angle)
 
 		# Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
 		if energy <= maximumComptonEnergy:
