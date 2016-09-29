@@ -64,7 +64,8 @@ from scipy import interpolate
 
 def omega(PSF):
 
-	omega_solidAngle = 2*math.pi*(1-numpy.cos(2*PSF*math.pi/180.))
+	psf=numpy.array(PSF).astype(float)
+	omega_solidAngle = 2*math.pi*(1-numpy.cos(2*psf*math.pi/180.))
 
 	return omega_solidAngle
 
@@ -1027,7 +1028,8 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False):
 
-	background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
+	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
+	background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
 
 	Energy = []
 	EffectiveArea_Tracked = []
@@ -1106,10 +1108,11 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 	if doPSF is not None:
 		#Note: this only changes the PSF for Pair events, not Compton!
 		Containment68 = doPSF	
-   
+
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
 	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
 	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
+
 	if doPSF:
 		Sensitivity_pair[0]=numpy.nan
 		Sensitivity_pair[1]=numpy.nan
@@ -1146,11 +1149,11 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 
 ##########################################################################################
 
-def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=True, save=False):
+def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=True, xlog=True, ylog=True, save=False):
 
-	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angle,doplot=False)
-	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angle,ideal=True,doplot=False)
-	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angle,ideal=True,doPSF=1.0,doplot=False)
+	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
+	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
+	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=1.0,doplot=False)
 
 	a=ascii.read("digitized_alex_sensitivities.dat",names=['eng','sensit'])
 	l=ascii.read("differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
