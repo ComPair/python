@@ -1150,8 +1150,8 @@ def plotAllSourceSensitivities(data, angle=0.8, plotIdeal=True, xlog=True, ylog=
 	egret_psf=interpolate.splev(egret_energy,tck,der=0)
 	egret_back=7.32e-9*(egret_energy/451.)**(-2.1) #from Sreekumar et al. 1998 in photons/cm2/s/MeV
 	egret_exposure=86400.*7.*2.*0.4 #seconds in 2 weeks *0.4 efficiency
-	off_angle=1/0.5 #from sensitivity vs inclination angle = 15 deg
-	egret_sensitivity=off_angle*Isrc(egret_energy,egret_exposure,egret_aeff,3,omega(egret_psf),egret_back)
+	egret_inclin=1/0.5 #from sensitivity vs inclination angle = 15 deg
+	egret_sensitivity=egret_inclin*Isrc(egret_energy,egret_exposure,egret_aeff,3,omega(egret_psf),egret_back)
 	plot.plot(egret_energy,egret_sensitivity,'r--',color='blue',lw=2)
 	plot.annotate('EGRET', xy=(4e2,1e-4),xycoords='data',fontsize=16,color='blue')
 
