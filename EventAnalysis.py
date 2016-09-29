@@ -1285,20 +1285,22 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRang
 	#energy_recoiledElectron = events['energy_recoiledElectron']
 	#phi_Tracker = events['phi_Tracker']
 	#index_tracked = events['index_tracked']
-	numberOfComptonEvents = events['numberOfComptonEvents']
+	numberOfComptonEvents = len(events['index_tracked'])+len(events['index_untracked'])
 	numberOfPairEvents = events['numberOfPairEvents']
 
 	# Determine whether to include only Tracked or Untracked electron events
 	if onlyTrackedElectrons == True:
 		energy_ComptonEvents  = events['energy_TrackedComptonEvents']
-		numberOfComptonEvents = events['numberOfTrackedElectronEvents']
+		#numberOfComptonEvents = events['numberOfTrackedElectronEvents']
+		numberOfComptonEvents = len(events['index_tracked']) 
 		if onlyUntrackedElectrons == True:
 			print "select either tracked or untracked compton events!!"
 			exit()
 
 	if onlyUntrackedElectrons == True:
 		energy_ComptonEvents  = events['energy_UntrackedComptonEvents']
-		numberOfComptonEvents = events['numberOfUntrackedElectronEvents']
+		#numberOfComptonEvents = events['numberOfUntrackedElectronEvents']
+		numberOfComptonEvents = len(events['index_untracked'])
 		if onlyTrackedElectrons == True:
 			print "select either tracked or untracked compton events!!"
 			exit()
@@ -1625,7 +1627,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', useTrackedEventsOnly = False, useUntrackedEventsOnly = False, maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -1691,20 +1693,35 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		if energy <= maximumComptonEnergy:
 
 			# Calculate the energy resolution for Compton events
-			print "Calculating the energy resolution for Compton events..."
+			print "Calculating the energy resolution for All Compton events..."
 			print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
-			mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
+			mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
 		 
-			# Calculate the angular resolution measurement (ARM) for Compton events
+			# Calculate the angular resolution measurement (ARM) for All Compton events
 			print "\n\nCalculating the angular resolution measurement for Compton events..."
 			print "EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton)			
 			FWHM_angleComptonEvents, dphi = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, showPlots=showPlots)
-		 
+
+			# Calculate the energy resolution for tracked vs untracked Compton events
+			#print "Calculating the energy resolution for Untracked Compton events..."
+			#print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
+			#mean_untracked, FWHM_energyUntrackedComptonEvents, UntrackedFitMax, FWHM_skewed_energyUntrackedComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
+		 	
+		 	#print "Calculating the energy resolution for Tracked Compton events..."
+			#print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
+			#mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots)
+
 		else:
 
 			mean = numpy.nan
 			FWHM_energyComptonEvents = numpy.nan
 			FWHM_angleComptonEvents = numpy.nan
+			mean_tracked = numpy.nan
+			FWHM_energyTrackedComptonEvents = numpy.nan
+			#FWHM_angleTrackedComptonEvents = numpy.nan
+			mean_untracked = numpy.nan
+			FWHM_energyUntrackedComptonEvents = numpy.nan
+			F#WHM_angleUntrackedComptonEvents = numpy.nan
 
 		# Don't bother measuring the energy and angular resolutuon values for pair events below the specified minimumPairEnergy
 		if energy >= minimumPairEnergy:
@@ -1734,10 +1751,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		output.write("Compton Energy Resolution (keV): %s\n" % FWHM_energyComptonEvents)
 		output.write("Compton Angular Resolution (deg): %s\n" % FWHM_angleComptonEvents)
 		output.write("Untracked Compton Events Reconstructed: %s\n" % events['numberOfUntrackedElectronEvents'])
-		#output.write("Untracked Compton Energy Resolution (keV): %s\n" % )
+		#output.write("Untracked Compton Energy Resolution (keV): %s\n" % FWHM_energyUntrackedComptonEvents)
 		#output.write("Untracked Compton Angular Resolution (deg): %s\n" % )
 		output.write("Tracked Compton Events Reconstructed: %s\n" % events['numberOfTrackedElectronEvents'])
-		#output.write("Tracked Compton Energy Resolution (keV): %s\n" % )
+		#output.write("Tracked Compton Energy Resolution (keV): %s\n" % FWHM_energyTrackedComptonEvents)
 		#output.write("Tracked Compton Angular Resolution (deg): %s\n" % )
 
 		output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
