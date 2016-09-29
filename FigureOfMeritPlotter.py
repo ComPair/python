@@ -339,7 +339,9 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
-			angle = float(key.split('_')[2].replace('Cos',''))
+			#angle = float(key.split('_')[2].replace('Cos',''))
+			half = key.split('_')[2].replace('Cos','')
+			angle = float(half.replace('.inc1.id1.sim',''))
 
 			if angle == angleSelection:
 				Energy.append(energy)
@@ -439,7 +441,9 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
-			angle = float(key.split('_')[2].replace('Cos',''))
+			#angle = float(key.split('_')[2].replace('Cos',''))
+			half = key.split('_')[2].replace('Cos','')
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -550,7 +554,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
-			angle = float(key.split('_')[2].replace('Cos',''))
+			#angle = float(key.split('_')[2].replace('Cos',''))
+			half = key.split('_')[2].replace('Cos','')
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
 
 			if angle == angleSelection:
 				Energy.append(energy)
@@ -662,7 +668,9 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
-			angle = float(key.split('_')[2].replace('Cos',''))
+			#angle = float(key.split('_')[2].replace('Cos',''))
+			half = key.split('_')[2].replace('Cos','')
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
 
 			if energy == energySelection:
 				Angle.append(angle)
@@ -901,7 +909,9 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
-			angle = float(key.split('_')[2].replace('Cos',''))
+			#angle = float(key.split('_')[2].replace('Cos',''))
+			half = key.split('_')[2].replace('Cos','')
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -1030,8 +1040,10 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 	for key in data.keys():
 
 		energy = float(key.split('_')[1].replace('MeV',''))
-		angle = float(key.split('_')[2].replace('Cos',''))
 
+		#angle = float(key.split('_')[2].replace('Cos',''))
+		half = key.split('_')[2].replace('Cos','')
+		angle = float(half.replace('.inc1.id1.sim',''))
 		if angle == angleSelection:
 
 			# Get the number of reconstructed events
