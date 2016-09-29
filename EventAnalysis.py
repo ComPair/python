@@ -292,8 +292,8 @@ def parse(filename):
 	# Define the lists to store energy information for Compton events
 	energy_ComptonEvents = []
 	energy_ComptonEvents_error = []	
-	energy_TrackedComtonEvents = []
-	energy_UntrackedComtonEvents = []
+	energy_TrackedComptonEvents = []
+	energy_UntrackedComptonEvents = []
 	energy_firstScatteredPhoton = []
 	energy_firstScatteredPhoton_error = []
 	energy_recoiledElectron = []
@@ -458,7 +458,7 @@ def parse(filename):
 			if x_electron != 0:
 
 				# Record the energy of tracked events
-				energy_TrackedComtonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
+				energy_TrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
 				# Record the number of tracked events
 				numberOfTrackedElectronEvents = numberOfTrackedElectronEvents + 1
@@ -469,7 +469,7 @@ def parse(filename):
 			else:
 
 				# Record the energy of tracked events
-				energy_UntrackedComtonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
+				energy_UntrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
 				# Record the number of untracked events
 				numberOfUntrackedElectronEvents = numberOfUntrackedElectronEvents + 1
@@ -620,8 +620,8 @@ def parse(filename):
 	# Add all of the lists to the results dictionary
 	events['energy_ComptonEvents'] = numpy.array(energy_ComptonEvents).astype(float)
 	events['energy_ComptonEvents_error'] = numpy.array(energy_ComptonEvents_error).astype(float)
-	events['energy_TrackedComtonEvents'] = numpy.array(energy_TrackedComtonEvents).astype(float)
-	events['energy_UntrackedComtonEvents'] = numpy.array(energy_UntrackedComtonEvents).astype(float)
+	events['energy_TrackedComptonEvents'] = numpy.array(energy_TrackedComptonEvents).astype(float)
+	events['energy_UntrackedComptonEvents'] = numpy.array(energy_UntrackedComptonEvents).astype(float)
 	events['energy_firstScatteredPhoton'] = numpy.array(energy_firstScatteredPhoton).astype(float)
 	events['energy_firstScatteredPhoton_error'] = numpy.array(energy_firstScatteredPhoton_error).astype(float)
 	events['energy_recoiledElectron'] = numpy.array(energy_recoiledElectron).astype(float)
@@ -645,6 +645,8 @@ def parse(filename):
 
 	events['phi_Tracker'] = numpy.array(phi_Tracker).astype(float)
 	events['numberOfComptonEvents'] =numberOfComptonEvents
+	events['numberOfUntrackedElectronEvents'] =numberOfUntrackedElectronEvents
+	events['numberOfTrackedElectronEvents'] =numberOfTrackedElectronEvents
 	events['numberOfPairEvents'] = numberOfPairEvents
 	events['index_tracked'] = numpy.array(index_tracked)
 	events['index_untracked']= numpy.array(index_untracked)
@@ -1276,19 +1278,31 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 
 ##########################################################################################
 
-def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[1800,2100], includeUntrackedElectrons=True, showPlots=True):
+def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[1800,2100], onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True):
 
 	# Retrieve the event data
 	energy_ComptonEvents = events['energy_ComptonEvents']
-	energy_recoiledElectron = events['energy_recoiledElectron']
-	phi_Tracker = events['phi_Tracker']
-	index_tracked = events['index_tracked']
+	#energy_recoiledElectron = events['energy_recoiledElectron']
+	#phi_Tracker = events['phi_Tracker']
+	#index_tracked = events['index_tracked']
 	numberOfComptonEvents = events['numberOfComptonEvents']
 	numberOfPairEvents = events['numberOfPairEvents']
 
-	# Determine whether to include untracked electrons
-	if includeUntrackedElectrons == False:
-		energy_ComptonEvents = energy_TrackedComtonEvents
+	# Determine whether to include only Tracked or Untracked electron events
+	if onlyTrackedElectrons == True:
+		energy_ComptonEvents  = events['energy_TrackedComptonEvents']
+		numberOfComptonEvents = events['numberOfTrackedElectronEvents']
+		if onlyUntrackedElectrons == True:
+			print "select either tracked or untracked compton events!!"
+			exit()
+
+	if onlyUntrackedElectrons == True:
+		energy_ComptonEvents  = events['energy_UntrackedComptonEvents']
+		numberOfComptonEvents = events['numberOfUntrackedElectronEvents']
+		if onlyTrackedElectrons == True:
+			print "select either tracked or untracked compton events!!"
+			exit()
+
 
 	# Convert the list to a numpy array
 	energy_ComptonEvents = numpy.array(energy_ComptonEvents)
@@ -1611,7 +1625,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', useTrackedEventsOnly = False, useUntrackedEventsOnly = False, maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -1719,6 +1733,13 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		output.write("Compton Events Reconstructed: %s\n" % events['numberOfComptonEvents'])
 		output.write("Compton Energy Resolution (keV): %s\n" % FWHM_energyComptonEvents)
 		output.write("Compton Angular Resolution (deg): %s\n" % FWHM_angleComptonEvents)
+		output.write("Untracked Compton Events Reconstructed: %s\n" % events['numberOfUntrackedElectronEvents'])
+		output.write("Untracked Compton Energy Resolution (keV): %s\n" % )
+		output.write("Untracked Compton Angular Resolution (deg): %s\n" % )
+		output.write("Tracked Compton Events Reconstructed: %s\n" % events['numberOfTrackedElectronEvents'])
+		output.write("Tracked Compton Energy Resolution (keV): %s\n" % )
+		output.write("Tracked Compton Angular Resolution (deg): %s\n" % )
+
 		output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
 		output.write("Pair Energy Resolution (keV): %s\n" % FWHM_pairComptonEvents)
 		output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
