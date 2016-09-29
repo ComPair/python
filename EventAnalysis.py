@@ -1716,8 +1716,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		
 		# Write the results to disk
 		output.write("Results for simulation: %s %s Cos %s %s\n" % (energy, energySearchUnit, angle, filename))
+		output.write("Compton Events Reconstructed: %s\n" % events['numberOfComptonEvents'])
 		output.write("Compton Energy Resolution (keV): %s\n" % FWHM_energyComptonEvents)
 		output.write("Compton Angular Resolution (deg): %s\n" % FWHM_angleComptonEvents)
+		output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
 		output.write("Pair Energy Resolution (keV): %s\n" % FWHM_pairComptonEvents)
 		output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
