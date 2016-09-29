@@ -1029,7 +1029,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
-	background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
+	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
 
 	Energy = []
 	EffectiveArea_Tracked = []
@@ -1090,6 +1090,17 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 	EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
 	EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
 	EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
+
+	# digitized from Stong, Moskalenko & Reimer 2000, Figure 8, top right
+  	# high latitude |b|>5 deg
+  	# multiply by 10 to vaguely account for the albedo background
+
+	eng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
+	e2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
+
+	# interpolate background at our e nergies
+	tck=interpolate.splrep(eng2,e2int2,s=0)
+	background=10.*interpolate.splev(Energy,tck,der=0)
 
 	FWHM_tracked = numpy.array(FWHM_tracked)
 	FWHM_untracked = numpy.array(FWHM_untracked)
