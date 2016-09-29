@@ -259,6 +259,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 		numberOfTriggeredEvents = lineContents[1]		
 		numberOfSimulatedEvents = lineContents[2]
 
+		# Add the number of simulated to the results dictionary
+		data[simulationName].append(numberOfSimulatedEvents)
+
 		# Generate the log filename
 		analysisLog = directory + '/' + simulationName.replace('.sim', '.log')
 
@@ -277,21 +280,38 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 				analysisLogLine = analysisLogLine.replace("Results for simulation: ",'')
 				energy, energySearchUnit, cos, angle, filename = analysisLogLine.split()
 
+			if "Compton Events Reconstructed: " in analysisLogLine:
+				numberOfComptonEvents = analysisLogLine.split()[-1]
+
 			if "Compton Energy Resolution (keV): " in analysisLogLine:
 				FWHM_energyComptonEvents = analysisLogLine.split()[-1]
 
 			if "Compton Angular Resolution (deg): " in analysisLogLine:
 				FWHM_angleComptonEvents = analysisLogLine.split()[-1]
 
+			if "Pair Events Reconstructed: " in analysisLogLine:
+				numberOfPairEvents = analysisLogLine.split()[-1]
+
 			if "Pair Energy Resolution (keV): " in analysisLogLine:
-				FWHM_pairComptonEvents = analysisLogLine.split()[-1]
+				FWHM_pairEvents = analysisLogLine.split()[-1]
 
 			if "Pair Angular Containment " in analysisLogLine:
 				contaimentData_68 = analysisLogLine.split()[-1]
 
 		# Add all the values to the results dictionary
-		#data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents])
-		data[simulationName].append([energy, angle, FWHM_energyComptonEvents, FWHM_angleComptonEvents, FWHM_pairComptonEvents, contaimentData_68])
+		holder=-999. # This is required for historic reasons
+
+		if float(energy) <=10.0:
+			data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
+			data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
+		else:
+			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
+			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
+
+		if float(energy) >=3.0:
+			data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, holder, contaimentData_68,numberOfPairEvents])
+		else:
+			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
 	return data		
 
