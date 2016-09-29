@@ -290,6 +290,24 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 			if "Compton Angular Resolution (deg): " in analysisLogLine:
 				FWHM_angleComptonEvents = analysisLogLine.split()[-1]
 
+			if "Untracked Compton Events Reconstructed: " in analysisLogLine:
+				numberOfUntrackedComptonEvents = analysisLogLine.split()[-1]
+
+			if "Untracked Compton Energy Resolution (keV): " in analysisLogLine:
+				FWHM_energyUntrackedComptonEvents = analysisLogLine.split()[-1]
+
+			if "Untracked Compton Angular Resolution (deg): " in analysisLogLine:
+				FWHM_angleUntrackedComptonEvents = analysisLogLine.split()[-1]
+
+			if "Tracked Compton Events Reconstructed: " in analysisLogLine:
+				numberOfTrackedComptonEvents = analysisLogLine.split()[-1]
+
+			if "Tracked Compton Energy Resolution (keV): " in analysisLogLine:
+				FWHM_energyTrackedComptonEvents = analysisLogLine.split()[-1]
+
+			if "Tracked Compton Angular Resolution (deg): " in analysisLogLine:
+				FWHM_angleTrackedComptonEvents = analysisLogLine.split()[-1]
+
 			if "Pair Events Reconstructed: " in analysisLogLine:
 				numberOfPairEvents = analysisLogLine.split()[-1]
 
@@ -304,8 +322,10 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 
 		if float(energy) <=10.0:
 			data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
-			data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
+			data[simulationName].append([holder, holder, holder, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
+			data[simulationName].append([holder, holder, holder, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents])
 		else:
+			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
@@ -346,9 +366,9 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 			if angle == angleSelection:
 				Energy.append(energy)
-				fwhm_tracked = data[key][1][7]
-				fwhm_untracked = data[key][2][7]
-				containment68 = data[key][3][6]
+				fwhm_tracked = data[key][2][7]
+				fwhm_untracked = data[key][3][7]
+				containment68 = data[key][4][6]
 
 				FWHM_tracked.append(fwhm_tracked)
 				FWHM_untracked.append(fwhm_untracked)
@@ -449,9 +469,9 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 
 			if energy == energySelection:
 				Angle.append(angle)
-				fwhm_tracked = data[key][1][7]
-				fwhm_untracked = data[key][2][7]
-				containment68 = data[key][3][6]
+				fwhm_tracked = data[key][2][7]
+				fwhm_untracked = data[key][3][7]
+				containment68 = data[key][4][6]
 
 				FWHM_tracked.append(fwhm_tracked)
 				FWHM_untracked.append(fwhm_untracked)
@@ -562,13 +582,13 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 			if angle == angleSelection:
 				Energy.append(energy)
 
-				Sigma_tracked.append(data[key][1][4])
-				Sigma_untracked.append(data[key][2][4])
-				Sigma_pair.append(data[key][3][4])
+				Sigma_tracked.append(data[key][2][4])
+				Sigma_untracked.append(data[key][3][4])
+				Sigma_pair.append(data[key][4][4])
 
-				SigmaError_tracked.append(data[key][1][5])
-				SigmaError_untracked.append(data[key][2][5])
-				SigmaError_pair.append(data[key][3][5])
+				SigmaError_tracked.append(data[key][2][5])
+				SigmaError_untracked.append(data[key][3][5])
+				SigmaError_pair.append(data[key][4][5])
 
 
 		# Convert everything to a numpy array
@@ -676,13 +696,13 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 			if energy == energySelection:
 				Angle.append(angle)
 
-				Sigma_tracked.append(data[key][1][4])
-				Sigma_untracked.append(data[key][2][4])
-				Sigma_pair.append(data[key][3][4])
+				Sigma_tracked.append(data[key][2][4])
+				Sigma_untracked.append(data[key][3][4])
+				Sigma_pair.append(data[key][4][4])
 
-				SigmaError_tracked.append(data[key][1][5])
-				SigmaError_untracked.append(data[key][2][5])
-				SigmaError_pair.append(data[key][3][5])
+				SigmaError_tracked.append(data[key][2][5])
+				SigmaError_untracked.append(data[key][3][5])
+				SigmaError_pair.append(data[key][4][5])
 
 
 		# Convert everything to a numpy array
@@ -791,14 +811,14 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 					#This removes the event selection on the final Aeff calculation
 					#It does not change anything from the FWHM or the 68% containment
 					#Compton events are multiplied by the ratio of tracked vs. untracked
-					total_compton_events = float(data[key][2][-1])+float(data[key][1][-1])
-					numberOfReconstructedEvents_tracked = 100000.*float(data[key][1][-1])/(total_compton_events)
-					numberOfReconstructedEvents_untracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+					total_compton_events = float(data[key][1][-1])
+					numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+					numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
 					numberOfReconstructedEvents_pair = 100000.
 				else:
-					numberOfReconstructedEvents_tracked = float(data[key][1][-1])
-					numberOfReconstructedEvents_untracked = float(data[key][2][-1])
-					numberOfReconstructedEvents_pair = float(data[key][3][-1])
+					numberOfReconstructedEvents_tracked = float(data[key][2][-1])
+					numberOfReconstructedEvents_untracked = float(data[key][3][-1])
+					numberOfReconstructedEvents_pair = float(data[key][4][-1])
 
 				#numberOfReconstructedEvents_tracked = float(data[key][1][-1])
 				#numberOfReconstructedEvents_untracked = float(data[key][2][-1])
@@ -921,14 +941,14 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 					#This removes the event selection on the final Aeff calculation
 					#It does not change anything from the FWHM or the 68% containment
 					#Compton events are multiplied by the ratio of tracked vs. untracked
-					total_compton_events = float(data[key][2][-1])+float(data[key][1][-1])
-					numberOfReconstructedEvents_tracked = 100000.*float(data[key][1][-1])/(total_compton_events)
-					numberOfReconstructedEvents_untracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+					total_compton_events = float(data[key][1][-1])
+					numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+					numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
 					numberOfReconstructedEvents_pair = 100000.
 				else:
-					numberOfReconstructedEvents_tracked = float(data[key][1][-1])
-					numberOfReconstructedEvents_untracked = float(data[key][2][-1])
-					numberOfReconstructedEvents_pair = float(data[key][3][-1])
+					numberOfReconstructedEvents_tracked = float(data[key][2][-1])
+					numberOfReconstructedEvents_untracked = float(data[key][3][-1])
+					numberOfReconstructedEvents_pair = float(data[key][4][-1])
 
 				numberOfSimulatedEvents = float(data[key][0])
 
@@ -1055,19 +1075,19 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 				#This removes the event selection on the final Aeff calculation
 				#It does not change anything from the FWHM or the 68% containment
 				#Compton events are multiplied by the ratio of tracked vs. untracked
-				total_compton_events = float(data[key][2][-1])+float(data[key][1][-1])
-				numberOfReconstructedEvents_tracked = 100000.*float(data[key][1][-1])/(total_compton_events)
-				numberOfReconstructedEvents_untracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+				total_compton_events = float(data[key][1][-1])
+				numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+				numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
 				numberOfReconstructedEvents_pair = 100000.
 			else:
-				numberOfReconstructedEvents_tracked = float(data[key][1][-1])
-				numberOfReconstructedEvents_untracked = float(data[key][2][-1])
-				numberOfReconstructedEvents_pair = float(data[key][3][-1])
+				numberOfReconstructedEvents_tracked = float(data[key][2][-1])
+				numberOfReconstructedEvents_untracked = float(data[key][3][-1])
+				numberOfReconstructedEvents_pair = float(data[key][4][-1])
             
 			# Get the angular resolution
-			fwhm_tracked = data[key][1][7]
-			fwhm_untracked = data[key][2][7]
-			containment68 = data[key][3][6]
+			fwhm_tracked = data[key][2][7]
+			fwhm_untracked = data[key][3][7]
+			containment68 = data[key][4][6]
 
 			# Calculate the effective area
 			effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
