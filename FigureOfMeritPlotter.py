@@ -290,6 +290,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 				contaimentData_68 = analysisLogLine.split()[-1]
 
 		# Add all the values to the results dictionary
+		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents])
 		data[simulationName].append([energy, angle, FWHM_energyComptonEvents, FWHM_angleComptonEvents, FWHM_pairComptonEvents, contaimentData_68])
 
 	return data		
@@ -748,9 +749,13 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
-			angle = float(key.split('_')[2].replace('Cos',''))
+			#angle = float(key.split('_')[2].replace('Cos',''))
+			half = key.split('_')[2].replace('Cos','')
+			angle = float(half.replace('.inc1.id1.sim',''))
+			#print energy, angle
 
 			if angle == angleSelection:
+				#print data
 				numberOfSimulatedEvents = float(data[key][0])
 
 				if ideal:
