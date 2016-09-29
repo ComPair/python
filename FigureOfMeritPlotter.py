@@ -567,9 +567,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		Sigma_untracked = []
 		Sigma_pair = []
 
-		SigmaError_tracked = []
-		SigmaError_untracked = []
-		SigmaError_pair = []
+		#SigmaError_tracked = []
+		#SigmaError_untracked = []
+		#SigmaError_pair = []
 
 		# print 'Name, fwhm_tracked, fwhm_untracked, containment'
 
@@ -586,9 +586,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 				Sigma_untracked.append(data[key][3][4])
 				Sigma_pair.append(data[key][4][4])
 
-				SigmaError_tracked.append(data[key][2][5])
-				SigmaError_untracked.append(data[key][3][5])
-				SigmaError_pair.append(data[key][4][5])
+				#SigmaError_tracked.append(data[key][2][5])
+				#SigmaError_untracked.append(data[key][3][5])
+				#SigmaError_pair.append(data[key][4][5])
 
 
 		# Convert everything to a numpy array
@@ -597,9 +597,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		Sigma_untracked = numpy.array(Sigma_untracked)
 		Sigma_pair = numpy.array(Sigma_pair)
 
-		SigmaError_tracked = numpy.array(SigmaError_tracked)
-		SigmaError_untracked = numpy.array(SigmaError_untracked)
-		SigmaError_pair = numpy.array(SigmaError_pair)
+		#SigmaError_tracked = numpy.array(SigmaError_tracked)
+		#SigmaError_untracked = numpy.array(SigmaError_untracked)
+		#SigmaError_pair = numpy.array(SigmaError_pair)
 
 		# Sort by energy
 		i = [numpy.argsort(Energy)]
@@ -607,24 +607,24 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		Sigma_tracked = Sigma_tracked[i]
 		Sigma_untracked = Sigma_untracked[i]
 		Sigma_pair = Sigma_pair[i]
-		SigmaError_tracked = SigmaError_tracked[i]
-		SigmaError_untracked = SigmaError_untracked[i]
-		SigmaError_pair = SigmaError_pair[i]
+		#SigmaError_tracked = SigmaError_tracked[i]
+		#SigmaError_untracked = SigmaError_untracked[i]
+		#SigmaError_pair = SigmaError_pair[i]
 
 
 		# Plot the data
 		ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
 
 		plot.scatter(Energy, Sigma_tracked, color='darkgreen')
-		plot.errorbar(Energy, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
+		#plot.errorbar(Energy, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
 		plot.plot(Energy, Sigma_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
 
 		plot.scatter(Energy, Sigma_untracked, color='blue')
-		plot.errorbar(Energy, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
+		#plot.errorbar(Energy, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
 		plot.plot(Energy, Sigma_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
 
 		plot.scatter(Energy, Sigma_pair, color='darkred')
-		plot.errorbar(Energy, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
+		#plot.errorbar(Energy, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
 		plot.plot(Energy, Sigma_pair, color='darkred', alpha=0.5, label='Pair')
 
 		if plotNumber == 1:
@@ -681,9 +681,9 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 		Sigma_untracked = []
 		Sigma_pair = []
 
-		SigmaError_tracked = []
-		SigmaError_untracked = []
-		SigmaError_pair = []
+		#SigmaError_tracked = []
+		#SigmaError_untracked = []
+		#SigmaError_pair = []
 
 		# print 'Name, fwhm_tracked, fwhm_untracked, containment'
 
@@ -700,9 +700,9 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 				Sigma_untracked.append(data[key][3][4])
 				Sigma_pair.append(data[key][4][4])
 
-				SigmaError_tracked.append(data[key][2][5])
-				SigmaError_untracked.append(data[key][3][5])
-				SigmaError_pair.append(data[key][4][5])
+				#SigmaError_tracked.append(data[key][2][5])
+				#SigmaError_untracked.append(data[key][3][5])
+				#SigmaError_pair.append(data[key][4][5])
 
 
 		# Convert everything to a numpy array
@@ -711,9 +711,9 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 		Sigma_untracked = numpy.array(Sigma_untracked)
 		Sigma_pair = numpy.array(Sigma_pair)
 
-		SigmaError_tracked = numpy.array(SigmaError_tracked)
-		SigmaError_untracked = numpy.array(SigmaError_untracked)
-		SigmaError_pair = numpy.array(SigmaError_pair)
+		#SigmaError_tracked = numpy.array(SigmaError_tracked)
+		#SigmaError_untracked = numpy.array(SigmaError_untracked)
+		#SigmaError_pair = numpy.array(SigmaError_pair)
 
 		# Sort by energy
 		i = [numpy.argsort(Angle)]
@@ -721,25 +721,25 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 		Sigma_tracked = Sigma_tracked[i]
 		Sigma_untracked = Sigma_untracked[i]
 		Sigma_pair = Sigma_pair[i]
-		SigmaError_tracked = SigmaError_tracked[i]
-		SigmaError_untracked = SigmaError_untracked[i]
-		SigmaError_pair = SigmaError_pair[i]
+		#SigmaError_tracked = SigmaError_tracked[i]
+		#SigmaError_untracked = SigmaError_untracked[i]
+		#SigmaError_pair = SigmaError_pair[i]
 
 
 		# Plot the data
 		ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
 
-		plot.scatter(Angle, Sigma_tracked, color='darkgreen')
-		plot.errorbar(Angle, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
-		plot.plot(Angle, Sigma_tracked, color='darkgreen', alpha=0.75, label='Compton (tracked)')
+		#plot.scatter(Angle, Sigma_tracked, color='darkgreen')
+		#plot.errorbar(Angle, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
+		plot.plot(Angle, Sigma_tracked, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
 
-		plot.scatter(Angle, Sigma_untracked, color='blue')
-		plot.errorbar(Angle, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
-		plot.plot(Angle, Sigma_untracked, color='blue', alpha=0.75, label='Compton (untracked)')
+		#plot.scatter(Angle, Sigma_untracked, color='blue')
+		#plot.errorbar(Angle, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
+		plot.plot(Angle, Sigma_untracked, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
 
-		plot.scatter(Angle, Sigma_pair, color='darkred')
-		plot.errorbar(Angle, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
-		plot.plot(Angle, Sigma_pair, color='darkred', alpha=0.75, label='Pair')
+		#plot.scatter(Angle, Sigma_pair, color='darkred')
+		#plot.errorbar(Angle, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
+		plot.plot(Angle, Sigma_pair, color='darkred', alpha=0.75, label='Pair', marker='o')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')						
