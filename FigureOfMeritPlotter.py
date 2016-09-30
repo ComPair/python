@@ -1046,7 +1046,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False):
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1111,17 +1111,6 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 	EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
 	EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
 
-	# digitized from Stong, Moskalenko & Reimer 2000, Figure 8, top right
-  	# high latitude |b|>5 deg
-  	# multiply by 10 to vaguely account for the albedo background
-
-	eng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
-	e2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
-
-	# interpolate background at our e nergies
-	tck=interpolate.splrep(eng2,e2int2,s=0)
-	background=10.*interpolate.splev(Energy,tck,der=0)
-
 	FWHM_tracked = numpy.array(FWHM_tracked)
 	FWHM_untracked = numpy.array(FWHM_untracked)
 	Containment68 = numpy.array(Containment68)
@@ -1139,6 +1128,17 @@ def plotSourceSensitivity(data, angleSelection=0.7, exposure = 6.3*10**6, ideal=
 	if doPSF is not None:
 		#Note: this only changes the PSF for Pair events, not Compton!
 		Containment68 = doPSF	
+
+	# digitized from Stong, Moskalenko & Reimer 2000, Figure 8, top right
+  	# high latitude |b|>5 deg
+  	# multiply by 10 to vaguely account for the albedo background
+
+	eng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
+	e2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
+
+	# interpolate background at our energies
+	tck=interpolate.splrep(eng2,e2int2,s=0)
+	background=10.*interpolate.splev(Energy,tck,der=0)
 
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
 	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
@@ -1209,7 +1209,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=True, xlog=Tr
 
 	#EGRET from https://heasarc.gsfc.nasa.gov/docs/cgro/egret/egret_tech.html#N_4_
 	ind=numpy.arange(69,74,1)
-	plot.plot(energy[ind],sens[ind],color='blue',lw=2)
+	#plot.plot(energy[ind],sens[ind],color='blue',lw=2)
 	egret_energy=numpy.array([35,100,200,500,3000,10000.])
 	#egret_aeff=numpy.array([0.3,1.1,1.5,1.6,1.1,0.7])*1e3
 	egret_aeff=numpy.array([0.07,0.9,1.4,1.5,1.1,0.7])*1e3
@@ -1223,7 +1223,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=True, xlog=Tr
 	egret_exposure=86400.*7.*2.*0.4 #seconds in 2 weeks *0.4 efficiency
 	egret_inclin=1/0.5 #from sensitivity vs inclination angle = 15 deg
 	egret_sensitivity=egret_inclin*Isrc(egret_energy,egret_exposure,egret_aeff,3,omega(egret_psf),egret_back)
-	plot.plot(egret_energy,egret_sensitivity,'r--',color='blue',lw=2)
+	plot.plot(egret_energy,egret_sensitivity,color='blue',lw=2)
 	plot.annotate('EGRET', xy=(4e2,1e-4),xycoords='data',fontsize=16,color='blue')
 
 	#SPI
@@ -1247,7 +1247,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=True, xlog=Tr
 #	comptel_sensitivity=3*comptel_back**0.5/(comptel_aeff*comptel_exposure)#*comptel_energy**2
 	comptel_sensitivity=numpy.array([1.2e-4,1.9e-4,7.9e-5,1.6e-5])*comptel_energy**2/(comptel_energy_high-comptel_energy_low)
 
-	plot.plot(comptel_energy,comptel_sensitivity,'r--',color='orange',lw=2)
+	#plot.plot(comptel_energy,comptel_sensitivity,'r--',color='orange',lw=2)
 	plot.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=16,color='orange')
 
 	#NuSTAR
