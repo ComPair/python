@@ -517,8 +517,7 @@ def parse(filename,sourceTheta=None):
 				if (value < -1.0): value = -1.0;
 
 				# Get the reconstructed phi angle (in radians) and add the known angle to the source 
-				phi_Tracker.append(numpy.arccos(value)+numpy.arccos(sourceTheta))
-				#print numpy.degrees(numpy.arccos(value)), numpy.degrees(numpy.arccos(sourceTheta))
+				phi_Tracker.append(numpy.arccos(value)) 
 
 			else:
 
@@ -726,8 +725,6 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedE
 
 	# Calculate the difference between the tracker reconstructed scattering angle and the theoretical scattering angle
 	dphi = numpy.degrees(phi_Tracker) - numpy.degrees(phi_Theoretical)
-
-	print dphi, numpy.degrees(phi_Theoretical), numpy.degrees(phi_Tracker)
 
 	# Fit only a subsample of the data
 	selection = numpy.where( (dphi > (-1*phiRadius)) & (dphi < phiRadius) )
