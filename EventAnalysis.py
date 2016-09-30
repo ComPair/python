@@ -483,7 +483,7 @@ def parse(filename,sourceTheta=None):
 			# position0Error = numpy.array([x1_error,y1_error,z1_error])
 
 			# Get the x-axis offset based on the theta of the source.  This assumes phi=0
-			dx = numpy.tan(numpy.radians(sourceTheta)) * (z1 - z0)
+			dx = numpy.tan(numpy.arccos(sourceTheta)) * (z1 - z0)
 
 			# Set the origin position of the original gamma-ray
 			position0 = numpy.array([x1-dx, y1, z0])
