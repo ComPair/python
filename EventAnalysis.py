@@ -483,10 +483,10 @@ def parse(filename,sourceTheta=None):
 			# position0Error = numpy.array([x1_error,y1_error,z1_error])
 
 			# Get the x-axis offset based on the theta of the source.  This assumes phi=0
-			# dx = numpy.tan(numpy.radians(sourceTheta)) * (z1 + z0)
+			#dx = numpy.tan(numpy.radians(sourceTheta)) * (z1 + z0)
 
 			# Set the origin position of the original gamma-ray
-			# position0 = [x1-dx, y1, z0]
+			#position0 = numpy.array([x1-dx, y1, z0])
 
 			# Store the coordinates of the first interaction in an array
 			position1 = numpy.array([x1, y1, z1])
@@ -518,6 +518,7 @@ def parse(filename,sourceTheta=None):
 
 				# Get the reconstructed phi angle (in radians) and add the known angle to the source 
 				phi_Tracker.append(numpy.arccos(value)+numpy.arccos(sourceTheta))
+				#print numpy.degrees(numpy.arccos(value)), numpy.degrees(numpy.arccos(sourceTheta))
 
 			else:
 
@@ -696,12 +697,6 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedE
 	index_tracked = events['index_tracked']
 	index_untracked=events['index_untracked']
 
-	# Check if the user wants to exclude the untracked events
-	#if includeUntrackedElectrons == False:
-	#	energy_firstScatteredPhoton = energy_firstScatteredPhoton[index_tracked]
-	#	energy_recoiledElectron = energy_recoiledElectron[index_tracked]
-	#	phi_Tracker = phi_Tracker[index_tracked]
-
 	# Determine whether to include only Tracked or Untracked electron events
 	if onlyTrackedElectrons == True:
 		energy_firstScatteredPhoton = energy_firstScatteredPhoton[index_tracked]
@@ -731,6 +726,8 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedE
 
 	# Calculate the difference between the tracker reconstructed scattering angle and the theoretical scattering angle
 	dphi = numpy.degrees(phi_Tracker) - numpy.degrees(phi_Theoretical)
+
+	print dphi, numpy.degrees(phi_Theoretical), numpy.degrees(phi_Tracker)
 
 	# Fit only a subsample of the data
 	selection = numpy.where( (dphi > (-1*phiRadius)) & (dphi < phiRadius) )
@@ -873,7 +870,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		position_conversion = events['position_pairConversion'][index]
 
 		# Get the x-axis offset based on the theta of the source.  This assumes phi=0
-		dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] + dz)
+		dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
 
 		# Set the origin position of the original gamma-ray
 		position_source = [position_conversion[0]-dx, position_conversion[1], dz]
@@ -902,7 +899,10 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		distances.append(distance)
 
 		# Calculate the product of the vector magnitudes
+		#print direction_source, direction_source_reconstructed
 		angle = angularSeperation(direction_source, direction_source_reconstructed)
+		#angle_shift = angle-float(sourceTheta)
+		#print angle, angle_shift
 		angles.append(angle)
 
 		openingAngle = angularSeperation(direction_electron, direction_positron)
@@ -1644,7 +1644,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
  
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=5, sourceTheta=None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=180, sourceTheta=None):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -1706,6 +1706,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		# Parse the .tra file obtained from revan
 		events = parse(filename, sourceTheta=angle)
 
+		# Calculate the source theta in degrees
+		source_theta = numpy.arccos(angle)*180./numpy.pi
+
 		# Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
 		if energy <= maximumComptonEnergy:
 
@@ -1762,8 +1765,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
 			# Calculate the angular resolution measurement (ARM) for pair events
 			print "\n\nCalculating the angular resolution measurement for pair events..."
-			print "EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)"						
-			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
+			print "EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)"	
+			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
 		 
 		else:
 			sigma_pair = numpy.nan
