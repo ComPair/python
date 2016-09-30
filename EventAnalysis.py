@@ -483,6 +483,8 @@ def parse(filename,sourceTheta=None):
 			# position0Error = numpy.array([x1_error,y1_error,z1_error])
 
 			# Get the x-axis offset based on the theta of the source.  This assumes phi=0
+			# Note: For Compton events adjusting the theta of the source happens in the parser
+			# for pair events, it happens in the ARM calculation. 
 			dx = numpy.tan(numpy.arccos(sourceTheta)) * (z1 - z0)
 
 			# Set the origin position of the original gamma-ray
@@ -867,6 +869,8 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		position_conversion = events['position_pairConversion'][index]
 
 		# Get the x-axis offset based on the theta of the source.  This assumes phi=0
+		# Note: For Compton events adjusting the theta of the source happens in the parser
+		# for pair events, it happens here in the ARM calculation. 
 		dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
 
 		# Set the origin position of the original gamma-ray
