@@ -1180,11 +1180,11 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 
 ##########################################################################################
 
-def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=True, xlog=True, ylog=True, save=False):
+def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, save=False):
 
 	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
 	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
-	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=1.0,doplot=False)
+	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False)
 
 	a=ascii.read("digitized_alex_sensitivities.dat",names=['eng','sensit'])
 	l=ascii.read("differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])

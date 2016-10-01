@@ -1645,7 +1645,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
  
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=180, sourceTheta=None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', openingAngleMax=180., maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=180, sourceTheta=None):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -1767,7 +1767,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			# Calculate the angular resolution measurement (ARM) for pair events
 			print "\n\nCalculating the angular resolution measurement for pair events..."
 			print "EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)"	
-			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
+			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
 		 
 		else:
 			sigma_pair = numpy.nan
