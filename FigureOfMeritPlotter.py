@@ -633,7 +633,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		i=Sigma_pair != 'nan'
 		sp=numpy.double(Sigma_pair[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],sp,color='darkred')
-		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, label='Compton (untracked)')
+		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, label='Pair')
 		#plot.scatter(Energy, Sigma_pair, color='darkred')
 		#plot.errorbar(Energy, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
 		#plot.plot(Energy, Sigma_pair, color='darkred', alpha=0.5, label='Pair')
@@ -679,13 +679,13 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False):
 
-	if hasattr(energySelections, '__iter__') == False:
-		energySelections = [energySelections]
+	#if hasattr(energySelections, '__iter__') == False:
+	#	energySelections = [energySelections]
 
 	plotNumber = 1
 	plot.figure(figsize=(10,12))
 
-	if energySelections is not None:
+	if energySelections is None:
 		Energy = []	
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
@@ -694,10 +694,15 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		Energy=numpy.array(Energy)
 		i = [numpy.argsort(Energy)]
 		energySelections = Energy[i]
+	else:	
+		if type(energySelections) == float or type(energySelections) == int:
+			energySelections=[energySelections]
+		energySelections.sort(key=int)
+		energySelections=numpy.array(energySelections,dtype=float)
 
-	print "plotting only every other energy"
-	energySelections=energySelections[[1,3,5,7,9,11]]
-
+	if len(energySelections)>6:
+		print "plotting only every other energy"
+		energySelections=energySelections[[1,3,5,7,9,11]]
 
 	for energySelection in energySelections:
 
@@ -705,10 +710,6 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		Sigma_tracked = []
 		Sigma_untracked = []
 		Sigma_pair = []
-
-		#SigmaError_tracked = []
-		#SigmaError_untracked = []
-		#SigmaError_pair = []
 
 		# print 'Name, fwhm_tracked, fwhm_untracked, containment'
 
@@ -725,10 +726,6 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 				Sigma_untracked.append(data[key][3][4])
 				Sigma_pair.append(data[key][4][4])
 
-				#SigmaError_tracked.append(data[key][2][5])
-				#SigmaError_untracked.append(data[key][3][5])
-				#SigmaError_pair.append(data[key][4][5])
-
 		# Convert everything to a numpy array
 		Angle = numpy.degrees(numpy.arccos(Angle))
 		Angle = numpy.array(Angle)
@@ -736,52 +733,39 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		Sigma_untracked = numpy.array(Sigma_untracked)
 		Sigma_pair = numpy.array(Sigma_pair)
 
-		#SigmaError_tracked = numpy.array(SigmaError_tracked)
-		#SigmaError_untracked = numpy.array(SigmaError_untracked)
-		#SigmaError_pair = numpy.array(SigmaError_pair)
-
 		# Sort by energy
 		i = [numpy.argsort(Angle)]
 		Angle = Angle[i]
 		Sigma_tracked = Sigma_tracked[i]
 		Sigma_untracked = Sigma_untracked[i]
 		Sigma_pair = Sigma_pair[i]
-		#SigmaError_tracked = SigmaError_tracked[i]
-		#SigmaError_untracked = SigmaError_untracked[i]
-		#SigmaError_pair = SigmaError_pair[i]
-
 
 		# Plot the data
 		ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
 		#ax = plot.subplots(len(energySelections)/2,2)
 		#ax = plot.subplot(2,len(energySelections)/2+1,len(energySelections))
 
-		#plot.scatter(Angle, Sigma_tracked, color='darkgreen')
-		#plot.errorbar(Angle, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)
-		i=Sigma_tracked != 'nan'
-		st=numpy.double(Sigma_tracked[i])/numpy.double(energySelection)*1e-3		
-		plot.plot(Angle[i], st, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
-
-		#plot.scatter(Angle, Sigma_untracked, color='blue')
-		#plot.errorbar(Angle, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
-		i=Sigma_untracked != 'nan'
-		sut=numpy.double(Sigma_untracked[i])/numpy.double(energySelection)*1e-3		
-		plot.plot(Angle[i], sut, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
-
-		#plot.scatter(Angle, Sigma_pair, color='darkred')
-		#plot.errorbar(Angle, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
-		i=Sigma_pair != 'nan'
-		sp=numpy.double(Sigma_pair[i])/numpy.double(energySelection)*1e-3		
-		plot.plot(Angle[i], sp, color='darkred', alpha=0.75, label='Pair', marker='o')
+		
+		i=Sigma_tracked =='nan'
+		st=numpy.double(numpy.ma.array(Sigma_tracked,mask=i).compressed())/numpy.double(energySelection)*1.0e-3
+		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
+		
+		j=Sigma_untracked == 'nan'
+		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=j).compressed())/numpy.double(energySelection)*1e-3		
+		plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
+		
+		k=Sigma_pair == 'nan'
+		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=k).compressed())/numpy.double(energySelection)*1e-3		
+		plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, color='darkred', alpha=0.75, label='Pair', marker='o')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')						
 			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
-		if xlog == True:
+		if xlog:
 			plot.xscale('log')
 
-		if ylog == True:
+		if ylog:
 			plot.yscale('log')
 
 		plot.ylabel(r'$\sigma$ / Energy')
@@ -803,7 +787,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save == True:
+	if save:
 		plot.savefig('EnergyResolutionVsAngle.png', bbox_inches='tight')
 
 	plot.show()
@@ -909,7 +893,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		        transform=ax.transAxes,
 		        color='black', fontsize=12)
 
-		plot.gca().set_ylim([0.001,10000.])
+		#plot.gca().set_ylim([0.001,10000.])
 
 		if plotNumber == 1:
 			plot.title('Effective Area')			
