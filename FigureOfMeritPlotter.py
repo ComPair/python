@@ -436,7 +436,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save == True:
+	if save:
 		plot.savefig('AngularResolution.png', bbox_inches='tight')
 
 	plot.show()
@@ -445,13 +445,30 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 ##########################################################################################
 
-def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=False, save=False):
-	
-	if hasattr(energySelections, '__iter__') == False:
-		energySelections = [energySelections]
+def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False):
 
 	plotNumber = 1
 	plot.figure(figsize=(10,12))
+
+	if energySelections is None:
+		Energy = []	
+		for key in data.keys():
+			energy = float(key.split('_')[1].replace('MeV',''))
+			if energy not in Energy:
+					Energy.append(energy)
+		Energy=numpy.array(Energy)
+		i = [numpy.argsort(Energy)]
+		energySelections = Energy[i]
+	else:	
+		if type(energySelections) == float or type(energySelections) == int:
+			energySelections=[energySelections]
+		energySelections.sort(key=int)
+		energySelections=numpy.array(energySelections,dtype=float)
+
+	if len(energySelections)>6:
+		energySelections=energySelections[[1,3,5,7,9,11]]
+		print "plotting only every other energy: ", energySelections
+
 
 	for energySelection in energySelections:
 
@@ -506,10 +523,10 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 			plot.title('Angular Resolution')
 			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper right')
 
-		if xlog == True:
+		if xlog:
 			plot.xscale('log')
 
-		if ylog == True:
+		if ylog:
 			plot.yscale('log')
 
 		plot.ylabel(u'fwhm (deg)')
@@ -539,7 +556,7 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save == True:
+	if save:
 		plot.savefig('AngularResolutionVsAngle.png', bbox_inches='tight')
 
 	plot.show()
@@ -567,10 +584,6 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		Sigma_untracked = []
 		Sigma_pair = []
 
-		#SigmaError_tracked = []
-		#SigmaError_untracked = []
-		#SigmaError_pair = []
-
 		# print 'Name, fwhm_tracked, fwhm_untracked, containment'
 
 		for key in data.keys():
@@ -586,10 +599,6 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 				Sigma_untracked.append(data[key][3][4])
 				Sigma_pair.append(data[key][4][4])
 
-				#SigmaError_tracked.append(data[key][2][5])
-				#SigmaError_untracked.append(data[key][3][5])
-				#SigmaError_pair.append(data[key][4][5])
-
 
 		# Convert everything to a numpy array
 		Energy = numpy.array(Energy)
@@ -597,19 +606,12 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		Sigma_untracked = numpy.array(Sigma_untracked)
 		Sigma_pair = numpy.array(Sigma_pair)
 
-		#SigmaError_tracked = numpy.array(SigmaError_tracked)
-		#SigmaError_untracked = numpy.array(SigmaError_untracked)
-		#SigmaError_pair = numpy.array(SigmaError_pair)
-
 		# Sort by energy
 		i = [numpy.argsort(Energy)]
 		Energy = Energy[i]
 		Sigma_tracked = Sigma_tracked[i]
 		Sigma_untracked = Sigma_untracked[i]
 		Sigma_pair = Sigma_pair[i]
-		#SigmaError_tracked = SigmaError_tracked[i]
-		#SigmaError_untracked = SigmaError_untracked[i]
-		#SigmaError_pair = SigmaError_pair[i]
 
 		# Plot the data
 		ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
@@ -618,34 +620,25 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],st,color='darkgreen')
 		plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, label='Compton (tracked)')
-		#plot.scatter(Energy, Sigma_tracked, color='darkgreen')
-		#plot.errorbar(Energy, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
-		#plot.plot(Energy, Sigma_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
 
 		i=Sigma_untracked != 'nan'
 		sut=numpy.double(Sigma_untracked[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],sut,color='blue')
 		plot.plot(Energy[i], sut, color='blue', alpha=0.5, label='Compton (untracked)')
-		#plot.scatter(Energy, Sigma_untracked, color='blue')
-		#plot.errorbar(Energy, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
-		#plot.plot(Energy, Sigma_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
 
 		i=Sigma_pair != 'nan'
 		sp=numpy.double(Sigma_pair[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],sp,color='darkred')
 		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, label='Pair')
-		#plot.scatter(Energy, Sigma_pair, color='darkred')
-		#plot.errorbar(Energy, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
-		#plot.plot(Energy, Sigma_pair, color='darkred', alpha=0.5, label='Pair')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')			
 			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
-		if xlog == True:
+		if xlog:
 			plot.xscale('log')
 
-		if ylog == True:
+		if ylog:
 			plot.yscale('log')
 
 		plot.ylabel(r'$\sigma$ / Energy')
@@ -667,7 +660,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save == True:
+	if save:
 		plot.savefig('EnergyResolution.png', bbox_inches='tight')
 
 	plot.show()
@@ -678,9 +671,6 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 ##########################################################################################
 
 def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False):
-
-	#if hasattr(energySelections, '__iter__') == False:
-	#	energySelections = [energySelections]
 
 	plotNumber = 1
 	plot.figure(figsize=(10,12))
@@ -750,13 +740,13 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		st=numpy.double(numpy.ma.array(Sigma_tracked,mask=i).compressed())/numpy.double(energySelection)*1.0e-3
 		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
 		
-		j=Sigma_untracked == 'nan'
-		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=j).compressed())/numpy.double(energySelection)*1e-3		
-		plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
+		i=Sigma_untracked == 'nan'
+		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=i).compressed())/numpy.double(energySelection)*1e-3		
+		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sut, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
 		
-		k=Sigma_pair == 'nan'
-		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=k).compressed())/numpy.double(energySelection)*1e-3		
-		plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, color='darkred', alpha=0.75, label='Pair', marker='o')
+		i=Sigma_pair == 'nan'
+		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=i).compressed())/numpy.double(energySelection)*1e-3		
+		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sp, color='darkred', alpha=0.75, label='Pair', marker='o')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')						
@@ -898,10 +888,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		if plotNumber == 1:
 			plot.title('Effective Area')			
 
-		if xlog == True:
+		if xlog:
 			plot.xscale('log')
 
-		if ylog == True:
+		if ylog:
 			plot.yscale('log')
 
 
@@ -916,7 +906,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save == True:
+	if save:
 		plot.savefig('EffectiveArea.png', bbox_inches='tight')
 
 	plot.show()
@@ -924,10 +914,26 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
  ##########################################################################################
 
-def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], ideal=False, xlog=False, ylog=False, save=False, collapse=False):
+def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False):
 
-	if hasattr(energySelections, '__iter__') == False:
-		energySelections = [energySelections]
+	if energySelections is None:
+		Energy = []	
+		for key in data.keys():
+			energy = float(key.split('_')[1].replace('MeV',''))
+			if energy not in Energy:
+					Energy.append(energy)
+		Energy=numpy.array(Energy)
+		i = [numpy.argsort(Energy)]
+		energySelections = Energy[i]
+	else:	
+		if type(energySelections) == float or type(energySelections) == int:
+			energySelections=[energySelections]
+		energySelections.sort(key=int)
+		energySelections=numpy.array(energySelections,dtype=float)
+
+	if len(energySelections)>6:
+		print "plotting only every other energy"
+		energySelections=energySelections[[1,3,5,7,9,11]]
 
 	plotNumber = 1
 
@@ -956,9 +962,9 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 			if energy == energySelection:
 
 				if ideal:
-					#This removes the event selection on the final Aeff calculation
-					#It does not change anything from the FWHM or the 68% containment
-					#Compton events are multiplied by the ratio of tracked vs. untracked
+					# This removes the event selection on the final Aeff calculation
+					# It does not change anything from the FWHM or the 68% containment
+					# Compton events are multiplied by the ratio of tracked vs. untracked
 					total_compton_events = float(data[key][1][-1])
 					numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
 					numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
@@ -1038,10 +1044,10 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 		# 	        verticalalignment='bottom', horizontalalignment='left',
 		# 	        color='black', fontsize=12)
 
-		if xlog == True:
+		if xlog:
 			plot.xscale('log')
 
-		if ylog == True:
+		if ylog:
 			plot.yscale('log')
 
 
@@ -1056,7 +1062,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6,
 
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save == True:
+	if save:
 		plot.savefig('EffectiveAreaVsAngle.png', bbox_inches='tight')
 
 	plot.show()
@@ -1179,18 +1185,18 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 	plot.scatter(Energy, Sensitivity_pair, color='darkred')
 	plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
 
-	if xlog == True:
+	if xlog:
 		plot.xscale('log')
 
-	if ylog == True:
+	if ylog:
 		plot.yscale('log')
 
 	plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
-	if save == True:
+	if save:
 		plot.savefig('SourceSensitivity.png', bbox_inches='tight')
 
-	if doplot == True:
+	if doplot:
 		plot.show()
 
 	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair 
@@ -1297,7 +1303,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
 	plot.annotate('ComPair', xy=(1,1e-6),xycoords='data',fontsize=22)
 
-	if save == True:
+	if save:
 		plot.savefig('new_sensitivity.png')
 	plot.show()
 
