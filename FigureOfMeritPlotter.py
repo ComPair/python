@@ -483,7 +483,7 @@ def plotAngularResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 3
 		FWHM_untracked = numpy.array(FWHM_untracked)
 		Containment68 = numpy.array(Containment68)
 
-		# Sort by energy
+		# Sort by Angle
 		i = [numpy.argsort(Angle)]
 		Angle = Angle[i]
 		FWHM_tracked = FWHM_tracked[i]
@@ -611,21 +611,32 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		#SigmaError_untracked = SigmaError_untracked[i]
 		#SigmaError_pair = SigmaError_pair[i]
 
-
 		# Plot the data
 		ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
 
-		plot.scatter(Energy, Sigma_tracked, color='darkgreen')
+		i=Sigma_tracked != 'nan'
+		st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3
+		plot.scatter(Energy[i],st,color='darkgreen')
+		plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+		#plot.scatter(Energy, Sigma_tracked, color='darkgreen')
 		#plot.errorbar(Energy, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
-		plot.plot(Energy, Sigma_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+		#plot.plot(Energy, Sigma_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
 
-		plot.scatter(Energy, Sigma_untracked, color='blue')
+		i=Sigma_untracked != 'nan'
+		sut=numpy.double(Sigma_untracked[i])/numpy.double(Energy[i])*1e-3
+		plot.scatter(Energy[i],sut,color='blue')
+		plot.plot(Energy[i], sut, color='blue', alpha=0.5, label='Compton (untracked)')
+		#plot.scatter(Energy, Sigma_untracked, color='blue')
 		#plot.errorbar(Energy, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
-		plot.plot(Energy, Sigma_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+		#plot.plot(Energy, Sigma_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
 
-		plot.scatter(Energy, Sigma_pair, color='darkred')
+		i=Sigma_pair != 'nan'
+		sp=numpy.double(Sigma_pair[i])/numpy.double(Energy[i])*1e-3
+		plot.scatter(Energy[i],sp,color='darkred')
+		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, label='Compton (untracked)')
+		#plot.scatter(Energy, Sigma_pair, color='darkred')
 		#plot.errorbar(Energy, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
-		plot.plot(Energy, Sigma_pair, color='darkred', alpha=0.5, label='Pair')
+		#plot.plot(Energy, Sigma_pair, color='darkred', alpha=0.5, label='Pair')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')			
@@ -637,7 +648,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		if ylog == True:
 			plot.yscale('log')
 
-		plot.ylabel(r'$\sigma$')
+		plot.ylabel(r'$\sigma$ / Energy')
 
 		plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
 		        verticalalignment='bottom', horizontalalignment='right',
@@ -666,13 +677,27 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 ##########################################################################################
 
-def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31.6, 100, 316.0], xlog=False, ylog=False, save=False):
-	
+def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False):
+
 	if hasattr(energySelections, '__iter__') == False:
 		energySelections = [energySelections]
 
 	plotNumber = 1
 	plot.figure(figsize=(10,12))
+
+	if energySelections is not None:
+		Energy = []	
+		for key in data.keys():
+			energy = float(key.split('_')[1].replace('MeV',''))
+			if energy not in Energy:
+					Energy.append(energy)
+		Energy=numpy.array(Energy)
+		i = [numpy.argsort(Energy)]
+		energySelections = Energy[i]
+
+	print "plotting only every other energy"
+	energySelections=energySelections[[1,3,5,7,9,11]]
+
 
 	for energySelection in energySelections:
 
@@ -704,8 +729,8 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 				#SigmaError_untracked.append(data[key][3][5])
 				#SigmaError_pair.append(data[key][4][5])
 
-
 		# Convert everything to a numpy array
+		Angle = numpy.degrees(numpy.arccos(Angle))
 		Angle = numpy.array(Angle)
 		Sigma_tracked = numpy.array(Sigma_tracked)
 		Sigma_untracked = numpy.array(Sigma_untracked)
@@ -728,18 +753,26 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 
 		# Plot the data
 		ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
+		#ax = plot.subplots(len(energySelections)/2,2)
+		#ax = plot.subplot(2,len(energySelections)/2+1,len(energySelections))
 
 		#plot.scatter(Angle, Sigma_tracked, color='darkgreen')
-		#plot.errorbar(Angle, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)		
-		plot.plot(Angle, Sigma_tracked, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
+		#plot.errorbar(Angle, Sigma_tracked, yerr=SigmaError_tracked, color='darkgreen', fmt=None)
+		i=Sigma_tracked != 'nan'
+		st=numpy.double(Sigma_tracked[i])/numpy.double(energySelection)*1e-3		
+		plot.plot(Angle[i], st, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
 
 		#plot.scatter(Angle, Sigma_untracked, color='blue')
 		#plot.errorbar(Angle, Sigma_untracked, yerr=SigmaError_untracked, color='blue', fmt=None)				
-		plot.plot(Angle, Sigma_untracked, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
+		i=Sigma_untracked != 'nan'
+		sut=numpy.double(Sigma_untracked[i])/numpy.double(energySelection)*1e-3		
+		plot.plot(Angle[i], sut, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
 
 		#plot.scatter(Angle, Sigma_pair, color='darkred')
 		#plot.errorbar(Angle, Sigma_pair, yerr=SigmaError_pair, color='darkred', fmt=None)		
-		plot.plot(Angle, Sigma_pair, color='darkred', alpha=0.75, label='Pair', marker='o')
+		i=Sigma_pair != 'nan'
+		sp=numpy.double(Sigma_pair[i])/numpy.double(energySelection)*1e-3		
+		plot.plot(Angle[i], sp, color='darkred', alpha=0.75, label='Pair', marker='o')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')						
@@ -751,18 +784,19 @@ def plotEnergyResolutionVsAngle(data, energySelections=[0.3, 1.0, 3.16, 10.0, 31
 		if ylog == True:
 			plot.yscale('log')
 
-		plot.ylabel(r'$\sigma$')
+		plot.ylabel(r'$\sigma$ / Energy')
+		plot.xlim([0,60])
 
 		plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
-		        verticalalignment='bottom', horizontalalignment='right',
+		        verticalalignment='top', horizontalalignment='right',
 		        transform=ax.transAxes,
 		        color='black', fontsize=12)
 
-		if plotNumber != len(energySelections):
-			ax.set_xticklabels([])
+		#if plotNumber != len(energySelections):
+		#	ax.set_xticklabels([])
 
 		if plotNumber == len(energySelections):
-			plot.xlabel(r'$\theta$')
+			plot.xlabel(r'$\theta$ (deg)')
 
 		plotNumber = plotNumber + 1
 
