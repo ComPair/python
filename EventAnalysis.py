@@ -219,7 +219,7 @@ def plotSphere(radius=300, ax=None):
 
 ##########################################################################################
 
-def angularSeperation(vector1, vector2):
+def angularSeparation(vector1, vector2):
 
 	# Calculate the product of the vector magnitudes
 	product = numpy.linalg.norm(vector2) * numpy.linalg.norm(vector1)
@@ -901,12 +901,12 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
 		# Calculate the product of the vector magnitudes
 		#print direction_source, direction_source_reconstructed
-		angle = angularSeperation(direction_source, direction_source_reconstructed)
+		angle = angularSeparation(direction_source, direction_source_reconstructed)
 		#angle_shift = angle-float(sourceTheta)
 		#print angle, angle_shift
 		angles.append(angle)
 
-		openingAngle = angularSeperation(direction_electron, direction_positron)
+		openingAngle = angularSeparation(direction_electron, direction_positron)
 		openingAngles.append(openingAngle)
 
 		# # Calculate the product of the vector magnitudes
