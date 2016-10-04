@@ -448,9 +448,12 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False):
 
 	plotNumber = 1
-	plot.figure(figsize=(10,12))
 
 	if energySelections is None:
+		if len(energySelections)==1:
+			plot.figure(figsize=(8,6))
+		else:
+			plot.figure(figsize=(10,12))
 		Energy = []	
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
@@ -1294,6 +1297,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	if plotIdeal:
 		plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
 		plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)
+		plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=2)
 
 	#Alex's numbers
 	ind=numpy.arange(158,167)
