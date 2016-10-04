@@ -339,6 +339,7 @@ def parse(filename,sourceTheta=None):
 	numberOfPhotoElectricEffectEvents = 0
 	numberOfTrackedElectronEvents = 0
 	numberOfUntrackedElectronEvents = 0
+	numberOfBadEvents = 0
 	lineNumber = 0
 	eventNumber = 0
 
@@ -388,6 +389,17 @@ def parse(filename,sourceTheta=None):
 				# Increment the photo electron effect counter
 				numberOfPhotoElectricEffectEvents = numberOfPhotoElectricEffectEvents + 1
 
+		if 'BD' in line:
+
+			# Split the line
+			lineContents = line.split()
+
+			whybad = lineContents[1]
+
+			if whybad != 'None':
+				# Events don't get reconstructed for a number of reasons
+				# In pair, it's mostly 'TooManyHistInCSR'
+				numberOfBadEvents = numberOfBadEvents + 1
 
 		####### Compton Events #######
 
@@ -656,6 +668,8 @@ def parse(filename,sourceTheta=None):
 	events['numberOfUntrackedElectronEvents'] =numberOfUntrackedElectronEvents
 	events['numberOfTrackedElectronEvents'] =numberOfTrackedElectronEvents
 	events['numberOfPairEvents'] = numberOfPairEvents
+	events['numberOfUnknownEventTypes'] = numberOfUnknownEventTypes
+	events['numberOfBadEvents'] = numberOfBadEvents
 	events['index_tracked'] = numpy.array(index_tracked)
 	events['index_untracked']= numpy.array(index_untracked)
 	events['qualityOfComptonReconstruction'] = numpy.array(qualityOfComptonReconstruction).astype(float)
@@ -1793,6 +1807,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
 		output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
 		output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
+
+		output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
 
 		# Close the file
 		output.close()
