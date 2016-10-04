@@ -1160,15 +1160,20 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
   	# high latitude |b|>5 deg
   	# multiply by 10 to vaguely account for the albedo background
 
-	eng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
-	e2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
+	#eng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
+	#e2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
+
+	# Alex's new background numbers from Gruber et al. (1999) and Weidenspointer et al. (2000) and >100 MeV from Ackermann et al. (2015)
+	eng2=numpy.array([0.5,0.8,1.0,2.0,3.0,5.0,8.0,10.0,50.0,100.,200,500])
+	e2int2=numpy.array([2e-2,1e-2,7e-3,3e-3,2e-3,8e-4,4e-4,3e-4,3e-5,3.2e-6,2e-6,6e-7])
 
 	# interpolate background at our energies
-	tck=interpolate.splrep(eng2,e2int2,s=0)
-	background=interpolate.splev(Energy,tck,der=0)
+	tck=interpolate.splrep(numpy.log10(eng2),numpy.log10(e2int2),s=0)
+	logbackground=interpolate.splev(numpy.log10(Energy),tck,der=0)
+	background=10.**logbackground
 
-	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), 10*background)
-	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), 10*background)
+	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
+	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
 	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
 
 	if doPSF:
@@ -1290,14 +1295,14 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	if plotIdeal:
 		tracked_ideal=ComPairIdealSensitivity[1]
 		pair_ideal=ComPairIdealSensitivity[3]
-		pair_idealang=ComPairGoodPSFSensitivity[3]
+		#pair_idealang=ComPairGoodPSFSensitivity[3]
 
 	plot.plot(compair_eng,tracked,color='black',lw=3)	
 	plot.plot(compair_eng,pair,'r--',color='black',lw=3)
 	if plotIdeal:
-		plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
+		#plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
 		plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)
-		plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=2)
+		#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=2)
 
 	#Alex's numbers
 	ind=numpy.arange(158,167)
