@@ -317,6 +317,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 			if "Pair Angular Containment " in analysisLogLine:
 				contaimentData_68 = analysisLogLine.split()[-1]
 
+			if "Events Not Reconstructed Flagged as Bad" in analysisLogLine:
+				numberOfNotReconstructedEvents = analysisLogLine.split()[-1]
+
 		# Add all the values to the results dictionary
 		holder=-999. # This is required for historic reasons
 
@@ -330,9 +333,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
 		if float(energy) >=3.0:
-			data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, holder, contaimentData_68,numberOfPairEvents])
+			data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, holder, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
 		else:
-			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
+			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
 	return data		
 
@@ -1099,17 +1102,22 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 			numberOfSimulatedEvents = float(data[key][0])
 
 			if ideal:
-				#This removes the event selection on the final Aeff calculation
-				#It does not change anything from the FWHM or the 68% containment
-				#Compton events are multiplied by the ratio of tracked vs. untracked
+				# This removes the event selection on the final Aeff calculation
+				# It does not change anything from the FWHM or the 68% containment
+				# Compton events are multiplied by the ratio of tracked vs. untracked
 				total_compton_events = float(data[key][1][-1])
+				if numpy.isnan(total_compton_events):
+					pair_to_total_ratio = 1.0
+				else:
+					pair_to_total_ratio  = float(data[key][4][7])/(float(data[key][4][7])+total_compton_events)
+
 				numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
 				numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
-				numberOfReconstructedEvents_pair = 100000.
+				numberOfReconstructedEvents_pair = float(data[key][4][7])+(float(data[key][4][-1])*pair_to_total_ratio)
 			else:
 				numberOfReconstructedEvents_tracked = float(data[key][2][-1])
 				numberOfReconstructedEvents_untracked = float(data[key][3][-1])
-				numberOfReconstructedEvents_pair = float(data[key][4][-1])
+				numberOfReconstructedEvents_pair = float(data[key][4][7])
             
 			# Get the angular resolution
 			fwhm_tracked = data[key][2][7]
