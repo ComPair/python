@@ -823,7 +823,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedE
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, wieghtByEnergy=True, showDiagnosticPlots=True):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -881,7 +881,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		direction_positron = events['direction_pairPositron'][index]
 
 		# Weight the direction vectors by the electron and positron energies
-		if wieghtByEnergy == True:		
+		if weightByEnergy == True:		
 			direction_electron = direction_electron * (energy_pairElectron/energy_PairSum)
 			direction_positron = direction_positron * (energy_pairPositron/energy_PairSum)
 
