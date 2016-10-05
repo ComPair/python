@@ -440,7 +440,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
 	if save:
-		plot.savefig('AngularResolution.png', bbox_inches='tight')
+		plot.savefig('AngularResolution.png')
 
 	plot.show()
 
@@ -889,8 +889,6 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		        transform=ax.transAxes,
 		        color='black', fontsize=12)
 
-		#plot.gca().set_ylim([0.001,10000.])
-
 		if plotNumber == 1:
 			plot.title('Effective Area')			
 
@@ -898,6 +896,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 			plot.xscale('log')
 
 		if ylog:
+			plot.gca().set_ylim([0.1,10000.])
 			plot.yscale('log')
 
 
