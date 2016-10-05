@@ -1169,7 +1169,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
   	# multiply by 10 to vaguely account for the albedo background
 
 	oldeng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
-	olde2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])*10.
+	olde2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
 
 	# Alex's new background numbers from Gruber et al. (1999) and Weidenspointer et al. (2000) and >100 MeV from Ackermann et al. (2015)
 	alex_eng2=numpy.array([0.5,0.8,1.0,2.0,3.0,5.0,8.0,10.0,50.0,100.,200,500])
@@ -1196,18 +1196,27 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 		plot.figure()
 		plot.plot(oldeng2,olde2int2,color='red')
 		plot.scatter(oldeng2,olde2int2,color='red')
+		plot.annotate('Strong, Moskalenko, Reimer (2000)',xy=(1e-2,1e-4),xycoords='data',fontsize=12,color='red')
 		plot.plot(alex_eng2,alex_e2int2,color='blue')
 		plot.scatter(alex_eng2,alex_e2int2,color='blue')
+		plot.annotate('Alex (new)',xy=(1e2,2e-4),xycoords='data',fontsize=12,color='blue')
 		plot.plot(lateng,late2int,color='magenta')
 		plot.scatter(lateng,late2int,color='magenta')
+		plot.annotate('Acero et al. (2016) - LAT',xy=(1e3,3e-3),xycoords='data',fontsize=12,color='magenta')
 		plot.plot(gruber_eng,gruber_e2int,color='cyan')
 		plot.scatter(gruber_eng,gruber_e2int,color='cyan')
-		plot.plot(eng2,e2int2,color='purple')
-		plot.scatter(eng2,e2int2,color='purple')	
+		plot.annotate('Gruber et al. (1999) - HEAO, COMPTEL, EGRET',xy=(2e-3,5e-2),xycoords='data',fontsize=12,color='cyan')
+		#plot.plot(eng2,e2int2,color='purple')
+		#plot.scatter(eng2,e2int2,color='purple')	
 		plot.plot(Energy,background,color='green')
 		plot.scatter(Energy,background,color='green')
+		plot.annotate('Interpolated Used Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
 		plot.xscale('log')
 		plot.yscale('log')
+		plot.xlabel(r'Energy (MeV)')
+		plot.ylabel(r'$E^2 \times$ Intensity (MeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
+		plot.title('Diffuse Background')
+		plot.savefig('Background.png', bbox_inches='tight')
 		plot.show()
 
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
@@ -1217,30 +1226,32 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 	if doPSF:
 		Sensitivity_pair[0]=numpy.nan
 		Sensitivity_pair[1]=numpy.nan
+
+	if doplot:
 	
-	if plot.fignum_exists(1):
-		plot.clf()
-	else:
-		plot.figure(figsize=(10, 6.39))
-		ax = plot.subplot(111)
+		if plot.fignum_exists(1):
+			plot.clf()
+		else:
+			plot.figure(figsize=(10, 6.39))
+			ax = plot.subplot(111)
 
-	plot.scatter(Energy, Sensitivity_tracked, color='darkgreen')
-	plot.plot(Energy, Sensitivity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
-	plot.scatter(Energy, Sensitivity_untracked, color='blue')	
-	plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
-	plot.scatter(Energy, Sensitivity_pair, color='darkred')
-	plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
+		plot.scatter(Energy, Sensitivity_tracked, color='darkgreen')
+		plot.plot(Energy, Sensitivity_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+		plot.scatter(Energy, Sensitivity_untracked, color='blue')	
+		plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+		plot.scatter(Energy, Sensitivity_pair, color='darkred')
+		plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
 
-	if xlog:
-		plot.xscale('log')
+		if xlog:
+			plot.xscale('log')
 
-	if ylog:
-		plot.yscale('log')
+		if ylog:
+			plot.yscale('log')
 
-	plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+		plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
 
-	if save:
-		plot.savefig('SourceSensitivity.png', bbox_inches='tight')
+		if save:
+			plot.savefig('SourceSensitivity.png', bbox_inches='tight')
 
 	if doplot:
 		plot.show()
