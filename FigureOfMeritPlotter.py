@@ -1175,22 +1175,35 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 	alex_eng2=numpy.array([0.5,0.8,1.0,2.0,3.0,5.0,8.0,10.0,50.0,100.,200,500])
 	alex_e2int2=numpy.array([2e-2,1e-2,7e-3,3e-3,2e-3,8e-4,4e-4,3e-4,3e-5,3.2e-6,2e-6,6e-7])*alex_eng2
 
-	# From Acero et al. (2016) - arxiv:1602.07246 |b| > 10 deg
+	# From Acero et al. (2016) - arxiv:1602.07246 |b| > 10 deg Galactic Diffuse
 	#lateng=numpy.array([59.03219,85.70306,130.86836,206.94946,279.0981,377.88,515.6217,751.6096,1202.7435,1746.5424,2439.6077,3421.0806,5185.3374,7920.732,12578.761,19214.623,39437.465,88850.945,493146.28])
   	#late2int=numpy.array([8.6141995E-4,0.0011453591,0.0015459998,0.002040656,0.0022842947,0.002390658,0.0024465262,0.0025040577,0.002326049,0.0020965973,0.0018339512,0.0015110897,0.0011299471,8.449544E-4,6.041775E-4,4.417733E-4,2.6613174E-4,1.7280209E-4,7.286812E-5])
   	lateng=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
-  	late2int=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
-
+  	late2int_galactic=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
+  	# From Ackermann et al. (2015) - ApJ 799 86 isotropic EGB
+  	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,31000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
+  	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,2.1e-11,9.7e-12])
+  	late2int_igrb0=lat_igrb*lateng_igrb
+  	tck=interpolate.splrep(numpy.log10(lateng_igrb),numpy.log10(late2int_igrb0),s=0)
+	late2int_igrb=10**interpolate.splev(numpy.log10(lateng),tck,der=0)
+	late2int=late2int_galactic+late2int_igrb
+  	
+  	# COMPTEL * EGRET Galactic Diffuse from Gruber et al. (1999)
   	gruber_eng=numpy.array([2.978623,5.1983213,9.07216,13.32116,19.94295,32.241817,44.707794,72.33151,136.47008,278.06522,545.20044,1132.5265,3079.0847,6774.5522,17384.865,41301.277,105963.19,317014.44,1315024.2,6868901.5,2.2191038E7,8.6879376E7])*1e-3
   	gruber_e2int=numpy.array([5.278219,4.1341214,3.2380166,2.592378,1.8563249,1.2433603,0.8325035,0.36483333,0.13988705,0.049062684,0.01799201,0.00590178,0.0014491071,4.9711246E-4,1.3645743E-4,4.6819663E-5,1.4694342E-5,4.219293E-6,8.482257E-7,1.4922263E-7,4.098341E-8,9.63159E-9])*gruber_eng
 
-  	eng2=numpy.append(gruber_eng[0:17],lateng[2:])
-  	e2int2=numpy.append(gruber_e2int[0:17],late2int[2:])
+  	# COMPTEL extragalactic background from Weidenspointner (2001)
+  	wp_eng=numpy.array([0.10258658,0.15835446,0.34505856,0.56054914,0.9957529,1.9590781,3.4359305,10.434804,57.75009,135.85852,377.31998])
+  	wp_e2int=numpy.array([0.024865912,0.016798664,0.010788648,0.0067556994,0.00433873,0.002821951,0.0022472343,0.0021910856,0.002363885,0.0015768929,0.0014071865])
 
+  	## Combining things
+  	eng2=numpy.append(gruber_eng[0:16],lateng[2:])
+  	e2int2=numpy.append(gruber_e2int[0:16],late2int[2:])
 	# interpolate background at our energies
 	tck=interpolate.splrep(numpy.log10(eng2),numpy.log10(e2int2),s=0)
 	logbackground=interpolate.splev(numpy.log10(Energy),tck,der=0)
 	background=10.**logbackground
+
 
 	if showbackground:
 		plot.figure()
@@ -1202,10 +1215,18 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 		plot.annotate('Alex (new)',xy=(1e2,2e-4),xycoords='data',fontsize=12,color='blue')
 		plot.plot(lateng,late2int,color='magenta')
 		plot.scatter(lateng,late2int,color='magenta')
-		plot.annotate('Acero et al. (2016) - LAT',xy=(1e3,3e-3),xycoords='data',fontsize=12,color='magenta')
+		plot.plot(lateng,late2int_galactic,'r--',color='magenta')
+		plot.scatter(lateng,late2int_galactic,color='magenta')
+		plot.plot(lateng,late2int_igrb,'r:',color='magenta',lw=2)
+		plot.scatter(lateng,late2int_igrb,color='magenta')
+		plot.annotate('Ackermann et al. (2016) - LAT Extragalactic',xy=(5,1e-5),xycoords='data',fontsize=12,color='magenta')
+		plot.annotate('Acero et al. (2016) - LAT Galactic',xy=(1e2,3e-3),xycoords='data',fontsize=12,color='magenta')
 		plot.plot(gruber_eng,gruber_e2int,color='cyan')
 		plot.scatter(gruber_eng,gruber_e2int,color='cyan')
 		plot.annotate('Gruber et al. (1999) - HEAO, COMPTEL, EGRET',xy=(2e-3,5e-2),xycoords='data',fontsize=12,color='cyan')
+		plot.plot(wp_eng,wp_e2int,'r:',color='orange')
+		plot.scatter(wp_eng,wp_e2int,color='orange')
+		plot.annotate('Weidenspointner (2001)',xy=(2e-3,1e-3),xycoords='data',fontsize=12,color='orange')
 		#plot.plot(eng2,e2int2,color='purple')
 		#plot.scatter(eng2,e2int2,color='purple')	
 		plot.plot(Energy,background,color='green')
@@ -1279,6 +1300,31 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 	plot.clf()
 	#LAT
+	lat_energy=numpy.array([31.636559,55.997124,99.194466,178.46051,315.91608,558.86786,1004.1673,1801.5197,3179.561,5600.7397,10030.165,17674.44,31625.436,54096.105,98242.1,173146.97,305125.9,546138.4,990550.4,1712016.6,3043571.2])
+	lat_Aeff=numpy.array([0.07349323,0.19316217,0.3357588,0.48363942,0.6068357,0.71063167,0.8214752,0.88822705,0.9250036,0.90534276,0.9209482,0.9118694,0.9027835,0.92017376,0.89697146,0.89318365,0.8858685,0.8856009,0.8253616,0.6998877,0.50385296])*1e4
+	lat_psf_energy=numpy.array([32.03726,56.471546,99.54146,178.16881,304.57852,545.1637,990.85016,1720.002,3078.6238,5595.484,9863.066,17385.465,30179.168,53196.316,95215.85,173057.44,300407.8,529523.9,947792.44,1670658.0,2944841.2])
+	lat_psf0=numpy.array([11.73808,7.8302007,5.135973,3.368779,2.1726828,1.3098335,0.83064204,0.5179475,0.32846078,0.23048219,0.16448157,0.1255744,0.106081836,0.100847006,0.1025626,0.1025626,0.095870495,0.08961505,0.082366556,0.07570436,0.07196857])
+	tck=interpolate.splrep(numpy.log10(lat_psf_energy),numpy.log10(lat_psf0),s=0)
+	lat_psf=10**interpolate.splev(numpy.log10(lat_energy),tck,der=0)
+
+	#LAT background
+	#  Galactic from Acero et al. (2016)
+ 	lateng0=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
+  	late2int=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
+	tck=interpolate.splrep(numpy.log10(lateng0),numpy.log10(late2int),s=0)
+	lat_background_galactic=10**interpolate.splev(numpy.log10(lat_energy),tck,der=0)
+
+  	#  Extragalactic from Ackermann et al. (2015) - ApJ 799 86
+  	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,31000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
+  	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,2.1e-11,9.7e-12])
+  	late2int_igrb0=lat_igrb*lateng_igrb
+  	tck=interpolate.splrep(numpy.log10(lateng_igrb),numpy.log10(late2int_igrb0),s=0)
+	late2int_igrb=10**interpolate.splev(numpy.log10(lat_energy),tck,der=0)
+	lat_background=lat_background_galactic+late2int_igrb
+
+	lat_exposure=5.*365.*86400.*0.2 # 5 years, 20% of sky in FoV, assuming minimal SAA
+	lat_sensitivity=Isrc(lat_energy,lat_exposure,lat_Aeff,3,omega(lat_psf),lat_background)
+	plot.plot(lat_energy,lat_sensitivity,'r--',color='magenta',lw=2)
 	plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
 	plot.gca().set_xscale('log')
 	plot.gca().set_yscale('log')
