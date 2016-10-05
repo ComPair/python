@@ -1076,7 +1076,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False):
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False, showbackground=False):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1168,17 +1168,47 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
   	# high latitude |b|>5 deg
   	# multiply by 10 to vaguely account for the albedo background
 
-	#eng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
-	#e2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
+	oldeng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
+	olde2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])*10.
 
 	# Alex's new background numbers from Gruber et al. (1999) and Weidenspointer et al. (2000) and >100 MeV from Ackermann et al. (2015)
-	eng2=numpy.array([0.5,0.8,1.0,2.0,3.0,5.0,8.0,10.0,50.0,100.,200,500])
-	e2int2=numpy.array([2e-2,1e-2,7e-3,3e-3,2e-3,8e-4,4e-4,3e-4,3e-5,3.2e-6,2e-6,6e-7])
+	alex_eng2=numpy.array([0.5,0.8,1.0,2.0,3.0,5.0,8.0,10.0,50.0,100.,200,500])
+	alex_e2int2=numpy.array([2e-2,1e-2,7e-3,3e-3,2e-3,8e-4,4e-4,3e-4,3e-5,3.2e-6,2e-6,6e-7])*alex_eng2
+
+	# From Acero et al. (2016) - arxiv:1602.07246 |b| > 10 deg
+	#lateng=numpy.array([59.03219,85.70306,130.86836,206.94946,279.0981,377.88,515.6217,751.6096,1202.7435,1746.5424,2439.6077,3421.0806,5185.3374,7920.732,12578.761,19214.623,39437.465,88850.945,493146.28])
+  	#late2int=numpy.array([8.6141995E-4,0.0011453591,0.0015459998,0.002040656,0.0022842947,0.002390658,0.0024465262,0.0025040577,0.002326049,0.0020965973,0.0018339512,0.0015110897,0.0011299471,8.449544E-4,6.041775E-4,4.417733E-4,2.6613174E-4,1.7280209E-4,7.286812E-5])
+  	lateng=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
+  	late2int=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
+
+  	gruber_eng=numpy.array([2.978623,5.1983213,9.07216,13.32116,19.94295,32.241817,44.707794,72.33151,136.47008,278.06522,545.20044,1132.5265,3079.0847,6774.5522,17384.865,41301.277,105963.19,317014.44,1315024.2,6868901.5,2.2191038E7,8.6879376E7])*1e-3
+  	gruber_e2int=numpy.array([5.278219,4.1341214,3.2380166,2.592378,1.8563249,1.2433603,0.8325035,0.36483333,0.13988705,0.049062684,0.01799201,0.00590178,0.0014491071,4.9711246E-4,1.3645743E-4,4.6819663E-5,1.4694342E-5,4.219293E-6,8.482257E-7,1.4922263E-7,4.098341E-8,9.63159E-9])*gruber_eng
+
+  	eng2=numpy.append(gruber_eng[0:17],lateng[2:])
+  	e2int2=numpy.append(gruber_e2int[0:17],late2int[2:])
 
 	# interpolate background at our energies
 	tck=interpolate.splrep(numpy.log10(eng2),numpy.log10(e2int2),s=0)
 	logbackground=interpolate.splev(numpy.log10(Energy),tck,der=0)
 	background=10.**logbackground
+
+	if showbackground:
+		plot.figure()
+		plot.plot(oldeng2,olde2int2,color='red')
+		plot.scatter(oldeng2,olde2int2,color='red')
+		plot.plot(alex_eng2,alex_e2int2,color='blue')
+		plot.scatter(alex_eng2,alex_e2int2,color='blue')
+		plot.plot(lateng,late2int,color='magenta')
+		plot.scatter(lateng,late2int,color='magenta')
+		plot.plot(gruber_eng,gruber_e2int,color='cyan')
+		plot.scatter(gruber_eng,gruber_e2int,color='cyan')
+		plot.plot(eng2,e2int2,color='purple')
+		plot.scatter(eng2,e2int2,color='purple')	
+		plot.plot(Energy,background,color='green')
+		plot.scatter(Energy,background,color='green')
+		plot.xscale('log')
+		plot.yscale('log')
+		plot.show()
 
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
 	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
@@ -1220,11 +1250,11 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 
 ##########################################################################################
 
-def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, save=False):
+def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, save=False, showbackground=False):
 
 	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
 	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
-	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False)
+	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False, showbackground=showbackground)
 
 	a=ascii.read("digitized_alex_sensitivities.dat",names=['eng','sensit'])
 	l=ascii.read("differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
