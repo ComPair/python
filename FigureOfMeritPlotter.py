@@ -1287,8 +1287,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
 	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False, showbackground=showbackground)
 
-	a=ascii.read("digitized_alex_sensitivities.dat",names=['eng','sensit'])
-	l=ascii.read("differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
+	a=ascii.read("data/digitized_alex_sensitivities.dat",names=['eng','sensit'])
+	l=ascii.read("data/differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
 
 	#print a['energy']
 	energy=a['eng']
