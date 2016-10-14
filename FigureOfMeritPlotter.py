@@ -54,10 +54,13 @@ import glob
 import sys
 import os 
 import numpy
+import matplotlib
 import matplotlib.pylab as plot
 import math
 from astropy.io import ascii
 from scipy import interpolate
+
+matplotlib.rcParams.update({'font.size': 14})
 
 
 ##########################################################################################
@@ -432,8 +435,8 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 			plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Pair at %i$^\circ$' % angle)
 
 		if plotNumber == len(angleSelections):
-			plot.title('Angular Resolution')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper right')
+			#plot.title('Angular Resolution')			
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
 		if xlog == True:
 			plot.xscale('log')
@@ -441,12 +444,12 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 		if ylog == True:
 			plot.yscale('log')
 
-		plot.ylabel('fwhm (deg)')
+		plot.ylabel('Angular Resolution ($^{\circ}$)')
 
 		if collapse == False:
 			plot.text(0.015, 0.8, '%i$^\circ$' % round(numpy.degrees(numpy.arccos(angleSelection))),
 		        	verticalalignment='bottom', horizontalalignment='left',
-		       		transform=ax.transAxes, color='black', fontsize=12)
+		       		transform=ax.transAxes, color='black', fontsize=16)
 
 
 		if plotNumber != len(angleSelections) and collapse== False:
@@ -460,7 +463,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 
 		if plotNumber == len(angleSelections):
-			plot.xlabel(r'Energy (MeV)')
+			plot.xlabel('Energy (MeV)', fontsize=16)
 
 
 		plot.gca().set_ylim([0.,20.])
@@ -468,7 +471,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 		plotNumber = plotNumber + 1
 
 
-	#plot.subplots_adjust(wspace=0, hspace=.2)
+	plot.subplots_adjust(wspace=0, hspace=.2)
 
 	if save:
 		#print "not saved"
@@ -576,8 +579,8 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 
 		if plotNumber == 1:
-			plot.title('Angular Resolution')
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper right')
+			#plot.title('Angular Resolution')
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
 		if xlog:
 			plot.xscale('log')
@@ -585,17 +588,17 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 		if ylog:
 			plot.yscale('log')
 
-		plot.ylabel(u'fwhm (deg)')
+		plot.ylabel('Angular Resolution ($^{\circ}$)', fontsize=16)
 
 		if collapse==False:
 			plot.text(0.015, 0.8, '%s MeV' % energySelection,
 		        	verticalalignment='bottom', horizontalalignment='left',
 		        	transform=ax.transAxes,
-		        	color='black', fontsize=12)
+		        	color='black', fontsize=16)
 
 
-		if plotNumber != len(energySelections):
-			ax.set_xticklabels([])
+		#if plotNumber != len(energySelections):
+		#	ax.set_xticklabels([])
 
 			# labels = ax.get_yticklabels()
 			# print labels
@@ -605,7 +608,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 
 		if plotNumber == len(energySelections):
-			plot.xlabel(r'$\theta$')
+			plot.xlabel(r'$\theta$', fontsize=16)
 
 
 		plotNumber = plotNumber + 1
@@ -692,7 +695,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
 		if xlog:
 			plot.xscale('log')
@@ -705,7 +708,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
 		        verticalalignment='bottom', horizontalalignment='right',
 		        transform=ax.transAxes,
-		        color='black', fontsize=12)
+		        color='black', fontsize=16)
 
 
 		if plotNumber != len(angleSelections):
@@ -810,7 +813,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')						
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
 		if xlog:
 			plot.xscale('log')
@@ -824,7 +827,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
 		        verticalalignment='top', horizontalalignment='right',
 		        transform=ax.transAxes,
-		        color='black', fontsize=12)
+		        color='black', fontsize=16)
 
 		#if plotNumber != len(energySelections):
 		#	ax.set_xticklabels([])
@@ -964,23 +967,24 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 
 		if plotNumber == len(angleSelections):
-			plot.title('Effective Area')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+			#plot.title('Effective Area')			
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
-		plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
+		#plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
+		plot.ylabel('Effective Area (cm$^2$)')
 
 		if collapse == False:
 			plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
 		        verticalalignment='bottom', horizontalalignment='right',
 		        transform=ax.transAxes,
-		        color='black', fontsize=12)
+		        color='black', fontsize=16)
 		# else:
 		# 	plot.text(61, EffectiveArea_Tracked[-1], '%s MeV' % energySelection,
 		# 	        verticalalignment='bottom', horizontalalignment='left',
-		# 	        color='black', fontsize=12)
+		# 	        color='black', fontsize=16)
 
-		if plotNumber == 1:
-			plot.title('Effective Area')			
+		#if plotNumber == 1:
+		#	plot.title('Effective Area')			
 
 		if xlog:
 			plot.xscale('log')
@@ -1132,20 +1136,21 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 
 
 		if plotNumber == len(energySelections):
-			plot.title('Effective Area')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+			#plot.title('Effective Area')			
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
-		plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
+		#plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
+		plot.ylabel('Effective Area (cm$^2$)')
 
 		if collapse == False:
 			plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
 			        verticalalignment='bottom', horizontalalignment='right',
 		       		transform=ax.transAxes,
-			        color='black', fontsize=12)
+			        color='black', fontsize=16)
 		# else:
 		# 	plot.text(61, EffectiveArea_Tracked[-1], '%s MeV' % energySelection,
 		# 	        verticalalignment='bottom', horizontalalignment='left',
-		# 	        color='black', fontsize=12)
+		# 	        color='black', fontsize=16)
 
 		if xlog:
 			plot.xscale('log')
@@ -1370,7 +1375,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		if ylog:
 			plot.yscale('log')
 
-		plot.legend(numpoints=1, scatterpoints=1, fontsize='small', frameon=True, loc='upper left')
+		plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
 		if save:
 			plot.savefig('SourceSensitivity.pdf', bbox_inches='tight')
@@ -1389,6 +1394,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
 	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
 	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False, showbackground=showbackground)
+
+	plot.figure(figsize=(10, 6.39))
 
 	a=ascii.read("data/digitized_alex_sensitivities.dat",names=['eng','sensit'])
 	l=ascii.read("data/differential_flux_sensitivity_p8r2_source_v6_all_10yr_zmax100_n10.0_e1.50_ts25_000_090.txt",names=['emin','emax','e2diff','tmp'])
@@ -1433,7 +1440,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	plot.gca().set_xlim([1e-2,1e6])
 	plot.gca().set_ylim([1e-8,1e-2])
 	plot.gca().set_xlabel('Energy (MeV)')
-	plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]')
+	plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]', fontsize=14)
 	plot.annotate('Fermi-LAT', xy=(1e3,1e-6),xycoords='data',fontsize=16,color='magenta')
 
 	#EGRET from https://heasarc.gsfc.nasa.gov/docs/cgro/egret/egret_tech.html#N_4_
