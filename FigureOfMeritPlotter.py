@@ -323,7 +323,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 		# Add all the values to the results dictionary
 		holder=-999. # This is required for historic reasons
 
-		if float(energy) <=10.0:
+		if float(energy) <=30.0:
 			data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
 			data[simulationName].append([holder, holder, holder, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
 			data[simulationName].append([holder, holder, holder, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents])
@@ -332,7 +332,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
-		if float(energy) >=3.0:
+		if float(energy) >=1.0:
 			data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, holder, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
 		else:
 			data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
@@ -1075,7 +1075,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False, showbackground=False):
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False, showbackground=False):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1239,8 +1239,8 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 6.3*10**6, ideal=
 		plot.savefig('Background.png', bbox_inches='tight')
 		plot.show()
 
-	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background)
-	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background)
+	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background*10.)
+	Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background*10.)
 	Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
 
 	if doPSF:
@@ -1386,13 +1386,39 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	tracked=ComPairSensitivity[1]	
 	untracked=ComPairSensitivity[2]
 	pair=ComPairSensitivity[3]
+
+
+	combined=numpy.zeros(len(compair_eng))
+
+
+
+	for e in range(len(compair_eng)):
+		if tracked[e] > pair[e]:
+			combined[e]=pair[e]*(tracked[e]/(tracked[e]+pair[e]))**0.5
+			print (tracked[e]/(tracked[e]+pair[e]))**0.5
+		if tracked[e] < pair[e]:
+			combined[e]=tracked[e]*(pair[e]/(tracked[e]+pair[e]))**0.5
+			print (pair[e]/(tracked[e]+pair[e]))**0.5
+		if numpy.isnan(tracked[e]):
+			combined[e]=pair[e]
+		if numpy.isnan(pair[e]):
+			combined[e]=tracked[e]
+
+
+#	print compair_eng
+#	print tracked
+#	print pair
+#	print combined
+
 	if plotIdeal:
 		tracked_ideal=ComPairIdealSensitivity[1]
 		pair_ideal=ComPairIdealSensitivity[3]
 		#pair_idealang=ComPairGoodPSFSensitivity[3]
 
 	plot.plot(compair_eng,tracked,color='black',lw=3)	
-	plot.plot(compair_eng,pair,'r--',color='black',lw=3)
+	plot.plot(compair_eng,pair,color='black',lw=3)
+	plot.plot(compair_eng,combined,'r--',color='cyan',lw=3)
+
 	if plotIdeal:
 		#plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
 		plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)

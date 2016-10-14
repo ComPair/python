@@ -17,7 +17,7 @@ def FillingTheGap(save=False):
 
 	## ComPair
 	fig = plot.figure()
-	yrange = [1e-13, 1e2]
+	yrange = [1e-9,1e-3]#[1e-13, 1e2]
 	xrange = [1e-3,1e6]
 	plot.fill_between([0.5,500],[yrange[1],yrange[1]],[yrange[0],yrange[0]],facecolor='yellow',interpolate=True,color='yellow',alpha=0.5)
 	plot.annotate('ComPair',xy=(5,10),xycoords='data',fontsize=18,color='black')
@@ -29,7 +29,7 @@ def FillingTheGap(save=False):
 	h=6.6261e-27 #erg s
 	erg2mev=624151.
 	agn_energy=10**logfreq*h*erg2mev #Hz * erg s
-	arbfact=1e3
+	arbfact=1#e3
 	agn_flux=10**logflux*erg2mev*arbfact #erg cm-2 s-1
 
 	plot.plot(agn_energy,agn_flux,lw=2)
@@ -79,7 +79,7 @@ def FillingTheGap(save=False):
 	# From Torres et al. JHEAP, 2014, 1, 31
 	# G54.1+0.3
 
-	arbfact=1e-3
+	arbfact=1#e-3
 	pwne_model_eng=numpy.array([860.1604,1866.5002,3879.583,7087.079,10898.913,17498.09,28093.0,34838.23,41383.043,299664.66,6644004.5,3.5596056E7,1.29464152E8,4.91573856E8,3.71615181E9,2.36500337E10,8.2392531E10,2.52272067E11,5.47416343E11,8.7887118E11])*1e-6
 	pwne_model_flux=numpy.array([1.2608298E-11,9.389613E-12,5.4490882E-12,2.8233574E-12,1.1928516E-12,4.0173412E-13,1.7362255E-13,1.3226478E-13,1.4482099E-13,3.1305714E-13,7.409742E-13,8.684221E-13,8.2992185E-13,6.3223027E-13,2.9917822E-13,8.0318205E-14,1.925147E-14,4.119833E-15,8.816484E-16,1.0E-16])*erg2mev*arbfact
 

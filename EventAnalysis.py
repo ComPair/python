@@ -700,7 +700,7 @@ def parse(filename,sourceTheta=None):
 
 ##########################################################################################
 
-def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True):
+def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True, filename=None):
 
 	# Set some constants
 	electron_mc2 = 511.0		# KeV
@@ -823,6 +823,17 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedE
 	print "FWHM of fit: %s" %  FWHM	
 	print ""
 
+	if filename is not None:
+		f=getDetailsFromFilename(filename)
+		f1,f2 = f['MeV'], f['Cos']
+
+		ft=None
+		if onlyTrackedElectrons == True:
+			ft='tracked'
+		else:
+			ft='untracked'
+
+		plot.savefig("../Simulations/PerformancePlotTraFiles/%sMeV_Cos%s_angular_resolution_%s.png" % (f1,f2,ft))
 
 	# Show the plot
 	if showPlots == True:
@@ -837,7 +848,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=180, onlyTrackedE
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,180], anglePlotRange=[0,45], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,45], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -1190,6 +1201,11 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	print "68%% containment (histogram): %.2f deg" %  contaimentBinned_68		
 	print ""
 
+	if filename is not None:
+		f=getDetailsFromFilename(filename)
+		f1,f2 = f['MeV'], f['Cos']
+
+		plot.savefig("../Simulations/PerformancePlotTraFiles/%sMeV_Cos%s_angular_resolution_Pair.png" % (f1,f2))
 
 	# Show the plot
 	if showPlots == True:
@@ -1659,7 +1675,7 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 ##########################################################################################
 
  
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', openingAngleMax=180., maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=180, sourceTheta=None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', openingAngleMax=180., maximumComptonEnergy=30, minimumPairEnergy=1, energyRangeCompton=None, phiRadiusCompton=10, sourceTheta=None):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -1745,7 +1761,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 		 	
 		 	print "\n\nCalculating the angular resolution measurement for Untracked Compton events..."
 			print "EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton)			
-			FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots)
+			FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename)
 
 		 	print "Calculating the energy resolution for Tracked Compton events..."
 			print "EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton)
@@ -1753,7 +1769,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
 			print "\n\nCalculating the angular resolution measurement for Tracked Compton events..."
 			print "EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton)			
-			FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots)
+			FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename)
 
 		else:
 
@@ -1781,7 +1797,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			# Calculate the angular resolution measurement (ARM) for pair events
 			print "\n\nCalculating the angular resolution measurement for pair events..."
 			print "EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)"	
-			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots)
+			angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots, filename=filename)
 		 
 		else:
 			sigma_pair = numpy.nan
