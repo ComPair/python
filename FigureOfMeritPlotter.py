@@ -1323,8 +1323,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 	lat_exposure=5.*365.*86400.*0.2 # 5 years, 20% of sky in FoV, assuming minimal SAA
 	lat_sensitivity=Isrc(lat_energy,lat_exposure,lat_Aeff,3,omega(lat_psf),lat_background)
-	plot.plot(lat_energy,lat_sensitivity,'r--',color='magenta',lw=2)
-	plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
+	plot.plot(lat_energy,lat_sensitivity,color='magenta',lw=2)
+	#plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
 	plot.gca().set_xscale('log')
 	plot.gca().set_yscale('log')
 	plot.gca().set_xlim([1e-2,1e6])
@@ -1387,18 +1387,21 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	untracked=ComPairSensitivity[2]
 	pair=ComPairSensitivity[3]
 
+	if plotIdeal:
+		tracked_ideal=ComPairIdealSensitivity[1]
+		#pair_ideal=ComPairIdealSensitivity[3]
+		pair=ComPairIdealSensitivity[3]
+		#pair_idealang=ComPairGoodPSFSensitivity[3]
 
 	combined=numpy.zeros(len(compair_eng))
-
-
 
 	for e in range(len(compair_eng)):
 		if tracked[e] > pair[e]:
 			combined[e]=pair[e]*(tracked[e]/(tracked[e]+pair[e]))**0.5
-			print (tracked[e]/(tracked[e]+pair[e]))**0.5
+			#print (tracked[e]/(tracked[e]+pair[e]))**0.5
 		if tracked[e] < pair[e]:
 			combined[e]=tracked[e]*(pair[e]/(tracked[e]+pair[e]))**0.5
-			print (pair[e]/(tracked[e]+pair[e]))**0.5
+			#print (pair[e]/(tracked[e]+pair[e]))**0.5
 		if numpy.isnan(tracked[e]):
 			combined[e]=pair[e]
 		if numpy.isnan(pair[e]):
@@ -1410,18 +1413,14 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 #	print pair
 #	print combined
 
-	if plotIdeal:
-		tracked_ideal=ComPairIdealSensitivity[1]
-		pair_ideal=ComPairIdealSensitivity[3]
-		#pair_idealang=ComPairGoodPSFSensitivity[3]
 
-	plot.plot(compair_eng,tracked,color='black',lw=3)	
-	plot.plot(compair_eng,pair,color='black',lw=3)
-	plot.plot(compair_eng,combined,'r--',color='cyan',lw=3)
+	plot.plot(compair_eng,tracked,'r--',color='grey',lw=2)	
+	plot.plot(compair_eng,pair,'r--',color='grey',lw=2)
+	plot.plot(compair_eng,combined,color='black',lw=4)
 
-	if plotIdeal:
+	#if plotIdeal:
 		#plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
-		plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)
+		##plot.plot(compair_eng,pair_ideal,'r:',color='black',lw=3)
 		#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=2)
 
 	#Alex's numbers
