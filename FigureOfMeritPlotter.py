@@ -61,6 +61,7 @@ from astropy.io import ascii
 from scipy import interpolate
 
 matplotlib.rcParams.update({'font.size': 14})
+colors = ['red', 'blue', 'green', 'orange', 'brown', 'purple', 'darkred']
 
 
 ##########################################################################################
@@ -360,7 +361,6 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 		#print "collapse!"
 		plot.figure(figsize=(10, 6.39))
 		ax = plot.subplot(111)
-		colors = ['purple', 'blue', 'green', 'orange', 'brown', 'red', 'darkred']
 
 
 	for angleSelection in angleSelections:
@@ -415,24 +415,24 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 		if collapse == False:
 			plot.scatter(Energy[i],st,color='darkgreen')
-			plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+			plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, label='Compton (tracked)', lw=2)
 
 			#plot.scatter(Energy[j],sut,color='blue')
 			#plot.plot(Energy[j], sut, color='blue', alpha=0.5, label='Compton (untracked)')
 
 			plot.scatter(Energy[k],sp,color='darkred')
-			plot.plot(Energy[k],sp, color='darkred', alpha=0.5, label='Pair')		
+			plot.plot(Energy[k],sp, color='darkred', alpha=0.5, label='Pair', lw=2)		
 
 		else:
 			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
 			plot.scatter(Energy[i][1:-1],st[1:-1], color=colors[plotNumber-1])
-			plot.plot(Energy[i][1:-1], st[1:-1], color=colors[plotNumber-1], alpha=0.5, label='Compton (tracked) at %i$^\circ$' % angle)
+			plot.plot(Energy[i][1:-1], st[1:-1], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton (tracked) at %i$^\circ$' % angle)
 
 			#plot.scatter(Energy[j],sut, color=colors[plotNumber-1])
-			#plot.plot(Energy[j], sut, color=colors[plotNumber-1], alpha=0.5, linestyle='--')
+			#plot.plot(Energy[j], sut, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', lw=2)
 
 			plot.scatter(Energy[k],sp, color=colors[plotNumber-1])
-			plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Pair at %i$^\circ$' % angle)
+			plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
 
 		if plotNumber == len(angleSelections):
 			#plot.title('Angular Resolution')			
@@ -506,11 +506,8 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 
 	if collapse == True:
-		#print "collapse!"
 		plot.figure(figsize=(10, 6.39))
 		ax = plot.subplot(111)
-		colors = ['purple', 'blue', 'green', 'orange', 'brown', 'red', 'darkred']
-
 
 	if len(energySelections)>6:
 		energySelections=energySelections[[1,3,5,7,9,11]]
@@ -559,23 +556,23 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 			ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
 
 			plot.scatter(Angle,FWHM_tracked,color='darkgreen')
-			plot.plot(Angle, FWHM_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+			plot.plot(Angle, FWHM_tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)', lw=2)
 
 			#plot.scatter(Angle,FWHM_untracked,color='blue')
-			#plot.plot(Angle, FWHM_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+			#plot.plot(Angle, FWHM_untracked, color='blue', alpha=0.5, label='Compton (untracked)', lw=2)
 
 			plot.scatter(Angle,sp,color='darkred')
-			plot.plot(Angle,sp, color='darkred', alpha=0.5, label='Pair')		
+			plot.plot(Angle,sp, color='darkred', alpha=0.5, label='Pair', lw=2)		
 
 		else:
 			plot.scatter(Angle,FWHM_tracked, color=colors[plotNumber-1])
-			plot.plot(Angle, FWHM_tracked, color=colors[plotNumber-1], alpha=0.5, label='Compton (tracked) at %i  MeV' % energySelection)
+			plot.plot(Angle, FWHM_tracked, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton (tracked) at %i  MeV' % energySelection)
 
 			#plot.scatter(Angle,FWHM_untracked, color=colors[plotNumber-1])
-			#plot.plot(Angle, FWHM_untracked, color=colors[plotNumber-1], alpha=0.5, linestyle='--')
+			#plot.plot(Angle, FWHM_untracked, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='-.')
 
 			plot.scatter(Angle,Containment68, color=colors[plotNumber-1])
-			plot.plot(Angle,Containment68, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Pair at %i MeV' % energySelection)
+			plot.plot(Angle,Containment68, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i MeV' % energySelection)
 
 
 		if plotNumber == 1:
@@ -681,17 +678,17 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		i=Sigma_tracked != 'nan'
 		st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],st,color='darkgreen')
-		plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+		plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, lw=2, label='Compton (tracked)')
 
 		i=Sigma_untracked != 'nan'
 		sut=numpy.double(Sigma_untracked[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],sut,color='blue')
-		plot.plot(Energy[i], sut, color='blue', alpha=0.5, label='Compton (untracked)')
+		plot.plot(Energy[i], sut, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
 
 		i=Sigma_pair != 'nan'
 		sp=numpy.double(Sigma_pair[i])/numpy.double(Energy[i])*1e-3
 		plot.scatter(Energy[i],sp,color='darkred')
-		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, label='Pair')
+		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, lw=2, label='Pair')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')			
@@ -801,15 +798,15 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		
 		i=Sigma_tracked =='nan'
 		st=numpy.double(numpy.ma.array(Sigma_tracked,mask=i).compressed())/numpy.double(energySelection)*1.0e-3
-		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, label='Compton (tracked)', marker='o')
+		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, lw=2, label='Compton (tracked)', marker='o')
 		
 		i=Sigma_untracked == 'nan'
 		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=i).compressed())/numpy.double(energySelection)*1e-3		
-		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sut, color='blue', alpha=0.75, label='Compton (untracked)', marker='o')
+		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sut, color='blue', alpha=0.75, lw=2, label='Compton (untracked)', marker='o')
 		
 		i=Sigma_pair == 'nan'
 		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=i).compressed())/numpy.double(energySelection)*1e-3		
-		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sp, color='darkred', alpha=0.75, label='Pair', marker='o')
+		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sp, color='darkred', alpha=0.75, lw=2, label='Pair', marker='o')
 
 		if plotNumber == 1:
 			plot.title('Energy Resolution')						
@@ -862,11 +859,8 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		# Create the new subplot
 		plot.figure(figsize=(10,12))
 	else:
-		#print "collapse!"
 		plot.figure(figsize=(10, 6.39))
 		ax = plot.subplot(111)
-		colors = ['purple', 'blue', 'green', 'orange', 'brown', 'red', 'darkred']
-
 
 	for angleSelection in angleSelections:
 
@@ -946,24 +940,24 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		# Plot the data
 		if collapse == False:
 			plot.scatter(Energy, EffectiveArea_Tracked, color='darkgreen')
-			plot.plot(Energy, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+			plot.plot(Energy, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=2, label='Compton (tracked)')
 
 			#plot.scatter(Energy, EffectiveArea_Untracked, color='blue')
-			#plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+			#plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
 
 			plot.scatter(Energy, EffectiveArea_Pair, color='darkred')
-			plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, label='Pair')			
+			plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=2, label='Pair')			
 
 		else:
 			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
 			plot.scatter(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1])
-			plot.plot(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1], alpha=0.5, label='Compton (tracked) at %i$^\circ$' % angle)
+			plot.plot(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton (tracked) at %i$^\circ$' % angle)
 
 			#plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
-			#plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], alpha=0.5, linestyle='--')
+			#plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=2, alpha=0.5, linestyle='-.')
 
 			plot.scatter(Energy, EffectiveArea_Pair, color=colors[plotNumber-1])
-			plot.plot(Energy, EffectiveArea_Pair, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Pair at %i$^\circ$' % angle)
+			plot.plot(Energy, EffectiveArea_Pair, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
 
 
 		if plotNumber == len(angleSelections):
@@ -1003,7 +997,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		plotNumber = plotNumber + 1
 
 
-	plot.subplots_adjust(wspace=0, hspace=.2)
+	#plot.subplots_adjust(wspace=0, hspace=.2)
 
 	if save:
 		plot.savefig('EffectiveArea_Cos%s.pdf' % angleSelections[0], bbox_inches='tight')
@@ -1042,10 +1036,8 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 		# Create the new subplot
 		plot.figure(figsize=(10,12))
 	else:
-		#print "collapse!"
 		plot.figure(figsize=(10, 6.39))
 		ax = plot.subplot(111)
-		colors = ['purple', 'blue', 'green', 'orange', 'brown', 'red', 'darkred']
 
 	for energySelection in energySelections:
 
@@ -1114,25 +1106,25 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 		# Plot the data
 		if collapse == False:
 			plot.scatter(Angle, EffectiveArea_Tracked, color='darkgreen')
-			plot.plot(Angle, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, label='Compton (tracked)')
+			plot.plot(Angle, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=2, label='Compton (tracked)')
 
 			#plot.scatter(Angle, EffectiveArea_Untracked, color='blue')
-			#plot.plot(Angle, EffectiveArea_Untracked, color='blue', alpha=0.5, label='Compton (untracked)')
+			#plot.plot(Angle, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
 
 			plot.scatter(Angle, EffectiveArea_Pair, color='darkred')
-			plot.plot(Angle, EffectiveArea_Pair, color='darkred', alpha=0.5, label='Pair')			
+			plot.plot(Angle, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=2, label='Pair')			
 
 		else:
 			if EffectiveArea_Tracked[0]>1:
 				plot.scatter(Angle, EffectiveArea_Tracked, color=colors[plotNumber-1])
-				plot.plot(Angle, EffectiveArea_Tracked, color=colors[plotNumber-1], alpha=0.5, label='Compton (tracked) at %s MeV' % energySelection)
+				plot.plot(Angle, EffectiveArea_Tracked, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton (tracked) at %s MeV' % energySelection)
 
 			#plot.scatter(Angle, EffectiveArea_Untracked, color=colors[plotNumber-1])
-			#plot.plot(Angle, EffectiveArea_Untracked, color=colors[plotNumber-1], alpha=0.5, linestyle='--')
+			#plot.plot(Angle, EffectiveArea_Untracked, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='-.')
 
 			if EffectiveArea_Pair[1]>1:
 				plot.scatter(Angle, EffectiveArea_Pair, color=colors[plotNumber-1])
-				plot.plot(Angle, EffectiveArea_Pair, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Pair at %s MeV' % energySelection)
+				plot.plot(Angle, EffectiveArea_Pair, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %s MeV' % energySelection)
 
 
 		if plotNumber == len(energySelections):
