@@ -58,6 +58,7 @@ import matplotlib
 import matplotlib.pylab as plot
 import math
 from astropy.io import ascii
+from astropy.table import Table
 from scipy import interpolate
 
 matplotlib.rcParams.update({'font.size': 14})
@@ -853,7 +854,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 ##########################################################################################
 
-def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, save=False, collapse=False):
+def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, save=False, show=True, collapse=False):
 
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
@@ -1009,7 +1010,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 		plot.savefig('EffectiveArea_Cos%s.pdf' % angleSelections[0], bbox_inches='tight')
 		plot.savefig('EffectiveArea_Cos%s.png' % angleSelections[0], bbox_inches='tight')
 
-	plot.show()
+	if show:
+		plot.show()
+
+	return EffectiveArea_Untracked, EffectiveArea_Tracked, EffectiveArea_Pair
 
 
  ##########################################################################################
@@ -1175,6 +1179,36 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 		plot.savefig('EffectiveAreaVsAngle_%sMeV.png' % energySelections[0])
 
 	plot.show()
+
+
+##########################################################################################
+def resultsToFits(data, outfile='output.fits'):
+
+	Energy = []	
+	Angle = []
+	aeff_vs_energy = []
+	for key in data.keys():
+		energy = float(key.split('_')[1].replace('MeV',''))
+		half = key.split('_')[2].replace('Cos','')
+		angle = float(half.replace('.inc1.id1.sim',''))
+		if energy not in Energy:
+			Energy.append(energy)
+		if angle not in Angle:
+			Angle.append(angle)
+	Energy=numpy.array(Energy)
+	Angle=numpy.array(Angle)
+	i = [numpy.argsort(Energy)]
+	j = [numpy.argsort(Angle)]
+
+	aeff_vs_energy[0] = plotEffectiveArea(data, angleSelections=Angle[j], ideal=True, show=False)
+	aeff_vs_energy[0] = plotEffectiveArea(data, angleSelections=Angle[j], ideal=True, show=False)
+	
+	print aeff_vs_energy[0][0]
+
+	#print energySelections, angleSelections
+
+
+	#t.write(outfile,format='fits',overwrite=True)
 
 
 ########################################################################################## 
