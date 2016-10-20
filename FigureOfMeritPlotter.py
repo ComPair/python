@@ -240,7 +240,7 @@ def parseMimrecLogs(sumlationsIDs=None):
 
 ##########################################################################################
 
-def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
+def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=False):
 
 	if triggerEfficiencyFilename == None:
 		triggerEfficiencyFilename = directory + '/TriggerEfficiency.txt'
@@ -272,7 +272,8 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None):
 		analysisLog = directory + '/' + simulationName.replace('.sim', '.log')
 
 		try:
-			print "Parsing: %s" % analysisLog
+			if silent==False:
+				print "Parsing: %s" % analysisLog
 			with open(analysisLog) as filehandle:
 				analysisLogLines = filehandle.readlines()
 
@@ -1421,7 +1422,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 ##########################################################################################
 
-def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, save=False, showbackground=False):
+def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, save=False, showbackground=False, doplot=True):
 
 	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
 	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
@@ -1570,9 +1571,10 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	if save:
 		plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
 		plot.savefig('full_sensitivity_Cos%s.png' % angleSelection)
-	plot.show()
+	if doplot == True:
+		plot.show()
 
-	return
+	return compair_eng,combined
 
 ##########################################################################################
 
