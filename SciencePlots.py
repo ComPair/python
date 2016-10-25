@@ -51,7 +51,7 @@ def SMBH_mass(save=False):
 
 	if save:
 		plot.savefig('SMBH_mass.png', bbox_inches='tight')
-		plot.savefig('SMBH_mass.pdf', bbox_inches='tight')
+		plot.savefig('SMBH_mass.eps', bbox_inches='tight')
 	else:
 		plot.show()
 
@@ -129,7 +129,7 @@ def UNIDplot(save=False):
 	plot.title('Fermi-LAT Unidentified Sources in the MeV Band')
 	if save:
 		plot.savefig('UNID_SED.png', bbox_inches='tight')
-		plot.savefig('UNID_SED.pdf', bbox_inches='tight')
+		plot.savefig('UNID_SED.eps', bbox_inches='tight')
 	else:
 		plot.show()
 	plot.close()
@@ -339,7 +339,7 @@ def FillingTheGap(save=False):
 	plot.title('Shocks',color='red',fontsize=12)
 
 	if save:
-		plot.savefig('SED_science_themes.pdf', bbox_inches='tight')
+		plot.savefig('SED_science_themes.eps', bbox_inches='tight')
 		plot.savefig('SED_science_themes.png', bbox_inches='tight')
 	plot.show()
 	plot.close()
