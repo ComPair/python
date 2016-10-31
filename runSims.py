@@ -46,12 +46,18 @@ def runCosima(srcFile):
 
     print "Writing Log for " + srcFile
     with gzip.open(base[0]+'.stdout.gz', 'wb') as f:
-        f.write(out)
+        try:
+            f.write(out)
+        except OverflowError:
+            print "Log (stdout) too big.  Didn't write"
 
     if (len(err) > 0):
         print "Errors exist, might want to check " + srcFile
         with gzip.open(base[0]+'.stderr.gz', 'wb') as f:
-            f.write(err)
+            try:
+               f.write(err)
+            except OverflowError:
+                print "Log (stderr) too big.  Didn't write"
 
 def runRevan(simFile, cfgFile):
 
@@ -70,12 +76,20 @@ def runRevan(simFile, cfgFile):
 
     print "Writing Log for " + simFile
     with gzip.open(base[0]+'.revan.stdout.gz', 'wb') as f:
-        f.write(out)
+        try:
+            f.write(err)
+        except OverflowError:
+            print "Log (stdout) too big.  Didn't write"
+
 
     if (len(err) > 0):
         print "Errors exist, might want to check " + simFile
         with gzip.open(base[0]+'.revan.stderr.gz', 'wb') as f:
-            f.write(err)
+            try:
+                f.write(err)
+            except OverflowError:
+                print "Log (stderr) too big.  Didn't write"
+            
 
 def runRevan_star(files):
     """Convert `f([1,2])` to `f(1,2)` call."""
