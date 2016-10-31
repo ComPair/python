@@ -833,7 +833,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
 		else:
 			ft='untracked'
 
-		plot.savefig("../Simulations/PerformancePlotTraFiles/%sMeV_Cos%s_angular_resolution_%s.png" % (f1,f2,ft))
+		plot.savefig("%sMeV_Cos%s_angular_resolution_%s.png" % (f1,f2,ft))
 
 	# Show the plot
 	if showPlots == True:
