@@ -136,6 +136,7 @@ def cli():
     parser.add_argument("--sourcePath",help="Where the source files live.  If not given, will get from COMPAIRPATH.")
     parser.add_argument("--simPath", help="Where the sim files live (from cosima).")
     parser.add_argument("--revanCfg", help="Revan config file (need full path).")
+    parser.add_argument("--reRun", type=bool, default=False, help="Re run/re write")
     
     args = parser.parse_args()
 
@@ -158,7 +159,8 @@ def cli():
     if args.runRevan:
         simFiles = getFiles(args.simPath,'sim')
         traFiles = getFiles(args.simPath,'tra')
-        simFiles = notDone(simFiles,traFiles)
+        if not args.reRun:
+            simFiles = notDone(simFiles,traFiles)
         if not args.revanCfg:
             print "Need to specify the config file for revan (--revanCfg)"
             exit()
