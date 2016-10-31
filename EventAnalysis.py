@@ -1205,7 +1205,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		f=getDetailsFromFilename(filename)
 		f1,f2 = f['MeV'], f['Cos']
 
-		plot.savefig("../Simulations/PerformancePlotTraFiles/%sMeV_Cos%s_angular_resolution_Pair.png" % (f1,f2))
+		plot.savefig("%sMeV_Cos%s_angular_resolution_Pair.png" % (f1,f2))
 
 	# Show the plot
 	if showPlots == True:
@@ -1218,7 +1218,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
 ##########################################################################################
 
-def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[0,1e5], showPlots=True, qualityCut=1.0):
+def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[0,1e5], showPlots=True, qualityCut=1.0,fileBase="5.011MeV_Cos0.8"):
 
 	# Retrieve the event data
 	energy_pairElectron = events['energy_pairElectron']
@@ -1234,10 +1234,24 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 	# Select the events within the desired energy range
 	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) & (qualityOfPairReconstruction <= qualityCut))
 
+	# Create histrograms for the electrons and positrons
+	histElectrons = plot.hist(energy_pairElectron[selection], 
+				  bins=numberOfBins, 
+				  alpha=0.5, histtype='stepfilled',label="Electrons")
+	histPositrons = plot.hist(energy_pairPositron[selection], 
+				  bins=numberOfBins, 
+				  alpha=0.5, histtype='stepfilled',label="Positrons")
+	plot.xlabel('Energy (keV)')
+	plot.xlim(energyPlotRange)
+	plot.legend()
+	plot.savefig(fileBase+"_pairEnergies.png")
+	plot.close()
+
 	# Create the histogram
 	histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
 	plot.xlabel('Energy (keV)')
 	plot.xlim(energyPlotRange)
+	plot.savefig(fileBase+"_photonEnergies.png")
 	plot.close()
 
 	# Extract the binned data and bin locations
@@ -1792,7 +1806,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			# Calculate the energy resolution for Pair events
 			print "\n\nCalculating the energy resolution for pair events..."
 			print "EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)"
-			fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, showPlots=showPlots)
+			fileBase = "%sMeV_Cos%s" % (energy,angle)
+			fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, showPlots=showPlots,fileBase=fileBase)
 
 			# Calculate the angular resolution measurement (ARM) for pair events
 			print "\n\nCalculating the angular resolution measurement for pair events..."
