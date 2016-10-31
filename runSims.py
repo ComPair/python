@@ -109,6 +109,16 @@ def getFiles(searchDir = '', extension = 'source'):
     else:
         return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.'+extension)
 
+def notDone(sims, tras):
+
+    sims_base = [name[0:-4] for name in sims]
+    tras_base = [name[0:-4] for name in tras]
+
+    diff = set(sims_base) - set(tras_base)
+
+    return [name+".sim" for name in diff]
+
+
 def cli():
 
     from multiprocessing import Pool
@@ -147,6 +157,8 @@ def cli():
 
     if args.runRevan:
         simFiles = getFiles(args.simPath,'sim')
+        traFiles = getFiles(args.simPath,'tra')
+        simFiles = notDone(simFiles,traFiles)
         if not args.revanCfg:
             print "Need to specify the config file for revan (--revanCfg)"
             exit()
