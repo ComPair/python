@@ -109,6 +109,24 @@ def getFiles(searchDir = '', extension = 'source'):
     else:
         return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.'+extension)
 
+def makeLinks(files, folderName='SimFiles'):
+
+    '''Function to make links in directories.  Probably not useful.'''
+
+    from os import symlink
+    from os import chdir
+
+    groups = { 1 : ["Cos0.5","Cos0.7"],
+               2 : ["Cos0.6","Cos0.9"],
+               3 : ["Cos0.8","Cos1.0"]}
+
+    for filename in files:
+        for group,angles in groups.iteritems():
+            if any(x in filename for x in angles):
+                chdir(folderName + str(group))
+                symlink('../'+filename, filename)
+                chdir('../')
+
 def notDone(sims, tras):
 
     sims_base = [name[0:-4] for name in sims]
