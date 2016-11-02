@@ -318,6 +318,7 @@ def parse(filename,sourceTheta=None):
 	position_firstInteraction_error = []
 
 	# Define the lists to store the direction vectors
+	direction_recoilElectron = []
 	direction_pairElectron = []
 	direction_pairPositron = []
 
@@ -469,6 +470,9 @@ def parse(filename,sourceTheta=None):
 			# Determine if the recoil electron was tracked by the detector
 			if x_electron != 0:
 
+				# Record the direction of the recoil electron
+				direction_recoilElectron.append([x_electron, y_electron, z_electron])
+
 				# Record the energy of tracked events
 				energy_TrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
@@ -479,6 +483,9 @@ def parse(filename,sourceTheta=None):
 				index_tracked.append(eventNumber)
 
 			else:
+
+				# Record the direction of the recoil electron
+				direction_recoilElectron.append([numpy.nan,numpy.nan,numpy.nan])
 
 				# Record the energy of tracked events
 				energy_UntrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
@@ -660,6 +667,7 @@ def parse(filename,sourceTheta=None):
 	events['position_secondInteraction_error'] = numpy.array(position_secondInteraction_error).astype(float)
 	events['position_pairConversion'] = numpy.array(position_pairConversion).astype(float)
 
+	events['direction_recoilElectron'] = numpy.array(direction_recoilElectron).astype(float)
 	events['direction_pairElectron'] = numpy.array(direction_pairElectron).astype(float)
 	events['direction_pairPositron'] = numpy.array(direction_pairPositron).astype(float)
 
@@ -990,18 +998,24 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 			ax.set_ylabel('y')
 			ax.set_zlabel('z')
 
-			# Plot the electron and positron vectors							
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_electron[0], direction_electron[1], direction_electron[2], pivot='tail', arrow_length_ratio=0.05, color='darkblue', length=50)
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_positron[0], direction_positron[1], direction_positron[2], pivot='tail', arrow_length_ratio=0.05, color='darkred', length=50)
 
+			ax.scatter( position_conversion[0], position_conversion[1], position_conversion[2], marker='o', label='Pair')
 			# Plot the reconstructed photon direction and the true photon direction
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source_reconstructed[0], direction_source_reconstructed[1], direction_source_reconstructed[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=100)
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source[0], direction_source[1], direction_source[2], pivot='tail', arrow_length_ratio=0, color='red', linestyle='--', length=100)
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source[0], direction_source[1], direction_source[2], pivot='tail', arrow_length_ratio=0, color='purple', linestyle='--', length=100, label=r'$\gamma$')
+			# ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_source_reconstructed[0], direction_source_reconstructed[1], direction_source_reconstructed[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=100, label=r"$\gamma$'")
+
+			# Plot the electron and positron vectors							
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_electron[0], direction_electron[1], direction_electron[2], pivot='tail', arrow_length_ratio=0.05, color='darkblue', length=50, label=r'$e^{-}$')
+			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_positron[0], direction_positron[1], direction_positron[2], pivot='tail', arrow_length_ratio=0.05, color='darkred', length=50, label=r'$e^{+}$')
 
 			# Plot the vector bisecting the electron and positron trajectories
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_bisect[0], direction_bisect[1], direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
-			ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], -1*direction_bisect[0], -1*direction_bisect[1], -1*direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
+			# ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], direction_bisect[0], direction_bisect[1], direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
+			# ax.quiver( position_conversion[0], position_conversion[1], position_conversion[2], -1*direction_bisect[0], -1*direction_bisect[1], -1*direction_bisect[2], pivot='tail', arrow_length_ratio=0, color='green', linestyle='--', length=50)
 
+			# Plot the legend
+			handles, labels = ax.get_legend_handles_labels()
+			by_label = OrderedDict(zip(labels, handles))
+			ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
 
 			plotNumber = plotNumber + 1
 			plot.show()
@@ -1688,8 +1702,80 @@ def visualizePairs(events, sourceTheta=0, numberOfPlots=10):
 
 ##########################################################################################
 
+def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
+
+	# Open a new 3D plot
+	fig = plot.figure()
+	ax = fig.add_subplot(111, projection='3d')
+
+	# Plot the geometry
+	plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+	plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+	plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+	# Set the plot limits
+	ax.set_xlim3d(-60,60)
+	ax.set_ylim3d(-60,60)
+	ax.set_zlim3d(-50,100)
+
+	# Set the plot labels
+	ax.set_xlabel('x')
+	ax.set_ylabel('y')
+	ax.set_zlabel('z')
+
+
+	if onlyShowTracked == True:
+		index_type = events['index_tracked']
+	else:
+		index_type = numpy.arange(len(events['index_tracked'])) 
+
+	index = showEvent		
+
+	position_originalPhoton = events['position_originalPhoton'][index_type][index]	
+	position_originalPhoton[2] = 100
+
+	position_firstInteraction = events['position_firstInteraction'][index_type][index]
+	position_secondInteraction = events['position_secondInteraction'][index_type][index]
+	direction_recoilElectron = events['direction_recoilElectron'][index_type][index]
+
+	direction_firstInteraction =  position_firstInteraction - position_originalPhoton
+	direction_secondInteraction = position_secondInteraction - position_firstInteraction
+
+
+	print position_originalPhoton
+	print position_firstInteraction
+	print position_secondInteraction
+
+	print direction_firstInteraction
+	print direction_secondInteraction
+
+	# Plot the interactions
+	ax.scatter(position_originalPhoton[0], position_originalPhoton[1], position_originalPhoton[2], color='black', marker=u'$\u2193$')
+	ax.scatter(position_firstInteraction[0], position_firstInteraction[1], position_firstInteraction[2], marker='s', color='darkblue', label='Comp')
+	# ax.scatter(position_secondInteraction[0], position_secondInteraction[1], position_secondInteraction[2], marker='o', label='BREM')
+
+	ax.plot( [position_originalPhoton[0], position_firstInteraction[0]], [position_originalPhoton[1],position_firstInteraction[1]], zs=[position_originalPhoton[2],position_firstInteraction[2]], linestyle='--', color='purple', label=r"$\gamma$")
+	# ax.plot( [position_firstInteraction[0], position_secondInteraction[0]], [position_firstInteraction[1],position_secondInteraction[1]], zs=[position_firstInteraction[2],position_secondInteraction[2]] )
+
+	# Plot the electron and positron vectors							
+	# ax.quiver( position_originalPhoton[0], position_originalPhoton[1], position_originalPhoton[2], direction_firstInteraction[0], direction_firstInteraction[1], direction_firstInteraction[2], pivot='tail', arrow_length_ratio=0.05, color='darkblue', length=50)
+	ax.quiver( position_firstInteraction[0], position_firstInteraction[1], position_firstInteraction[2], direction_secondInteraction[0], direction_secondInteraction[1], direction_secondInteraction[2], pivot='tail', arrow_length_ratio=0.10, color='purple',length=25, label=r"$\gamma$'")
+	ax.quiver( position_firstInteraction[0], position_firstInteraction[1], position_firstInteraction[2], direction_recoilElectron[0], direction_recoilElectron[1], direction_recoilElectron[2], pivot='tail', arrow_length_ratio=0.10, color='darkblue', length=25, label=r'e$^{-}$')
+
+	# Plot the legend
+	handles, labels = ax.get_legend_handles_labels()
+	by_label = OrderedDict(zip(labels, handles))
+	ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
+
+	plot.show()
+
+	return
+
  
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', openingAngleMax=180., maximumComptonEnergy=30, minimumPairEnergy=1, energyRangeCompton=None, phiRadiusCompton=10, sourceTheta=None):
+##########################################################################################
+
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
