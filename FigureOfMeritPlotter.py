@@ -633,7 +633,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 ##########################################################################################
 
-def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False):
+def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False):
 	
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
@@ -641,8 +641,12 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 	plotNumber = 1
 	if len(angleSelections)==1:
 		plot.figure(figsize=(8,6))
-	else:
+	elif collapse == False:
+		# Create the new subplot
 		plot.figure(figsize=(10,12))
+	else:
+		plot.figure(figsize=(10, 6.39))
+		ax = plot.subplot(111)
 
 	for angleSelection in angleSelections:
 
@@ -681,26 +685,45 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		Sigma_pair = Sigma_pair[i]
 
 		# Plot the data
-		ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
+		if collapse==False:
+			ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
 
 		i=Sigma_tracked != 'nan'
 		st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3
-		plot.scatter(Energy[i],st,color='darkgreen')
-		plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, lw=2, label='Compton')
 
-		i=Sigma_untracked != 'nan'
-		sut=numpy.double(Sigma_untracked[i])/numpy.double(Energy[i])*1e-3
-		plot.scatter(Energy[i],sut,color='blue')
-		plot.plot(Energy[i], sut, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
+		j=Sigma_untracked != 'nan'
+		sut=numpy.double(Sigma_untracked[j])/numpy.double(Energy[j])*1e-3
 
-		i=Sigma_pair != 'nan'
-		sp=numpy.double(Sigma_pair[i])/numpy.double(Energy[i])*1e-3
-		plot.scatter(Energy[i],sp,color='darkred')
-		plot.plot(Energy[i],sp, color='darkred', alpha=0.5, lw=2, label='Pair')
+		k=Sigma_pair != 'nan'
+		sp=numpy.double(Sigma_pair[k])/numpy.double(Energy[k])*1e-3
+		
 
-		if plotNumber == 1:
-			plot.title('Energy Resolution')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+		if collapse==False:
+			plot.scatter(Energy[i],st,color='darkgreen')
+			plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, lw=2, label='Compton')
+
+			#plot.scatter(Energy[j],sut,color='blue')
+			#plot.plot(Energy[j], sut, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
+
+			plot.scatter(Energy[k],sp,color='darkred')
+			plot.plot(Energy[k],sp, color='darkred', alpha=0.5, lw=2, label='Pair')
+
+		else:
+		
+			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
+			plot.scatter(Energy[i][1:-1],st[1:-1], color=colors[plotNumber-1])
+			plot.plot(Energy[i][1:-1], st[1:-1], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+
+			#plot.scatter(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1])
+			#plot.plot(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
+
+			#plot.scatter(Energy[k],sp, color=colors[plotNumber-1])
+			#plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+
+
+		if plotNumber == len(angleSelections):
+			#plot.title('Energy Resolution')			
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
 		if xlog:
 			plot.xscale('log')
@@ -710,10 +733,11 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 		plot.ylabel(r'$\sigma$ / Energy')
 
-		plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
-		        verticalalignment='bottom', horizontalalignment='right',
-		        transform=ax.transAxes,
-		        color='black', fontsize=16)
+		if collapse==False:
+			plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
+		        	verticalalignment='bottom', horizontalalignment='right',
+		        	transform=ax.transAxes,
+		        	color='black', fontsize=16)
 
 
 		if plotNumber != len(angleSelections):
@@ -728,8 +752,8 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
 	if save:
-		plot.savefig('EnergyResolution.pdf', bbox_inches='tight')
-		plot.savefig('EnergyResolution.png', bbox_inches='tight')
+		plot.savefig('EnergyResolution_Cos%s.pdf' % angleSelections[0])
+		plot.savefig('EnergyResolution_Cos%s.png' % angleSelections[0])
 
 	plot.show()
 
@@ -738,12 +762,12 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 ##########################################################################################
 
-def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False):
+def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False):
 
 	plotNumber = 1
-	plot.figure(figsize=(10,12))
 
 	if energySelections is None:
+		plot.figure(figsize=(10,12))
 		Energy = []	
 		for key in data.keys():
 			energy = float(key.split('_')[1].replace('MeV',''))
@@ -757,6 +781,10 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 			energySelections=[energySelections]
 		energySelections.sort(key=int)
 		energySelections=numpy.array(energySelections,dtype=float)
+
+	if collapse == True:
+		plot.figure(figsize=(10, 6.39))
+		ax = plot.subplot(111)
 
 	if len(energySelections)>6:
 		print "plotting only every other energy"
@@ -799,26 +827,40 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		Sigma_pair = Sigma_pair[i]
 
 		# Plot the data
-		ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
-		#ax = plot.subplots(len(energySelections)/2,2)
-		#ax = plot.subplot(2,len(energySelections)/2+1,len(energySelections))
+		if collapse==False:
+			ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
+			#ax = plot.subplots(len(energySelections)/2,2)
+			#ax = plot.subplot(2,len(energySelections)/2+1,len(energySelections))
 
 		
-		i=Sigma_tracked =='nan'
+		i=Sigma_tracked == 'nan'
 		st=numpy.double(numpy.ma.array(Sigma_tracked,mask=i).compressed())/numpy.double(energySelection)*1.0e-3
-		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, lw=2, label='Compton', marker='o')
 		
-		i=Sigma_untracked == 'nan'
-		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=i).compressed())/numpy.double(energySelection)*1e-3		
-		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sut, color='blue', alpha=0.75, lw=2, label='Compton (untracked)', marker='o')
+		j=Sigma_untracked == 'nan'
+		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=j).compressed())/numpy.double(energySelection)*1e-3		
 		
-		i=Sigma_pair == 'nan'
-		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=i).compressed())/numpy.double(energySelection)*1e-3		
-		plot.plot(numpy.ma.array(Angle,mask=i).compressed(), sp, color='darkred', alpha=0.75, lw=2, label='Pair', marker='o')
+		k=Sigma_pair == 'nan'
+		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=k).compressed())/numpy.double(energySelection)*1e-3		
 
-		if plotNumber == 1:
-			plot.title('Energy Resolution')						
-			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+		if collapse==False:
+			plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, lw=2, label='Compton', marker='o')
+			#plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, color='blue', alpha=0.75, lw=2, label='Compton (untracked)', marker='o')
+			plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, color='darkred', alpha=0.75, lw=2, label='Pair', marker='o')
+
+		else:
+			#plot.scatter(numpy.ma.array(Angle,mask=i).compressed(), st, colors[plotNumber-1])
+			plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, colors[plotNumber-1], 
+				alpha=0.75, lw=2, label='Compton at %s  MeV' % energySelection)
+			#plot.scatter(numpy.ma.array(Angle,mask=j).compressed(), sut, colors[plotNumber-1])
+			#plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, colors[plotNumber-1], 
+			#	alpha=0.75, lw=2, label='Compton untracked at %s  MeV' % energySelection, linestyle='-.')
+			#plot.scatter(numpy.ma.array(Angle,mask=k).compressed(), sp, colors[plotNumber-1])
+			plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, colors[plotNumber-1], 
+				alpha=0.75, lw=2, label='Pair at %s MeV' % energySelection, linestyle='--')
+
+		if plotNumber == len(energySelections):
+			#plot.title('Energy Resolution')						
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
 		if xlog:
 			plot.xscale('log')
@@ -829,10 +871,11 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 		plot.ylabel(r'$\sigma$ / Energy')
 		plot.xlim([0,60])
 
-		plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
-		        verticalalignment='top', horizontalalignment='right',
-		        transform=ax.transAxes,
-		        color='black', fontsize=16)
+		if collapse==False:
+			plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
+		        	verticalalignment='top', horizontalalignment='right',
+		        	transform=ax.transAxes,
+		        	color='black', fontsize=16)
 
 		#if plotNumber != len(energySelections):
 		#	ax.set_xticklabels([])
@@ -846,8 +889,8 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
 	if save:
-		plot.savefig('EnergyResolutionVsAngle.pdf', bbox_inches='tight')
-		plot.savefig('EnergyResolutionVsAngle.png', bbox_inches='tight')
+		plot.savefig('EnergyResolutionVsAngle_%sMeV.pdf' % energySelections[0])
+		plot.savefig('EnergyResolutionVsAngle_%sMeV.png' % energySelections[0])
 
 	plot.show()
 
