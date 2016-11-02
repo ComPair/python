@@ -992,7 +992,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 			plot.xscale('log')
 
 		if ylog:
-			plot.gca().set_ylim([0.1,10000.])
+			plot.gca().set_ylim([0.1,50000.])
 			plot.yscale('log')
 
 
@@ -1161,7 +1161,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 		if ylog:
 			plot.yscale('log')
 			#if len(energySelections)==1:
-			plot.gca().set_ylim([100.,1000.])
+			plot.gca().set_ylim([100.,5000.])
 
 
 		if plotNumber != len(energySelections) and collapse == False:
@@ -1248,6 +1248,8 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 					pair_to_total_ratio = 1.0
 				else:
 					pair_to_total_ratio  = float(data[key][4][7])/(float(data[key][4][7])+total_compton_events)
+				if total_compton_events == 0.:
+					total_compton_events=1.
 
 				numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
 				numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
@@ -1566,7 +1568,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	#plot.annotate('Previous ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
 
 	#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
-	plot.annotate('ComPair', xy=(1,3e-7),xycoords='data',fontsize=22)
+	plot.annotate('AMEGO', xy=(1,3e-7),xycoords='data',fontsize=22)
 
 	if save:
 		plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
