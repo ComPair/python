@@ -1145,8 +1145,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	# angles = angles[selection_quality]
 
 	# Select the events within the desired angle range and opening angle
-	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
-	selection_fit = numpy.where( (openingAngles <= openingAngleMax) )
+	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) & (openingAngles <= openingAngleMax))
 	oa_len = len(angles[selection_fit])
 
 	# Apply the fit selection
