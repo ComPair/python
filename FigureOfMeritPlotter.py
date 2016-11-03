@@ -395,11 +395,11 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 		Containment68 = numpy.array(Containment68)
 
 		# Sort by energy
-		i = [numpy.argsort(Energy)]
-		Energy = Energy[i]
-		FWHM_tracked = FWHM_tracked[i]
-		FWHM_untracked = FWHM_untracked[i]
-		Containment68 = Containment68[i]
+		t = [numpy.argsort(Energy)]
+		Energy = Energy[t]
+		FWHM_tracked = FWHM_tracked[t]
+		FWHM_untracked = FWHM_untracked[t]
+		Containment68 = Containment68[t]
 
 		# remove nan's
 		i=FWHM_tracked != 'nan'
@@ -430,8 +430,8 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 		else:
 			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
-			plot.scatter(Energy[i][1:-1],st[1:-1], color=colors[plotNumber-1])
-			plot.plot(Energy[i][1:-1], st[1:-1], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+			plot.scatter(Energy[i],st, color=colors[plotNumber-1])
+			plot.plot(Energy[i], st, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
 
 			#plot.scatter(Energy[j],sut, color=colors[plotNumber-1])
 			#plot.plot(Energy[j], sut, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', lw=2)
@@ -695,8 +695,8 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 		
 			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
 
-			plot.scatter(Energy[i][1:-1],st[1:-1], color=colors[plotNumber-1])
-			plot.plot(Energy[i][1:-1], st[1:-1], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+			plot.scatter(Energy[i],st, color=colors[plotNumber-1])
+			plot.plot(Energy[i], st, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
 
 			#plot.scatter(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1])
 			#plot.plot(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
