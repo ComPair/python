@@ -1973,9 +1973,21 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		print "Parsing: %s" % filename
 
 		# Use grep to find all lines with ID and pipe the results to the tail command to read only the last line
-		command = "grep 'ID ' %s | tail -n 1" % filename
-		output = os.popen(command).read()
+		#command = "grep 'ID ' %s | tail -n 1" % filename
+		#output = os.popen(command).read()
 
+                # Read backwards from the end of the file
+                # Keep looking farther until you find an 'ID'
+                # Much faster than the command above
+                lookback = 1000
+                IDs = []
+                while len(IDs) == 0:
+                        command = "tail -n %d %s" % (lookback, filename)
+                        output = os.popen(command).read()
+                        IDs  = [line for line in output.split('\n') if "ID" in line]
+                        lookback += 1000
+                output = IDs[-1]
+                
 		# Extract the number of triggers
 		numberOfTriggers = float(output.split()[1])
 
