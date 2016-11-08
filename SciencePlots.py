@@ -21,6 +21,73 @@ def loginterpol(x,y,x1):
 
 	return y1
 
+def agn_plot():
+
+	fig = plot.figure()
+	yrange = [1e-14,1e-8]#[1e-8,1e-3]#[1e-13, 1e2]
+	xrange = [1e-11,1e6]
+	plot.fill_between([0.2,10e3],[yrange[1],yrange[1]],[yrange[0],yrange[0]],facecolor='yellow',interpolate=True,color='yellow',alpha=0.5)
+	plot.annotate('AMEGO',xy=(0.7,2e-9),xycoords='data',fontsize=26,color='black')
+	plot.annotate('PMN J0641-0320',xy=(1e-10,3e-9),xycoords='data',fontsize=16,color='black')
+	plot.annotate('z=1.196',xy=(1e-10,1e-9),xycoords='data',fontsize=16,color='black')
+
+	## AGN
+	a=ascii.read("data/marco_AGN_data_points_fig_6.txt",names=['logfreq','logflux'])
+	logfreq=a['logfreq']
+	logflux=a['logflux']
+	h=6.6261e-27 #erg s
+	erg2mev=624151.
+	agn_energy=10**logfreq*h*erg2mev #Hz * erg s
+	agn_flux=10**logflux#*erg2mev #erg cm-2 s-1
+	agn_energy=np.append(agn_energy,2.6e4)
+	agn_flux=np.append(agn_flux,1e-14)
+
+	b=ascii.read("data/0641_0320nustar_torus.dat",names=['x','y','z','tot','f','fbump','ftot','syn','ssc','ext1c'])
+	logfreq=b['x']
+	lognufnu=b['ftot']
+	agn_energy2=10**logfreq*h*erg2mev 
+	agn_flux2=10**lognufnu#*erg2mev
+	ssc=10**b['ssc']#*erg2mev
+	syn=10**b['syn']#*erg2mev
+	fbump=10**b['fbump']#*erg2mev
+	f=10**b['f']#*erg2mev
+
+	plot.plot(agn_energy,agn_flux,color='darkblue',lw=2)
+	plot.plot(agn_energy2,agn_flux2,color='cornflowerblue',lw=2)
+	#plot.plot(agn_energy2,fbump,'r--',color='lightblue',lw=2)
+	#plot.plot(agn_energy2,ssc,'r--',color='cyan',lw=2)
+
+	xrt=ascii.read("data/0641_0320xrt.dat",names=['logfreq','logflux'])
+	xrt_energy=(10**xrt['logfreq'])*h*erg2mev
+	xrt_flux=(10**xrt['logflux'])#*erg2mev
+	#plot.scatter(xrt_energy,xrt_flux,color='blue')
+
+	opt=ascii.read("data/0641_0320radio_optical.dat",names=['logfreq','logflux'])
+	opt_energy=(10**opt['logfreq'])*h*erg2mev
+	opt_flux=(10**opt['logflux'])#*erg2mev
+	plot.scatter(opt_energy,opt_flux,color='blue')
+
+	nustar=ascii.read("data/0641_0320nustar_ajello_fab.dat",names=['logfreq','logflux','logflux_yerr0','logflux_yerr1'])
+	ns_energy=(10**nustar['logfreq'])*h*erg2mev
+	ns_flux=(10**nustar['logflux'])#*erg2mev
+	plot.scatter(ns_energy,ns_flux,color='blue')
+
+	lat=ascii.read("data/LAT_spec_NuSTARobs2.txt",names=['ener','ed_ener','eu_ener','flux','ed_flux','eu_flux','ulim_flux','TS','Npred'])
+	plot.scatter(lat['ener'][0:3],lat['flux'][0:3]/erg2mev)
+	plot.errorbar(lat['ener'][0:3],lat['flux'][0:3]/erg2mev,xerr=[lat['ed_ener'][0:3],lat['eu_ener'][0:3]],yerr=[lat['ed_flux'][0:3]/erg2mev,lat['eu_flux'][0:3]/erg2mev],capsize=0,fmt="none")
+
+	plot.xscale('log')
+	plot.yscale('log')
+	plot.ylim(yrange)
+	plot.xlim(xrange)
+	plot.xlabel(r'Energy (MeV)')
+	plot.ylabel(r'$\nu$ F$_{\nu}$ (erg cm$^{-2}$ s$^{-1}$)')
+
+	plot.savefig('../plots/agn_plot.eps', bbox_inches='tight')
+	plot.savefig('../plots/agn_plot.png', bbox_inches='tight')
+	plot.show()
+	plot.close()
+
 def magentar_plot():
 
 	xmm=ascii.read('data/xmm_SED_paper.dat',names=['energy','err_energy','flux','err_flux'])
@@ -276,7 +343,7 @@ def FillingTheGap(save=False):
 	yrange = [1e-6,4e-3]#[1e-13, 1e2]
 	xrange = [1e-3,1e7]
 	plot.fill_between([0.2,10e3],[yrange[1],yrange[1]],[yrange[0],yrange[0]],facecolor='yellow',interpolate=True,color='yellow',alpha=0.5)
-	plot.annotate('AMEGO',xy=(1.2,1.5e-3),xycoords='data',fontsize=26,color='black')
+	plot.annotate('AMEGO',xy=(4,1.5e-3),xycoords='data',fontsize=26,color='black')
 
 	## AGN
 	a=ascii.read("data/marco_AGN_data_points_fig_6.txt",names=['logfreq','logflux'])
@@ -470,7 +537,8 @@ def FillingTheGap(save=False):
 	plot.title('Shocks',color='red',fontsize=12)
 
 	if save:
-		plot.savefig('SED_science_themes.eps', bbox_inches='tight')
+		#plot.savefig('SED_science_themes.eps', bbox_inches='tight')
+		plot.savefig('SED_science_themes.pdf', bbox_inches='tight')
 		plot.savefig('SED_science_themes.png', bbox_inches='tight')
 	plot.show()
 	plot.close()
