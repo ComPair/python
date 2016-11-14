@@ -12,7 +12,7 @@ EventViewer.plot(filename)
 EventAnalysis.py: Analyzes the output from revan and creates performance and log files
 
 **EventAnalysis.py Usage Example**:
-EventAnalysis.performCompleteAnalysis(directory="../Simulations/AMEGO4x4PerformancePlotTraFiles/",)
+EventAnalysis.performCompleteAnalysis(directory="../Simulations/AMEGO4x4PerformancePlotTraFiles/")
 
 FigureOfMeritPlotter.py: Takes output log files from EventAnalysis and creates instrument performance files
 
