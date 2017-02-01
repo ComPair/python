@@ -11,7 +11,7 @@ Usage Examples:
 import EventAnalysis
 
 # Parse the .tra file obtained from revan
-events = EventAnalysis.parse('EffectiveArea_2MeV.inc1.id1.tra')
+events = EventAnalysis.parse('EffectiveArea_2MeV.inc1.id1.tra', sourceTheta=0.9)
  
 # Calculate the angular resolution measurement (ARM) for Compton events
 FWHM_ARM, dphi = EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=5)
@@ -284,7 +284,7 @@ def plotPairConversionCoordinates(events):
 
 ##########################################################################################
 
-def parse(filename,sourceTheta=None):
+def parse(filename, sourceTheta=None):
 
 	# Create the dictionary that will contain all of the results
 	events = {}
@@ -853,10 +853,54 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
 	return FWHM, dphi
 
 
+########################################################
+
+def kingFunction(x, sigma, gamma):
+
+	K = (1. / (2. * numpy.pi * sigma**2.)) * (1. - (1./gamma)) * ((1 + (1/(2*gamma)) * (x**2/sigma**2))**(-1*gamma))
+
+	return K
+
+########################################################
+
+def fcore(N, sigma_tail, sigma_core):
+
+	value = 1 / (1 + (N * sigma_tail**2 / sigma_core**2))
+
+	return value
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None):
+def latScaleFactor(energy, c0=0.153, c1=0.0057000001, beta=-0.8):
+
+	scaleFactor = numpy.sqrt( (c0 * ((energy/100)**beta) )**2 + c1**2)
+
+	return scaleFactor
+
+##########################################################################################
+
+def latPSF(scaledDeviation, NTAIL, STAIL, SCORE, GTAIL, GCORE):
+
+	psf = (fcore(NTAIL, STAIL, SCORE) * kingFunction(scaledDeviation, SCORE, GCORE)) + (( 1 - fcore(NTAIL, STAIL, SCORE) ) * kingFunction(scaledDeviation, STAIL, GTAIL))
+
+	return psf
+
+##########################################################################################
+
+
+def getScaledDeviation(events, sourceTheta=0):
+
+	# Get the scaled angular distribution
+	scaledDeviation, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfBins=100, angleFitRange=[0,10**1.5], anglePlotRange=[0,10**1.5], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=False, filename=None, log=True, getScaledDeviation=True)
+
+	# angles, openingAngles, contaimentData_68, contaimentBinned_68 = EventAnalysis.getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfBins=100, angleFitRange=[0,10**1.5], anglePlotRange=[0,10**1.5], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=False, filename=None, log=True, getScaledDeviation=True)
+
+	return scaledDeviation
+
+
+##########################################################################################
+
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False):
 
 	# Define the list to contain the resulting angle measurements
 	angles = []
@@ -937,7 +981,23 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 		angle = angularSeparation(direction_source, direction_source_reconstructed)
 		#angle_shift = angle-float(sourceTheta)
 		#print angle, angle_shift
+
+		# Normalized by the incoming photon's reconstructed energy (for PSF fitting)
+		if getScaledDeviation == True:
+
+			# Convert from keV to MeV 
+			energy_PairSum_MeV = energy_PairSum * 0.001 
+
+			# Calculate the scale factor
+			scaleFactor = latScaleFactor(energy_PairSum_MeV)
+
+			# Get the energy scaled angular seperation
+			angle = angle / scaleFactor
+			
+
+		# Store the angle
 		angles.append(angle)
+
 
 		openingAngle = angularSeparation(direction_electron, direction_positron)
 		openingAngles.append(openingAngle)
@@ -1200,6 +1260,10 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	ax1.plot([contaimentBinned_68,contaimentBinned_68], [0,ax1.get_ylim()[1]], color='darkred', linewidth=1.5, linestyle='--', label="68%% (histogram): %.2f deg" %  contaimentBinned_68)
 	plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper right')
 
+	# Change to log scaling
+	if log == True:
+		ax1.set_xscale('log')
+		ax1.set_yscale('log')
 
 	# Print some statistics
 	print "\n\nStatistics of ARM histogram and fit (Pair Events)"

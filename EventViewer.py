@@ -347,7 +347,7 @@ def parse(filename, skipPhoto=True):
 
 ##########################################################################################
 
-def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, showHits=True, hitMarker='o'):
+def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, showHits=True, hitMarker='o', geometry=None):
 	"""
 	A function to plot the cosima output simulation file.
 	Example Usage: 
@@ -428,14 +428,74 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 				ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
 
 				# Plot the geometry
-				plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
-				plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
-				plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+				if geometry == None:
 
-				# Set the plot limits
-				ax.set_xlim3d(-60,60)
-				ax.set_ylim3d(-60,60)
-				ax.set_zlim3d(-50,100)
+					print "\nWarning: No geometry file specified.\n"
+
+				# Define a named geometry for Compair
+				elif 'Compair' in geometry:
+
+					# Plot the default compair geometry
+					plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+					plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+					plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+					# Set the plot limits
+					ax.set_xlim3d(-60,60)
+					ax.set_ylim3d(-60,60)
+					ax.set_zlim3d(-50,100)
+
+				# Read the geometry from a file
+				else:
+
+					# Create a dictionary to contain the found volumes
+					volumes = {}
+					name = 'none'
+
+					# Loop through each line of the geometry file and extract the properties of each volume
+					for line in fileinput.input([geometry]):
+
+						# Get the volume name
+						if 'Volume ' in line:
+							lineContents = line.split()							
+							name = lineContents[1]
+							print "\n%s" % name
+
+						# Get the volume dimensions
+						if (name + '.Shape') in line:
+							lineContents = line.split()
+							dimensions = [float(lineContents[2]), float(lineContents[3]), float(lineContents[4])]
+							print dimensions
+
+							# Add the dimensions of the volume to the dictionary
+							volumes[name] = [dimensions]
+
+							if 'World' in name:
+								position = [0,0,0]
+								print name
+								print position
+								print volumes[name]
+								volumes[name].append(position)
+
+						# Get the volume position
+						if (name + '.Position') in line:
+							lineContents = line.split()
+							position = [float(lineContents[1]), float(lineContents[2]), float(lineContents[3])]
+							print position
+							volumes[name].append(position)
+
+					# Plot each of the volumes
+					for key in volumes:
+
+						if 'World' in key:
+							continue
+			
+						print "Plotting: %s" % key
+						print " - Dimensions: %s" % volumes[key][0]
+						print " - Position: %s" % volumes[key][1]
+
+						plotCube(shape=volumes[key][0], position=volumes[key][1], ax=ax)
+
 
 				# Set the plot labels
 				ax.set_xlabel('x')
