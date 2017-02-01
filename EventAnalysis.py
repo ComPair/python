@@ -902,6 +902,7 @@ def getScaledDeviation(events, sourceTheta=0):
 
 def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False):
 
+
 	# Define the list to contain the resulting angle measurements
 	angles = []
 	openingAngles = []
@@ -1205,8 +1206,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	# angles = angles[selection_quality]
 
 	# Select the events within the desired angle range and opening angle
-	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) )
-	selection_fit = numpy.where( (openingAngles <= openingAngleMax) )
+	selection_fit = numpy.where( (angles >= angleFitRange[0]) & (angles <= angleFitRange[1]) & (openingAngles <= openingAngleMax))
 	oa_len = len(angles[selection_fit])
 
 	# Apply the fit selection
@@ -1838,7 +1838,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
  
 ##########################################################################################
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60.):
 
 	"""
 	A function to plot the cosima output simulation file.
@@ -2038,9 +2038,21 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 		print "Parsing: %s" % filename
 
 		# Use grep to find all lines with ID and pipe the results to the tail command to read only the last line
-		command = "grep 'ID ' %s | tail -n 1" % filename
-		output = os.popen(command).read()
+		#command = "grep 'ID ' %s | tail -n 1" % filename
+		#output = os.popen(command).read()
 
+                # Read backwards from the end of the file
+                # Keep looking farther until you find an 'ID'
+                # Much faster than the command above
+                lookback = 1000
+                IDs = []
+                while len(IDs) == 0:
+                        command = "tail -n %d %s" % (lookback, filename)
+                        output = os.popen(command).read()
+                        IDs  = [line for line in output.split('\n') if "ID" in line]
+                        lookback += 1000
+                output = IDs[-1]
+                
 		# Extract the number of triggers
 		numberOfTriggers = float(output.split()[1])
 
