@@ -448,16 +448,28 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 
 				elif 'Amego' in geometry and '/' not in geometry:
 
+
 					# Plot the default compair geometry
-					plotCube(shape=numpy.array([52.5, 52.5, 0.75])*2, position=[0.0, 0.0, 70.25], color='red', ax=ax)		# ACD
 					plotCube(shape=numpy.array([40.0, 40.0, 30.5])*2, position=[0.0, 0.0, 30.5], color='blue', ax=ax)		# Tracker
-					plotCube(shape=numpy.array([40.0, 40.0, 2.0])*2, position=[0.0, 0.0, -3.0], color='green', ax=ax)		# CalCZT
+					plotCube(shape=numpy.array([40.0, 40.0, 2.0])*2, position=[0.0, 0.0, -3.0], color='orange', ax=ax)		# CalCZT
 					plotCube(shape=numpy.array([40.0, 40.0, 6.5])*2, position=[0.0, 0.0, -12.0], color='green', ax=ax)		# CalCSI
+
+					plotCube(shape=numpy.array([2.0, 42.5, 10.0])*2, position=[42.5, 2.5, 6.0], color='purple', ax=ax)		# CZTS Side +x
+					plotCube(shape=numpy.array([2.0, 42.5, 10.0])*2, position=[-42.5, -2.5, 6.0], color='purple', ax=ax)	# CZTS Side -x
+					plotCube(shape=numpy.array([42.5, 2.0, 10.0])*2, position=[-2.5, 42.5, 6.0], color='purple', ax=ax)		# CZTS Side +y					
+					plotCube(shape=numpy.array([42.5, 2.0, 10.0])*2, position=[2.5, -42.5, 6.0], color='purple', ax=ax)		# CZTS Side -y
+
+					plotCube(shape=numpy.array([52.5, 52.5, 0.75])*2, position=[0.0, 0.0, 70.25], color='red', ax=ax)		# ACD Top
+					plotCube(shape=numpy.array([0.75, 52.5, 35.25])*2, position=[53.25, 0.0, 35.25], color='red', ax=ax)	# ACD Side +x					
+					plotCube(shape=numpy.array([0.75, 52.5, 35.25])*2, position=[-53.25, 0.0, 35.25], color='red', ax=ax)	# ACD Side -x
+					plotCube(shape=numpy.array([52.5, 0.75, 35.25])*2, position=[0, 53.25, 35.25], color='red', ax=ax)		# ACD Side +y
+					plotCube(shape=numpy.array([52.5, 0.75, 35.25])*2, position=[0, -53.25, 35.25], color='red', ax=ax)		# ACD Side -y
 
 					# Set the plot limits
 					ax.set_xlim3d(-60,60)
 					ax.set_ylim3d(-60,60)
 					ax.set_zlim3d(-50,100)
+
 
 				# Read the geometry from a file
 				else:
@@ -569,10 +581,20 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 				elif 'Amego' in geometry and '/' not in geometry:
 
 					# Plot the default compair geometry
-					plotCube(shape=numpy.array([52.5, 52.5, 0.75])*2, position=[0.0, 0.0, 70.25], color='red', ax=ax)		# ACD
 					plotCube(shape=numpy.array([40.0, 40.0, 30.5])*2, position=[0.0, 0.0, 30.5], color='blue', ax=ax)		# Tracker
-					plotCube(shape=numpy.array([40.0, 40.0, 2.0])*2, position=[0.0, 0.0, -3.0], color='green', ax=ax)		# CalCZT
+					plotCube(shape=numpy.array([40.0, 40.0, 2.0])*2, position=[0.0, 0.0, -3.0], color='orange', ax=ax)		# CalCZT
 					plotCube(shape=numpy.array([40.0, 40.0, 6.5])*2, position=[0.0, 0.0, -12.0], color='green', ax=ax)		# CalCSI
+
+					plotCube(shape=numpy.array([2.0, 42.5, 10.0])*2, position=[42.5, 2.5, 6.0], color='purple', ax=ax)		# CZTS Side +x
+					plotCube(shape=numpy.array([2.0, 42.5, 10.0])*2, position=[-42.5, -2.5, 6.0], color='purple', ax=ax)	# CZTS Side -x
+					plotCube(shape=numpy.array([42.5, 2.0, 10.0])*2, position=[-2.5, 42.5, 6.0], color='purple', ax=ax)		# CZTS Side +y					
+					plotCube(shape=numpy.array([42.5, 2.0, 10.0])*2, position=[2.5, -42.5, 6.0], color='purple', ax=ax)		# CZTS Side -y
+
+					plotCube(shape=numpy.array([52.5, 52.5, 0.75])*2, position=[0.0, 0.0, 70.25], color='red', ax=ax)		# ACD Top
+					plotCube(shape=numpy.array([0.75, 52.5, 35.25])*2, position=[53.25, 0.0, 35.25], color='red', ax=ax)	# ACD Side +x					
+					plotCube(shape=numpy.array([0.75, 52.5, 35.25])*2, position=[-53.25, 0.0, 35.25], color='red', ax=ax)	# ACD Side -x
+					plotCube(shape=numpy.array([52.5, 0.75, 35.25])*2, position=[0, 53.25, 35.25], color='red', ax=ax)		# ACD Side +y
+					plotCube(shape=numpy.array([52.5, 0.75, 35.25])*2, position=[0, -53.25, 35.25], color='red', ax=ax)		# ACD Side -y
 
 					# Set the plot limits
 					ax.set_xlim3d(-60,60)
