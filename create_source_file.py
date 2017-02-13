@@ -14,11 +14,11 @@ from numpy import *
 from math import *
 
 #here put your geometry file and source type
-geofile= '$COMPAIRPATH/Geometry/TowerModel/CompairBase.geo.setup'
+geofile= '$COMPAIRPATH/Geometry/AMEGO_4x4TowerModel/AmegoBase.geo.setup'
 OneBeam= 'FarFieldPointSource'
 
 #define your energies and angles 
-Log_E=[2.5,2.7,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5]
+Log_E=[2.2,2.5,2.7,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5,5.7,6,6.2,6.5,6.7,7]
 angles  =[0,25.8,36.9,45.6,53.1,60]
 
 

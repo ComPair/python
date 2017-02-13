@@ -1838,7 +1838,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
  
 ##########################################################################################
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=10, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60.):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60.):
 
 	"""
 	A function to plot the cosima output simulation file.
