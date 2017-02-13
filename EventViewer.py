@@ -427,18 +427,32 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 				by_label = OrderedDict(zip(labels, handles))
 				ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
 
+
 				# Plot the geometry
 				if geometry == None:
 
 					print "\nWarning: No geometry file specified.\n"
 
 				# Define a named geometry for Compair
-				elif 'Compair' in geometry:
+				elif 'Compair' in geometry and '/' not in geometry:
 
 					# Plot the default compair geometry
 					plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
 					plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
 					plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+					# Set the plot limits
+					ax.set_xlim3d(-60,60)
+					ax.set_ylim3d(-60,60)
+					ax.set_zlim3d(-50,100)
+
+				elif 'Amego' in geometry and '/' not in geometry:
+
+					# Plot the default compair geometry
+					plotCube(shape=numpy.array([52.5, 52.5, 0.75])*2, position=[0.0, 0.0, 70.25], color='red', ax=ax)		# ACD
+					plotCube(shape=numpy.array([40.0, 40.0, 30.5])*2, position=[0.0, 0.0, 30.5], color='blue', ax=ax)		# Tracker
+					plotCube(shape=numpy.array([40.0, 40.0, 2.0])*2, position=[0.0, 0.0, -3.0], color='green', ax=ax)		# CalCZT
+					plotCube(shape=numpy.array([40.0, 40.0, 6.5])*2, position=[0.0, 0.0, -12.0], color='green', ax=ax)		# CalCSI
 
 					# Set the plot limits
 					ax.set_xlim3d(-60,60)
@@ -459,48 +473,55 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 						if 'Volume ' in line:
 							lineContents = line.split()							
 							name = lineContents[1]
-							print "\n%s" % name
+							# print "\n%s" % name
+							volumes[name] = []
 
 						# Get the volume dimensions
 						if (name + '.Shape') in line:
-							lineContents = line.split()
-							dimensions = [float(lineContents[2]), float(lineContents[3]), float(lineContents[4])]
-							print dimensions
-
-							# Add the dimensions of the volume to the dictionary
-							volumes[name] = [dimensions]
 
 							if 'World' in name:
 								position = [0,0,0]
-								print name
-								print position
-								print volumes[name]
+								# print position
 								volumes[name].append(position)
+
+							lineContents = line.split()
+							dimensions = [float(lineContents[2]), float(lineContents[3]), float(lineContents[4])]
+							# print dimensions
+
+							# Add the dimensions of the volume to the dictionary
+							volumes[name].append(dimensions)
+
 
 						# Get the volume position
 						if (name + '.Position') in line:
 							lineContents = line.split()
 							position = [float(lineContents[1]), float(lineContents[2]), float(lineContents[3])]
-							print position
+							# print position
 							volumes[name].append(position)
 
 					# Plot each of the volumes
 					for key in volumes:
 
+						# Skip the world volume
 						if 'World' in key:
 							continue
 			
-						print "Plotting: %s" % key
-						print " - Dimensions: %s" % volumes[key][0]
-						print " - Position: %s" % volumes[key][1]
-
-						plotCube(shape=volumes[key][0], position=volumes[key][1], ax=ax)
+						if len(volumes[key]) == 2:
+							print "\nPlotting: %s" % key
+							print " - Dimensions: %s" % volumes[key][0]
+							print " - Position: %s" % volumes[key][1]
+							plotCube(shape=numpy.array(volumes[key][0])*2, position=volumes[key][1], ax=ax)
+						else:
+							print "\nSkipping: %s" % key
 
 
 				# Set the plot labels
 				ax.set_xlabel('x')
 				ax.set_ylabel('y')
 				ax.set_zlabel('z')
+
+				plt.show()
+
 
 			# Check to see if the hits plot should be displayed
 			if showHits == False:
@@ -526,10 +547,95 @@ def plot(filename, showEvent=1, ax=None, hidePhoto=True, showInteractions=True, 
 				by_label = OrderedDict(zip(labels, handles))
 				ax.legend(by_label.values(), by_label.keys(), scatterpoints=1)
 
+
 				# Plot the geometry
-				plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
-				plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
-				plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+				if geometry == None:
+
+					print "\nWarning: No geometry file specified.\n"
+
+				# Define a named geometry for Compair
+				elif 'Compair' in geometry and '/' not in geometry:
+
+					# Plot the default compair geometry
+					plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
+					plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
+					plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+
+					# Set the plot limits
+					ax.set_xlim3d(-60,60)
+					ax.set_ylim3d(-60,60)
+					ax.set_zlim3d(-50,100)
+
+				elif 'Amego' in geometry and '/' not in geometry:
+
+					# Plot the default compair geometry
+					plotCube(shape=numpy.array([52.5, 52.5, 0.75])*2, position=[0.0, 0.0, 70.25], color='red', ax=ax)		# ACD
+					plotCube(shape=numpy.array([40.0, 40.0, 30.5])*2, position=[0.0, 0.0, 30.5], color='blue', ax=ax)		# Tracker
+					plotCube(shape=numpy.array([40.0, 40.0, 2.0])*2, position=[0.0, 0.0, -3.0], color='green', ax=ax)		# CalCZT
+					plotCube(shape=numpy.array([40.0, 40.0, 6.5])*2, position=[0.0, 0.0, -12.0], color='green', ax=ax)		# CalCSI
+
+					# Set the plot limits
+					ax.set_xlim3d(-60,60)
+					ax.set_ylim3d(-60,60)
+					ax.set_zlim3d(-50,100)
+
+
+				# Read the geometry from a file
+				else:
+
+					# Create a dictionary to contain the found volumes
+					volumes = {}
+					name = 'none'
+
+					# Loop through each line of the geometry file and extract the properties of each volume
+					for line in fileinput.input([geometry]):
+
+						# Get the volume name
+						if 'Volume ' in line:
+							lineContents = line.split()							
+							name = lineContents[1]
+							print "\n%s" % name
+							volumes[name] = []
+
+						# Get the volume dimensions
+						if (name + '.Shape') in line:
+
+							if 'World' in name:
+								position = [0,0,0]
+								print position
+								volumes[name].append(position)
+
+							lineContents = line.split()
+							dimensions = [float(lineContents[2]), float(lineContents[3]), float(lineContents[4])]
+							print dimensions
+
+							# Add the dimensions of the volume to the dictionary
+							volumes[name].append(dimensions)
+
+
+						# Get the volume position
+						if (name + '.Position') in line:
+							lineContents = line.split()
+							position = [float(lineContents[1]), float(lineContents[2]), float(lineContents[3])]
+							print position
+							volumes[name].append(position)
+
+					# Plot each of the volumes
+					for key in volumes:
+
+						# Skip the world volume
+						if 'World' in key:
+							continue
+			
+						if len(volumes[key]) == 2:
+
+							print "\nPlotting: %s" % key
+							print " - Dimensions: %s" % volumes[key][0]
+							print " - Position: %s" % volumes[key][1]
+							plotCube(shape=volumes[key][0], position=volumes[key][1], ax=ax)
+
+						else:
+							print "\nSkipping: %s" % key
 
 				# Display the event demographics
 				print '\nShowing Trigger: %s' % event.id_trigger
