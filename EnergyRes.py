@@ -9,7 +9,9 @@ Date: April 14, 2017
 
 Usage Examples: Returns Energy smeared with a Gaussian
 import EnergyRes
-EnergyRes.Resolution(E)
+EnergyRes.Resolution(10.,0.5)
+EnergyRes.ResolutionRange([5,10,25],[0.1,0.05,0.01])
+EnergyRes.ResolutionFromFile([5,10,25],filename="file.txt",doPlot=True)
 
 ------------------------------------------------------------------------
 """
@@ -54,14 +56,20 @@ def lineFun(x, a, b):
 	return a*x+b
 
 
-def ResolutionFromFile(Energy, filename="EResTest.txt", doPlot=False):
+def ResolutionFromFile(Energy, filename="EResTest.txt", doPlot=False, listResults=False):
 	"""
-	This is a function that inputs a text file of Energy vs. sigmas
+	This is a function that takes desired energies and interpolates the energy resolution 
+	from the inputs from a text file of Energy vs. sigmas
+	Energy is the energies that you would like the interpolated resolution for
+	filename is the list of energies vs. resolutions
+	there is a plot function that allows you to see how the interpolation went. 
+	Note: This is a simple linear interpolation... 
 	"""
 
 	file = open(filename, 'r')
 	x=[]
 	y=[]
+	tE=[]
 
 	for line in file:
 		vals=line.split()
@@ -83,7 +91,18 @@ def ResolutionFromFile(Energy, filename="EResTest.txt", doPlot=False):
 		plt.yscale('log')
 		plt.show()
 
-	return interpRes
+	smearedEnergies = ResolutionRange(Energy, interpRes)
+
+	for j in range(len(smearedEnergies)):
+		tE.append(round(smearedEnergies[j],2))
+
+	if listResults:
+		print "Energies: ", Energy
+		print "Smeared E: ", tE
+		print "Eres: ", interpRes
+
+
+	return smearedEnergies
 
 
 
