@@ -736,6 +736,8 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 	plot.close()
 
+	return Energy,st,sp
+
 
 ##########################################################################################
 
@@ -1024,7 +1026,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 	if show:
 		plot.show()
 
-	return EffectiveArea_Untracked, EffectiveArea_Tracked, EffectiveArea_Pair
+	return EffectiveArea_Untracked, EffectiveArea_Tracked, EffectiveArea_Pair, Energy
 
 
  ##########################################################################################
@@ -1380,8 +1382,8 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		plot.xlabel(r'Energy (MeV)')
 		plot.ylabel(r'$E^2 \times$ Intensity (MeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
 		plot.title('Diffuse Background')
-		plot.savefig('Background.pdf', bbox_inches='tight')
-		plot.savefig('Background.png', bbox_inches='tight')
+		plot.savefig('plots/Background.pdf', bbox_inches='tight')
+		plot.savefig('plots/Background.png', bbox_inches='tight')
 		plot.show()
 
 	Sensitivity_tracked = Isrc(Energy, exposure, EffectiveArea_Tracked, 3., omega(FWHM_tracked), background*10.)

@@ -56,7 +56,7 @@ def lineFun(x, a, b):
 	return a*x+b
 
 
-def ResolutionFromFile(Energy, filename="EResTest.txt", doPlot=False, listResults=False):
+def ResolutionFromFile(Energy, eres_Energy=None, eres_Res=None,filename="EResTest.txt", doPlot=False, listResults=False):
 	"""
 	This is a function that takes desired energies and interpolates the energy resolution 
 	from the inputs from a text file of Energy vs. sigmas
@@ -66,15 +66,21 @@ def ResolutionFromFile(Energy, filename="EResTest.txt", doPlot=False, listResult
 	Note: This is a simple linear interpolation... 
 	"""
 
-	file = open(filename, 'r')
-	x=[]
-	y=[]
-	tE=[]
+	if eres_Energy != None:
+		x=eres_Energy
+		y=eres_Res
+	else:	
+		file = open(filename, 'r')
+		x=[]
+		y=[]
 
-	for line in file:
-		vals=line.split()
-		x.append(float(vals[0]))
-		y.append(float(vals[1]))
+		for line in file:
+			vals=line.split()
+			x.append(float(vals[0]))
+			y.append(float(vals[1]))
+
+
+	tE=[]
 
 	f = interp1d(x, y)
 	#f = interp1d(x, y, kind='cubic')
