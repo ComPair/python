@@ -2,7 +2,7 @@
 """
 ------------------------------------------------------------------------
 
-Scripts to make plots for the ComPair MidEx Proposal Section D
+Scripts to make science plots
 
 ------------------------------------------------------------------------
 """
@@ -12,7 +12,6 @@ import matplotlib.pylab as plot
 from astropy.io import ascii
 from astropy.io import fits
 from scipy import interpolate
-
 
 def loginterpol(x,y,x1):
 
