@@ -177,7 +177,7 @@ def EnergyResolutionFromFile(input_energy=None, energyfile=None, eres_Energy=Non
 	interpRes=[]
 	tE=[]
 
-	f = interp1d(x, y)
+	f = interp1d(x, y,bounds_error=False,fill_value='extrapolate')
 	#f = interp1d(x, y, kind='cubic')
 	#f=interpolate.splrep(x, y, s=0)
 	xend=len(x)-1
