@@ -1219,7 +1219,8 @@ def resultsToFits(data, outfile='output.fits'):
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal=False, doPSF=None, xlog=True, ylog=True, save=False, doplot=False, showbackground=False):
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal=False, doPSF=None, \
+	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1402,12 +1403,24 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 			plot.figure(figsize=(10, 6.39))
 			ax = plot.subplot(111)
 
-		plot.scatter(Energy, Sensitivity_tracked, color='darkgreen')
-		plot.plot(Energy, Sensitivity_tracked, color='darkgreen', alpha=0.5, label='Compton')
-		plot.scatter(Energy, Sensitivity_untracked, color='blue')	
-		plot.plot(Energy, Sensitivity_untracked, color='blue', alpha=0.5, label='Compton (untracked)')
-		plot.scatter(Energy, Sensitivity_pair, color='darkred')
-		plot.plot(Energy, Sensitivity_pair, color='darkred', alpha=0.5, label='Pair')	
+		if uniterg:
+			mev2erg=1/624151.
+			unit='erg'
+			ylim=[1e-12,1e-9]
+		else:
+			mev2erg=1
+			unit='MeV'
+			ylim=[1e-6,1e-3]
+
+		plot.scatter(Energy, Sensitivity_tracked*mev2erg, color='darkgreen')
+		plot.plot(Energy, Sensitivity_tracked*mev2erg, color='darkgreen', alpha=0.5, label='Compton')
+		plot.scatter(Energy, Sensitivity_untracked*mev2erg, color='blue')	
+		plot.plot(Energy, Sensitivity_untracked*mev2erg, color='blue', alpha=0.5, label='Compton (untracked)')
+		plot.scatter(Energy, Sensitivity_pair*mev2erg, color='darkred')
+		plot.plot(Energy, Sensitivity_pair*mev2erg, color='darkred', alpha=0.5, label='Pair')	
+		plot.xlabel(r'Energy (MeV)')
+		plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
+		plot.ylim(ylim)
 
 		if xlog:
 			plot.xscale('log')
@@ -1429,11 +1442,21 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 ##########################################################################################
 
-def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, save=False, showbackground=False, doplot=True):
+def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, \
+	save=False, showbackground=False, doplot=True, uniterg=False):
 
 	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
 	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
 	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False, showbackground=showbackground)
+
+	if uniterg:
+		mev2erg=1/624151.
+		unit='erg'
+		ylim=[1e-14,1e-8]
+	else:
+		mev2erg=1
+		unit='MeV'
+		ylim=[1e-8,1e-2]
 
 	plot.figure(figsize=(10, 6.39))
 
@@ -1473,15 +1496,15 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 	lat_exposure=5.*365.*86400.*0.2 # 5 years, 20% of sky in FoV, assuming minimal SAA
 	lat_sensitivity=Isrc(lat_energy,lat_exposure,lat_Aeff,3,omega(lat_psf),lat_background)
-	plot.plot(lat_energy,lat_sensitivity,color='magenta',lw=2)
+	plot.plot(lat_energy,lat_sensitivity*mev2erg,color='magenta',lw=2)
 	#plot.plot(lateng,l["e2diff"]*erg2mev,color='magenta',lw=2)
 	plot.gca().set_xscale('log')
 	plot.gca().set_yscale('log')
 	plot.gca().set_xlim([1e-2,1e6])
-	plot.gca().set_ylim([1e-8,1e-2])
+	plot.gca().set_ylim(ylim)
 	plot.gca().set_xlabel('Energy (MeV)')
-	plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ [$\gamma$ MeV s$^{-1}$ cm$^{-2}$]', fontsize=14)
-	plot.annotate('Fermi-LAT', xy=(1e3,1e-6),xycoords='data',fontsize=16,color='magenta')
+	plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ [$\gamma$ '+unit+' s$^{-1}$ cm$^{-2}$]', fontsize=14)
+	plot.annotate('Fermi-LAT', xy=(1e3,(1e-6*mev2erg)),xycoords='data',fontsize=16,color='magenta')
 
 	#EGRET from https://heasarc.gsfc.nasa.gov/docs/cgro/egret/egret_tech.html#N_4_
 	ind=numpy.arange(69,74,1)
@@ -1499,18 +1522,18 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	egret_exposure=86400.*7.*2.*0.4 #seconds in 2 weeks *0.4 efficiency
 	egret_inclin=1/0.5 #from sensitivity vs inclination angle = 15 deg
 	egret_sensitivity=egret_inclin*Isrc(egret_energy,egret_exposure,egret_aeff,3,omega(egret_psf),egret_back)
-	plot.plot(egret_energy,egret_sensitivity,color='blue',lw=2)
-	plot.annotate('EGRET', xy=(4e2,1e-4),xycoords='data',fontsize=16,color='blue')
+	plot.plot(egret_energy,egret_sensitivity*mev2erg,color='blue',lw=2)
+	plot.annotate('EGRET', xy=(4e2,(1e-4*mev2erg)),xycoords='data',fontsize=16,color='blue')
 
 	#SPI
 	ind=numpy.arange(20,46)
-	plot.plot(energy[ind],sens[ind],color='green',lw=2)
-	plot.annotate('SPI', xy=(6e-2,1e-4),xycoords='data',fontsize=16,color='green')
+	plot.plot(energy[ind],sens[ind]*mev2erg,color='green',lw=2)
+	plot.annotate('SPI', xy=(6e-2,(1e-4*mev2erg)),xycoords='data',fontsize=16,color='green')
 
 	#COMPTEL
-	comptel_energy=[0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747]
-	comptel_sens=[6.566103E-4,3.6115389E-4,1.4393721E-4,1.6548172E-4,2.36875E-4,3.390693E-4]
-	plot.plot(comptel_energy,comptel_sens,color='orange',lw=2)
+	comptel_energy=numpy.array([0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747])
+	comptel_sens=numpy.array([6.566103E-4,3.6115389E-4,1.4393721E-4,1.6548172E-4,2.36875E-4,3.390693E-4])
+	plot.plot(comptel_energy,comptel_sens*mev2erg,color='orange',lw=2)
 	# from Schonfelder et al. (1993)
 	#comptel_psf=1.247/(1-exp(-0.854*energy**0.9396))
 	#comptel_sensitivity=Isrc(energy,comptel_exposure,comptel_aeff,3,omega(comptel_psf),comptel_back)
@@ -1524,12 +1547,12 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	comptel_sensitivity=numpy.array([1.2e-4,1.9e-4,7.9e-5,1.6e-5])*comptel_energy**2/(comptel_energy_high-comptel_energy_low)
 
 	#plot.plot(comptel_energy,comptel_sensitivity,'r--',color='orange',lw=2)
-	plot.annotate('COMPTEL', xy=(5,5e-4),xycoords='data',fontsize=16,color='orange')
+	plot.annotate('COMPTEL', xy=(5,(5e-4*mev2erg)),xycoords='data',fontsize=16,color='orange')
 
 	#NuSTAR
 	ind=numpy.arange(84,147)
-	plot.plot(energy[ind]*1e-3,sens[ind]*(energy[ind]/1e3)**2*1e3,color='purple',lw=2)
-	plot.annotate('NuSTAR', xy=(0.1,3e-8),xycoords='data',fontsize=16,color='purple')
+	plot.plot(energy[ind]*1e-3,sens[ind]*(energy[ind]/1e3)**2*1e3*mev2erg,color='purple',lw=2)
+	plot.annotate('NuSTAR', xy=(0.1,(3e-8*mev2erg)),xycoords='data',fontsize=16,color='purple')
 
 	#ComPair
 	compair_eng=ComPairSensitivity[0]
@@ -1560,7 +1583,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 	#plot.plot(compair_eng,tracked,'r--',color='grey',lw=2)	
 	#plot.plot(compair_eng,pair,'r--',color='grey',lw=2)
-	plot.plot(compair_eng[1:-1],combined[1:-1],color='black',lw=4)
+	plot.plot(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)],combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
 
 	#if plotIdeal:
 		#plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
@@ -1573,7 +1596,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	#plot.annotate('Previous ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
 
 	#plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
-	plot.annotate('AMEGO', xy=(1,3e-7),xycoords='data',fontsize=22)
+	plot.annotate('AMEGO', xy=(1,(3e-7*mev2erg)),xycoords='data',fontsize=22)
 
 	if save:
 		plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
