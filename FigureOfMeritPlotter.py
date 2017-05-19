@@ -1601,6 +1601,12 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	if save:
 		plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
 		plot.savefig('full_sensitivity_Cos%s.png' % angleSelection)
+		fout=ascii.open('AMEGO_sensitivity_Cos%s.dat' %angleSelection,"w")
+		fout.write('Energy (MeV)'+"\t"+ 'E2xSensitivity ('+unit+'cm-2 s-1)')
+		for i in range(len(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])):
+			fout.write(str(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)][i])+"\t"+\
+				str(combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg))
+
 	if doplot == True:
 		plot.show()
 
