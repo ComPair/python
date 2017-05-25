@@ -7,6 +7,7 @@ One only needs to define the path to the geometry file and the type of source (e
 Energies and angles may be adjusted according to the use preference
 
 Author: Sara Buson (sara.buson@gmail.com)
+Author: Fabian Kislat (fkislat@wustl.edu)
 ------------------------------------------------------------------------
 """
 
@@ -16,9 +17,11 @@ from math import *
 #here put your geometry file and source type
 geofile= '$COMPAIRPATH/Geometry/AMEGO_4x4TowerModel/AmegoBase.geo.setup'
 OneBeam= 'FarFieldPointSource'
+Output=  'PolarizedFarFieldPointSource'
 
-#define your energies and angles 
-Log_E=[2.2,2.5,2.7,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5,5.7,6,6.2,6.5,6.7,7]
+#define your energies and angles
+#unlike the unpolarized simulations, focus on the Compton regime
+Log_E=[2.2,2.5,2.7,3,3.2,3.5,3.7,4,4.2]
 angles  =[0,25.8,36.9,45.6,53.1,60]
 
 
@@ -50,8 +53,33 @@ for myene in energies:
       #print (geofile, OneBeam, myene/1000., cosTh, OneBeam, ang, myene)
       
       #this is just a long string, with all the raws of the .source file, and the energies/angles values
-      string= "# An example run for Cosima \n# This was created with the python wrapper --> create_source_file.py <--\n\nVersion          1 \nGeometry         %s // Update this to your path \nCheckForOverlaps 1000 0.01 \nPhysicsListEM    Livermore \n\nStoreCalibrate                 true\nStoreSimulationInfo            true\nStoreOnlyEventsWithEnergyLoss  true  // Only relevant if no trigger criteria is given! \nDiscretizeHits                 true \n\nRun FFPS \nFFPS.FileName              %s_%.3fMeV_Cos%.1f \nFFPS.NTriggers             100000 \n\n\nFFPS.Source One \nOne.ParticleType        1 \nOne.Beam                %s  %.1f 0 \nOne.Spectrum            Mono  %i\nOne.Flux                1000.0 "%(geofile, OneBeam, myene/1000., cosTh, OneBeam, ang, myene)
-      source_file='%s_%.3fMeV_Cos%.1f.source'%(OneBeam,myene/1000.,cosTh)
+      string="""# An example run for Cosima
+# This was created with the python wrapper --> create_source_file.py <--
+
+Version          1
+Geometry         %s // Update this to your path
+CheckForOverlaps 1000 0.01
+PhysicsListEM    Livermore-Pol
+
+StoreCalibrate                 true
+StoreSimulationInfo            true
+StoreOnlyEventsWithEnergyLoss  true  // Only relevant if no trigger criteria is given!
+DiscretizeHits                 true
+
+Run FFPS
+FFPS.FileName              %s_%.3fMeV_Cos%.1f
+FFPS.NTriggers             100000
+
+
+FFPS.Source One
+One.ParticleType        1
+One.Beam                %s  %.1f 0
+One.Spectrum            Mono  %i
+One.Flux                1000.0
+One.Polarization        RelativeX 1.0 0.
+""" % (geofile, Output, myene/1000., cosTh, OneBeam, ang, myene)
+      
+      source_file='%s_%.3fMeV_Cos%.1f.source'%(Output,myene/1000.,cosTh)
       sf=open(source_file,'w')
       sf.write(string)
       sf.close()
