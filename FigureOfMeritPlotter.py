@@ -348,21 +348,22 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
 ##########################################################################################
 
-def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False):
+def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False, doplot=True):
 	
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
 
 	plotNumber = 1
-	if len(angleSelections)==1:
-		plot.figure(figsize=(8,6))
-	elif collapse == False:
-		# Create the new subplot
-		plot.figure(figsize=(10,12))
-	else:
-		#print "collapse!"
-		plot.figure(figsize=(10, 6.39))
-		ax = plot.subplot(111)
+	if doplot:
+		if len(angleSelections)==1:
+			plot.figure(figsize=(8,6))
+		elif collapse == False:
+			# Create the new subplot
+			plot.figure(figsize=(10,12))
+		else:
+			#print "collapse!"
+			plot.figure(figsize=(10, 6.39))
+			ax = plot.subplot(111)
 
 
 	for angleSelection in angleSelections:
@@ -403,77 +404,80 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 		# remove nan's
 		i=FWHM_tracked != 'nan'
-		st=numpy.double(FWHM_tracked[i])
+		st=numpy.double(FWHM_tracked)
 		
 		j=FWHM_untracked != 'nan'
-		sut=numpy.double(FWHM_untracked[j])
+		sut=numpy.double(FWHM_untracked)
 		
 		k=Containment68 != 'nan'
-		sp=numpy.double(Containment68[k])
+		sp=numpy.double(Containment68)
 
 		# plot the data
-		if collapse == False:
-			ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
+		if doplot:
+			if collapse == False:
+				ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
 
-			plot.scatter(Energy[i],st,color='darkgreen')
-			plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, label='Compton', lw=2)
+				plot.scatter(Energy[i],st[i],color='darkgreen')
+				plot.plot(Energy[i], st[i], color='darkgreen', alpha=0.5, label='Compton', lw=2)
 
-			#plot.scatter(Energy[j],sut,color='blue')
-			#plot.plot(Energy[j], sut, color='blue', alpha=0.5, label='Compton (untracked)')
+				#plot.scatter(Energy[j],sut,color='blue')
+				#plot.plot(Energy[j], sut, color='blue', alpha=0.5, label='Compton (untracked)')
 
-			plot.scatter(Energy[k],sp,color='darkred')
-			plot.plot(Energy[k],sp, color='darkred', alpha=0.5, label='Pair', lw=2)		
+				plot.scatter(Energy[k],sp[k],color='darkred')
+				plot.plot(Energy[k],sp[k], color='darkred', alpha=0.5, label='Pair', lw=2)		
 
-			plot.text(0.015, 0.8, '%i$^\circ$' % round(numpy.degrees(numpy.arccos(angleSelection))),
-		        	verticalalignment='bottom', horizontalalignment='left',
-		       		transform=ax.transAxes, color='black', fontsize=16)
+				plot.text(0.015, 0.8, '%i$^\circ$' % round(numpy.degrees(numpy.arccos(angleSelection))),
+			        	verticalalignment='bottom', horizontalalignment='left',
+			       		transform=ax.transAxes, color='black', fontsize=16)
 
-		else:
-			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
-			plot.scatter(Energy[i],st, color=colors[plotNumber-1])
-			plot.plot(Energy[i], st, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+			else:
+				angle = round(numpy.degrees(numpy.arccos(angleSelection)))
+				plot.scatter(Energy[i],st[i], color=colors[plotNumber-1])
+				plot.plot(Energy[i], st[i], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
 
-			#plot.scatter(Energy[j],sut, color=colors[plotNumber-1])
-			#plot.plot(Energy[j], sut, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', lw=2)
+				#plot.scatter(Energy[j],sut, color=colors[plotNumber-1])
+				#plot.plot(Energy[j], sut, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', lw=2)
 
-			plot.scatter(Energy[k],sp, color=colors[plotNumber-1])
-			plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+				plot.scatter(Energy[k],sp[k], color=colors[plotNumber-1])
+				plot.plot(Energy[k],sp[k], color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
 
-		if plotNumber == len(angleSelections):
-			#plot.title('Angular Resolution')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+			if plotNumber == len(angleSelections):
+				#plot.title('Angular Resolution')			
+				plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
-		if xlog == True:
-			plot.xscale('log')
+			if xlog == True:
+				plot.xscale('log')
 
-		if ylog == True:
-			plot.yscale('log')
+			if ylog == True:
+				plot.yscale('log')
 
-		plot.ylabel('Angular Resolution ($^{\circ}$)')
-			
+			plot.ylabel('Angular Resolution ($^{\circ}$)')
+				
 
-		if plotNumber != len(angleSelections) and collapse== False:
-			ax.set_xticklabels([])
-
-
-		if plotNumber == len(angleSelections):
-			plot.xlabel('Energy (MeV)', fontsize=16)
+			if plotNumber != len(angleSelections) and collapse== False:
+				ax.set_xticklabels([])
 
 
-		plot.gca().set_ylim([0.,20.])
+			if plotNumber == len(angleSelections):
+				plot.xlabel('Energy (MeV)', fontsize=16)
 
-		plotNumber = plotNumber + 1
+
+			plot.gca().set_ylim([0.,20.])
+
+			plotNumber = plotNumber + 1
 
 
-	plot.subplots_adjust(wspace=0, hspace=.2)
+			plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save:
-		plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
-		plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
+			if save:
+				plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
+				plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
 
-	plot.show()
+			plot.show()
 
-	plot.close()
+			plot.close()
+
+	return Energy,st,sp
 
 ##########################################################################################
 
@@ -1377,6 +1381,12 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		#plot.scatter(eng2,e2int2,color='purple')	
 		plot.plot(Energy,background,color='green')
 		plot.scatter(Energy,background,color='green')
+
+		import ScienceSims
+		real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',doplot=False)
+		plot.plot(real_back_eng,real_back_rate/omega(FWHM_untracked)/EffectiveArea_Untracked,color='brown')
+
+
 		plot.annotate('Interpolated Used Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
 		plot.xscale('log')
 		plot.yscale('log')
@@ -1611,6 +1621,58 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 		plot.show()
 
 	return compair_eng,combined
+
+##########################################################################################
+
+def applyARM(data,events,angleSelection=1.0):
+
+	import EventAnalysis
+	"""
+	A function to select events within ARM defined by simulatinos
+	Example Usage: 
+	eventsInARM=EventViewer.applyARM(data,events)
+	"""
+	from scipy.interpolate import interp1d
+
+	angle=angleSelection  #not sure if this should vary simply with angle given background Sims
+	sourceTheta=numpy.arccos(angle)
+	energy,st,sp=plotAngularResolution(data,angleSelections=angle,doplot=False)
+	energy=numpy.append(energy,numpy.array([1e5,1e6]))*1e3
+	sp=numpy.append(sp,numpy.repeat(sp[len(sp)-1],2))
+#	source_angRes=numpy.append(st[source_energy<=10],sp[source_energy>10])
+	mask=numpy.isfinite(st)
+	energy_comp=energy[mask]
+	st=st[mask]
+	mask=numpy.isfinite(sp)
+	energy_pair=energy[mask]
+	sp=sp[mask]
+
+	# Loop through the events and figure out if each event is inside ARM
+
+	f = interp1d(energy_comp,st,fill_value="extrapolate",kind='linear')
+
+	nCompEvents=events['numberOfComptonEvents']
+	CompinARM=[]
+	for i in range(nCompEvents): #loop through each Compton Event in file
+
+		interpRes=f(events['energy_ComptonEvents'][i])
+#		print numpy.degrees(events['phi_Tracker'][i]),interpRes,events['energy_ComptonEvents'][i],i
+		if abs(numpy.degrees(events['phi_Tracker'][i])-sourceTheta)<interpRes: # is event in ARM?
+			CompinARM.append(i)
+
+	f = interp1d(energy_pair,sp,fill_value="extrapolate",kind='linear')
+	angles=EventAnalysis.getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=False, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=False, filename=None, log=False, getScaledDeviation=False, onlyangles=True)
+	print len(angles)
+	nPairEvents=events['numberOfPairEvents']
+	PairinARM=[]
+	for i in range(nPairEvents):
+		interpRes=f(events['energy_pairElectron'][i]+events['energy_pairPositron'][i])
+		if angles[i]<interpRes:
+			PairinARM.append(i)
+#		print angles[i],interpRes,events['energy_pairElectron'][i]+events['energy_pairPositron'][i]
+	
+	return CompinARM, PairinARM
+
 
 ##########################################################################################
 

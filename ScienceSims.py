@@ -18,51 +18,117 @@ import os
 import re
 import importlib
 import glob
+import EventAnalysis
 
-def plot_AMEGO_background_sim(dir=None):
+def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,events=None,data=None):
 
-	import EventAnalysis
+	if not data:
+		psdir='../Simulations/AMEGO4x4PerformancePlotTraFiles/'
+		data=FigureOfMeritPlotter.parseEventAnalysisLogs(psdir)
 
 	trafiles=glob.glob(dir+'*tra')
 
 	ntra=len(trafiles)
 
-	energy=[]
-	event_type=[]
-	unknown=0
-	compton=0
-	pair=0
+	energy_ComptonEvents=[]
+	event_type_Compton=[]
+
+	energy_PairEvents=[]
+	event_type_Pair=[]
+
+	nunknown=0
+	ncompton=0
+	npair=0
+#	unknownInARM=0
+	ncomptonInARM=0
+	npairInARM=0
+	ComptonInARM=[]
+	PairInARM=[]
+
 	for tra in trafiles:
 		print tra
-		data=EventAnalysis.parse(tra,sourceTheta=1)
-		if data:
-			energy=np.append([energy],[data['energy_ComptonEvents']])
+		events=EventAnalysis.parse(tra,sourceTheta=1)
+
+		if events:
+			energy_ComptonEvents=np.append([energy_ComptonEvents],[events['energy_ComptonEvents']])
 			if 'Photon' in tra:
-				event_type=np.append([event_type],np.repeat('photon',len(data['energy_ComptonEvents'])))
+				event_type_Compton=np.append([event_type_Compton],np.repeat('photon',len(events['energy_ComptonEvents'])))
 			else:
-				event_type=np.append([event_type],np.repeat('particle',len(data['energy_ComptonEvents'])))
-			unknown=unknown+data['numberOfUnknownEventTypes']
-			compton=compton+data['numberOfComptonEvents']
-			pair=pair+data['numberOfPairEvents']
+				event_type_Compton=np.append([event_type_Compton],np.repeat('particle',len(events['energy_ComptonEvents'])))
 
-	print 'Unknown= ',unknown
-	print 'Compton= ',compton
-	print 'Pair= ',pair
+			energy_PairEvents=np.append([energy_PairEvents],[events['energy_pairElectron']+events['energy_pairPositron']])
+			if 'Photon' in tra:
+				event_type_Pair=np.append([event_type_Pair],np.repeat('photon',len(events['energy_pairElectron'])))
+			else:
+				event_type_Pair=np.append([event_type_Pair],np.repeat('particle',len(events['energy_pairElectron'])))
+
+			nunknown=nunknown+events['numberOfUnknownEventTypes']
+			ncompton=ncompton+events['numberOfComptonEvents']
+			npair=npair+events['numberOfPairEvents']
+
+			wCompinARM,wPairinARM=FigureOfMeritPlotter.applyARM(data,events,angleSelection=1.0)
+
+			if len(wCompinARM)>0:
+				mask=np.zeros(events['numberOfComptonEvents'],dtype=bool)
+				mask[wCompinARM]=True
+				ComptonInARM=np.append(ComptonInARM,mask)
+				ncomptonInARM=ncomptonInARM+len(wCompinARM)
+			
+			if len(wPairinARM)>0:
+				mask=np.zeros(events['numberOfPairEvents'],dtype=bool)
+				mask[wPairinARM]=True
+				PairInARM=np.append(PairInARM,mask)
+				npairInARM=npairInARM+len(wPairinARM)
 
 
-	fig=plot.figure()
-	bins = 10**(np.arange(-2,3,0.1))
-	plot.hist(energy[event_type=='photon']/1e3,bins=bins,log=True,label='photon')
-	plot.hist(energy[event_type=='particle']/1e3,bins=bins,log=True,label='particle')
-	plot.legend()
-	plot.xscale('log')
-	plot.xlabel('Energy (MeV)')
-	plot.ylabel(r'Background Count Rate (ph s$^{-1}$ MeV$^{-1}$)')
-	plot.savefig('plots/Sim_all_Background.pdf', bbox_inches='tight')
-	plot.savefig('plots/Sim_all_Background.png', bbox_inches='tight')
-	plot.show()
+	if not silent:
+		print 'Unknown = ',nunknown
+		print 'Compton = ',ncompton
+		print 'Pair = ',npair
+#		print 'Unknown in ARM = ',unknownInARM
+		print 'Compton in ARM = ',ncomptonInARM
+		print 'Pair in ARM = ',npairInARM
 
-	return energy,event_type
+
+	if doplot:
+		fig=plot.figure()
+		bins = 10**(np.arange(-2,3,0.1))
+		# plot.hist(energy_ComptonEvents[event_type_Compton=='photon']/exposure,bins=bins,log=True,label='photon - Compton')
+		# plot.hist(energy_ComptonEvents[event_type_Compton=='particle']/exposure,bins=bins,log=True,label='particle - Compton')#,alpha=0.5)
+		# plot.hist(energy_ComptonEvents[np.where((event_type_Compton=='photon') & (ComptonInARM==1))]/exposure,bins=bins,log=True,label='photon - Compton in ARM')#,alpha=0.5)
+		# plot.hist(energy_ComptonEvents[np.where((event_type_Compton=='particle') & (ComptonInARM==1))]/exposure,bins=bins,log=True,label='particle - Compton in ARM')#,alpha=0.5)
+
+		# plot.hist(energy_PairEvents[event_type_Pair=='photon']/exposure,bins=bins,log=True,label='photon - Pair')#,alpha=0.5)
+		# plot.hist(energy_PairEvents[event_type_Pair=='particle']/exposure,bins=bins,log=True,label='particle - Pair')#,alpha=0.5)
+		# plot.hist(energy_PairEvents[np.where((event_type_Pair=='photon') & (PairInARM==1))]/exposure,bins=bins,log=True,label='photon - Pair in ARM')#,alpha=0.5)
+		# plot.hist(energy_PairEvents[np.where((event_type_Pair=='particle') & (PairInARM==1))]/exposure,bins=bins,log=True,label='particle - Pair in ARM')#,alpha=0.5)
+
+		plot.hist(energy_ComptonEvents/exposure,bins=bins,log=True,label='Compton')
+		plot.hist(energy_ComptonEvents[np.where(ComptonInARM==1)]/exposure,bins=bins,log=True,label='Compton in ARM')#,alpha=0.5)
+
+		plot.hist(energy_PairEvents/exposure,bins=bins,log=True,label='Pair')#,alpha=0.5)
+		plot.hist(energy_PairEvents[np.where(PairInARM==1)]/exposure,bins=bins,log=True,label='Pair in ARM')#,alpha=0.5)
+
+
+		plot.legend(fontsize=8)
+		plot.xscale('log')
+		plot.xlabel('Energy (MeV)')
+		plot.xlim([0.1,1e3])
+		plot.ylabel(r'Background Count Rate (ph s$^{-1}$)')
+		plot.savefig('Sim_all_Background.pdf', bbox_inches='tight')
+		plot.savefig('Sim_all_Background.png', bbox_inches='tight')
+		plot.show()
+
+	# bins = 10**(np.arange(-2,3,0.1))
+	# hist=plot.hist(energy/exposure,bins=bins,log=True)
+	# w=np.where(hist[1] != 0)
+	# background_eng=hist[1][w]
+	# background_rate=hist[0][w]
+
+	### bkg/Aeff/Angres = ph/cm2/s/sr
+	### * E**2
+
+	return #background_eng,background_rate,event_type
 
 
 def plot_AMEGO_background(data,showbackground=False,plotTotals=False,plothandwavy=False,\
