@@ -20,7 +20,9 @@ import importlib
 import glob
 import EventAnalysis
 
-def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,events=None,data=None):
+def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,events=None,data=None,angleSelection=1.0,ARMcut=None):
+
+	import matplotlib.patches as mpatches
 
 	if not data:
 		psdir='../Simulations/AMEGO4x4PerformancePlotTraFiles/'
@@ -47,7 +49,7 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 
 	for tra in trafiles:
 		print tra
-		events=EventAnalysis.parse(tra,sourceTheta=1)
+		events=EventAnalysis.parse(tra,sourceTheta=angleSelection)
 
 		if events:
 			energy_ComptonEvents=np.append([energy_ComptonEvents],[events['energy_ComptonEvents']])
@@ -66,7 +68,7 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 			ncompton=ncompton+events['numberOfComptonEvents']
 			npair=npair+events['numberOfPairEvents']
 
-			wCompinARM,wPairinARM=FigureOfMeritPlotter.applyARM(data,events,angleSelection=1.0)
+			wCompinARM,wPairinARM=FigureOfMeritPlotter.applyARM(data,events,angleSelection=angleSelection,ARMcut=ARMcut)
 
 			if len(wCompinARM)>0:
 				mask=np.zeros(events['numberOfComptonEvents'],dtype=bool)
@@ -81,18 +83,35 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 				npairInARM=npairInARM+len(wPairinARM)
 
 
+	energy_ComptonEvents=energy_ComptonEvents*1e-3 # keV to MeV
+	energy_PairEvents=energy_PairEvents*1e-3 # keV to MeV
+
 	if not silent:
+		if ARMcut==None:
+			armtext='ARM'
+		else:
+			armtext=str(ARMcut)+'deg'
+
 		print 'Unknown = ',nunknown
 		print 'Compton = ',ncompton
 		print 'Pair = ',npair
 #		print 'Unknown in ARM = ',unknownInARM
-		print 'Compton in ARM = ',ncomptonInARM
-		print 'Pair in ARM = ',npairInARM
+		print 'Compton in '+armtext+' = ',ncomptonInARM
+		print 'Pair in '+armtext+' = ',npairInARM
+
+		print 'Background Rate in '+armtext
+		energiesinARM=np.append(energy_ComptonEvents[np.where(ComptonInARM==1)],energy_PairEvents[np.where(PairInARM==1)])
+		print len(energiesinARM)
+		print '    > 100 keV  -   '+str(len(np.where(energiesinARM>0.1)[0])/exposure)
+		print '    > 1 MeV  -   '+str(len(np.where(energiesinARM>1.0)[0])/exposure)
+		print '    > 10 MeV  -   '+str(len(np.where(energiesinARM>10.0)[0])/exposure)
+		print '    > 100 MeV  -   '+str(len(np.where(energiesinARM>100)[0])/exposure)
+
 
 
 	if doplot:
 		fig=plot.figure()
-		bins = 10**(np.arange(-2,3,0.1))
+		bins = 10**(np.arange(-2,5,0.2))
 		# plot.hist(energy_ComptonEvents[event_type_Compton=='photon']/exposure,bins=bins,log=True,label='photon - Compton')
 		# plot.hist(energy_ComptonEvents[event_type_Compton=='particle']/exposure,bins=bins,log=True,label='particle - Compton')#,alpha=0.5)
 		# plot.hist(energy_ComptonEvents[np.where((event_type_Compton=='photon') & (ComptonInARM==1))]/exposure,bins=bins,log=True,label='photon - Compton in ARM')#,alpha=0.5)
@@ -103,20 +122,47 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 		# plot.hist(energy_PairEvents[np.where((event_type_Pair=='photon') & (PairInARM==1))]/exposure,bins=bins,log=True,label='photon - Pair in ARM')#,alpha=0.5)
 		# plot.hist(energy_PairEvents[np.where((event_type_Pair=='particle') & (PairInARM==1))]/exposure,bins=bins,log=True,label='particle - Pair in ARM')#,alpha=0.5)
 
-		plot.hist(energy_ComptonEvents/exposure,bins=bins,log=True,label='Compton')
-		plot.hist(energy_ComptonEvents[np.where(ComptonInARM==1)]/exposure,bins=bins,log=True,label='Compton in ARM')#,alpha=0.5)
+		plot.hist(energy_ComptonEvents,bins=bins,log=True,label='Compton')
+		hist_CompARM0=plot.hist(energy_ComptonEvents[np.where(ComptonInARM==1)],bins=bins,log=True,label='Compton in ARM')#,alpha=0.5)
+		hist_CompARM=[hist_CompARM0[1],hist_CompARM0[0]/exposure]
 
-		plot.hist(energy_PairEvents/exposure,bins=bins,log=True,label='Pair')#,alpha=0.5)
-		plot.hist(energy_PairEvents[np.where(PairInARM==1)]/exposure,bins=bins,log=True,label='Pair in ARM')#,alpha=0.5)
+		plot.hist(energy_PairEvents,bins=bins,log=True,label='Pair',alpha=0.8)
+		hist_PairARM0=plot.hist(energy_PairEvents[np.where(PairInARM==1)],bins=bins,log=True,label='Pair in ARM',alpha=0.8)
+		hist_PairARM=[hist_PairARM0[1],hist_PairARM0[0]/exposure]
 
+		import matplotlib.ticker as mtick
+		def div_100(x, *args):
+		    """
+		    The function that will you be applied to your y-axis ticks.
+		    """
+		    x = float(x)/100
+		    return x#"{:.1f}".format(x)    
+		# Apply to the major ticks of the y-axis the function that you defined. 
+		ax = plot.gca()       
+		ax.yaxis.set_major_formatter(mtick.FuncFormatter(div_100))
 
-		plot.legend(fontsize=8)
 		plot.xscale('log')
 		plot.xlabel('Energy (MeV)')
-		plot.xlim([0.1,1e3])
+		plot.xlim([0.1,1e4])
 		plot.ylabel(r'Background Count Rate (ph s$^{-1}$)')
-		plot.savefig('Sim_all_Background.pdf', bbox_inches='tight')
-		plot.savefig('Sim_all_Background.png', bbox_inches='tight')
+		t1='Background Rate in '+armtext+':'
+		t2='  > 100 keV  -   '+str(len(np.where(energiesinARM>0.1)[0])/exposure)
+		t3='  > 1 MeV  -   '+str(len(np.where(energiesinARM>1.0)[0])/exposure)
+		t4='  > 10 MeV  -   '+str(len(np.where(energiesinARM>10.0)[0])/exposure)
+		t5='  > 100 MeV  -   '+str(len(np.where(energiesinARM>100)[0])/exposure)
+		handles, labels = ax.get_legend_handles_labels()
+		handles.append(mpatches.Patch(color='none', label=t1))
+		handles.append(mpatches.Patch(color='none', label=t2))
+		handles.append(mpatches.Patch(color='none', label=t3))
+		handles.append(mpatches.Patch(color='none', label=t4))
+		handles.append(mpatches.Patch(color='none', label=t5))
+		plot.legend(handles=handles,fontsize=8)
+
+#		plot.legend(fontsize=8)
+#		plot.text(0.9,0.8,t1,fontsize=8,xycoords='data')
+		plot.title(armtext+', Cos(theta) = '+str(angleSelection))
+		plot.savefig('plots/Background_in_'+armtext+'.pdf', bbox_inches='tight')
+		plot.savefig('plots/Background_in_'+armtext+'.png', bbox_inches='tight')
 		plot.show()
 
 	# bins = 10**(np.arange(-2,3,0.1))
@@ -128,7 +174,7 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 	### bkg/Aeff/Angres = ph/cm2/s/sr
 	### * E**2
 
-	return #background_eng,background_rate,event_type
+	return hist_CompARM,hist_PairARM
 
 
 def plot_AMEGO_background(data,showbackground=False,plotTotals=False,plothandwavy=False,\

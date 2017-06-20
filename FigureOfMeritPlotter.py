@@ -1696,7 +1696,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 ##########################################################################################
 
-def applyARM(data,events,angleSelection=1.0):
+def applyARM(data,events,angleSelection=1.0,ARMcut=None):
 
 	import EventAnalysis
 	"""
@@ -1728,8 +1728,10 @@ def applyARM(data,events,angleSelection=1.0):
 	for i in range(nCompEvents): #loop through each Compton Event in file
 
 		interpRes=f(events['energy_ComptonEvents'][i])
+		if ARMcut == None:
+			ARMcut=interpRes
 #		print numpy.degrees(events['phi_Tracker'][i]),interpRes,events['energy_ComptonEvents'][i],i
-		if abs(numpy.degrees(events['phi_Tracker'][i])-sourceTheta)<interpRes: # is event in ARM?
+		if abs(numpy.degrees(events['phi_Tracker'][i])-sourceTheta)<ARMcut: # is event in ARM?
 			CompinARM.append(i)
 
 	f = interp1d(energy_pair,sp,fill_value="extrapolate",kind='linear')
@@ -1739,7 +1741,9 @@ def applyARM(data,events,angleSelection=1.0):
 	PairinARM=[]
 	for i in range(nPairEvents):
 		interpRes=f(events['energy_pairElectron'][i]+events['energy_pairPositron'][i])
-		if angles[i]<interpRes:
+		if ARMcut == None:
+			ARMcut=interpRes
+		if angles[i]<ARMcut:
 			PairinARM.append(i)
 #		print angles[i],interpRes,events['energy_pairElectron'][i]+events['energy_pairPositron'][i]
 	
