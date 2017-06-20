@@ -691,14 +691,16 @@ def parse(filename, sourceTheta=None):
 
 	if numberOfComptonEvents + numberOfPairEvents == 0:
 		print "No events pass selection"
-		return
+		events=False
+		return events
 
 	print ""
 	print "Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))
 	print "Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))	
 	print "Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes))
-	print " - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents))
-	print " - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents))
+	if numberOfComptonEvents > 0:
+		print " - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents))
+		print " - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents))
 	print ""
 	print ""
 
@@ -900,7 +902,7 @@ def getScaledDeviation(events, sourceTheta=0):
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False):
 
 
 	# Define the list to contain the resulting angle measurements
@@ -998,7 +1000,6 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
 		# Store the angle
 		angles.append(angle)
-
 
 		openingAngle = angularSeparation(direction_electron, direction_positron)
 		openingAngles.append(openingAngle)
@@ -1197,6 +1198,10 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 	# Convert the list of angles and opening angles to numpy arrays 
 	angles = numpy.array(angles)
 	openingAngles = numpy.array(openingAngles)
+
+	if onlyangles:
+		return numpy.array(angles)
+
 
 	# # Select the events within the desired quality range
 	# selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
@@ -1837,6 +1842,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
 
  
 ##########################################################################################
+
 
 def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60.):
 
