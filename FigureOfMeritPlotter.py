@@ -1029,6 +1029,78 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 	return EffectiveArea_Untracked, EffectiveArea_Tracked, EffectiveArea_Pair, Energy
 
 
+##########################################################################################
+
+def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False):
+
+    if hasattr(angleSelections, '__iter__') == False:
+        angleSelections = [angleSelections]
+
+    angleSelections = set(angleSelections)
+        
+    energy_data = dict()
+        
+    for key in data.keys():
+        energy = float(key.split('_')[1].replace('MeV', ''))
+        half = key.split('_')[2].replace('Cos', '')
+        angle = float(half.replace('.inc1.id1.sim', ''))
+
+        #print energy, angle
+
+        if angle not in angleSelections:
+            continue
+
+        if energy not in energy_data:
+            energy_data[energy] = dict()
+            
+        numberOfSimulatedEvents = float(data[key][0])
+
+        if ideal:
+			# This removes the event selection on the final Aeff calculation
+			# It does not change anything from the FWHM or the 68% containment
+			# Compton events are multiplied by the ratio of tracked vs. untracked
+			total_compton_events = float(data[key][1][-1])
+			if numpy.isnan(total_compton_events):
+				pair_to_total_ratio = 1.0
+			else:
+				pair_to_total_ratio  = float(data[key][4][7])/(float(data[key][4][7])+total_compton_events)
+            #numberOfReconstructedEvents_tracked = 100000.*float(data[key][2][-1])/(total_compton_events)
+			#numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
+			numberOfReconstructedEvents_tracked = float(data[key][2][-1])
+			numberOfReconstructedEvents_untracked = float(data[key][3][-1])
+			numberOfReconstructedEvents_pair = float(data[key][4][7])+(float(data[key][4][-1])*pair_to_total_ratio)
+        else:
+			numberOfReconstructedEvents_tracked = float(data[key][2][-1])
+			numberOfReconstructedEvents_untracked = float(data[key][3][-1])
+			numberOfReconstructedEvents_pair = float(data[key][4][-1])
+
+		#numberOfReconstructedEvents_tracked = float(data[key][1][-1])
+		#numberOfReconstructedEvents_untracked = float(data[key][2][-1])
+		#numberOfReconstructedEvents_pair = float(data[key][3][-1])
+
+		# Calculate the effective area
+        effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
+        effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
+        effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+            
+		# Store the results
+        energy_data[energy][angle] = [ effectiveArea_tracked, effectiveArea_untracked, effectiveArea_pair ]
+
+    # create a table that is sorted first by energy, and second by angle
+    angleSelections = sorted(list(angleSelections))
+    table_data = sorted(
+        [ ( energy, sorted([ (angle, d) for angle, d in ds.iteritems() ], key = lambda entry: entry[0]) )
+          for energy, ds in energy_data.iteritems() ],
+        key = lambda entry: entry[0])
+
+    # print that table
+    print 'Energy    | %s' % ('                      | '.join(['% 24.1f' % x for x in angleSelections]))
+    print '         ' + ' |  tracked  | untracked |  compton  |    pair  ' * len(angleSelections)
+    print '------------' + '-' * 48*len(angleSelections)
+    for energy, ds in table_data:
+        print '% 8.1f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds]))
+
+
  ##########################################################################################
 
 def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False):
