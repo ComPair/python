@@ -462,20 +462,22 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 				plot.xlabel('Energy (MeV)', fontsize=16)
 
 
-			plot.gca().set_ylim([0.,20.])
+				plot.gca().set_ylim([0.,20.])
+
+			
+
+				plot.subplots_adjust(wspace=0, hspace=.2)
+
+				if save:
+					plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
+					plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
+
+				plot.show()
+
+				plot.close()
 
 			plotNumber = plotNumber + 1
 
-
-			plot.subplots_adjust(wspace=0, hspace=.2)
-
-			if save:
-				plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
-				plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
-
-			plot.show()
-
-			plot.close()
 
 	return Energy,st,sp
 
@@ -986,14 +988,14 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 		else:
 			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
-			plot.scatter(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1])
-			plot.plot(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+			plot.scatter(Energy[1:], EffectiveArea_Tracked[1:], color=colors[plotNumber-1])
+			plot.plot(Energy[1:], EffectiveArea_Tracked[1:], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
 
 			#plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
 			#plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=2, alpha=0.5, linestyle='-.')
 
-			plot.scatter(Energy, EffectiveArea_Pair, color=colors[plotNumber-1])
-			plot.plot(Energy, EffectiveArea_Pair, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
+			plot.scatter(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1])
+			plot.plot(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
 
 
 		if plotNumber == len(angleSelections):
@@ -1008,7 +1010,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 			plot.xscale('log')
 
 		if ylog:
-			plot.gca().set_ylim([0.1,50000.])
+			plot.gca().set_ylim([1.,50000.])
 			plot.yscale('log')
 
 
@@ -1296,7 +1298,7 @@ def resultsToFits(data, outfile='output.fits'):
 ########################################################################################## 
 
 def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal=False, doPSF=None, \
-	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False):
+	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1428,13 +1430,13 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 
 	if showbackground:
-		plot.figure()
+		plot.figure(figsize=(10, 6.39))
 		plot.plot(oldeng2,olde2int2,color='red')
 		plot.scatter(oldeng2,olde2int2,color='red')
 		plot.annotate('Strong, Moskalenko, Reimer (2000)',xy=(1e-2,1e-4),xycoords='data',fontsize=12,color='red')
-		plot.plot(alex_eng2,alex_e2int2,color='blue')
-		plot.scatter(alex_eng2,alex_e2int2,color='blue')
-		plot.annotate('Alex (new)',xy=(1e2,2e-4),xycoords='data',fontsize=12,color='blue')
+		#plot.plot(alex_eng2,alex_e2int2,color='blue')
+		#plot.scatter(alex_eng2,alex_e2int2,color='blue')
+		#plot.annotate('Alex (new)',xy=(1e2,2e-4),xycoords='data',fontsize=12,color='blue')
 		plot.plot(lateng,late2int,color='magenta')
 		plot.scatter(lateng,late2int,color='magenta')
 		plot.plot(lateng,late2int_galactic,'r--',color='magenta')
@@ -1443,9 +1445,9 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		plot.scatter(lateng,late2int_igrb,color='magenta')
 		plot.annotate('Ackermann et al. (2016) - LAT Extragalactic',xy=(5,1e-5),xycoords='data',fontsize=12,color='magenta')
 		plot.annotate('Acero et al. (2016) - LAT Galactic',xy=(1e2,3e-3),xycoords='data',fontsize=12,color='magenta')
-		plot.plot(gruber_eng,gruber_e2int,color='cyan')
-		plot.scatter(gruber_eng,gruber_e2int,color='cyan')
-		plot.annotate('Gruber et al. (1999) - HEAO, COMPTEL, EGRET',xy=(2e-3,5e-2),xycoords='data',fontsize=12,color='cyan')
+		plot.plot(gruber_eng,gruber_e2int,color='blue')
+		plot.scatter(gruber_eng,gruber_e2int,color='blue')
+		plot.annotate('Gruber et al. (1999) - HEAO, COMPTEL, EGRET',xy=(2e-3,5e-2),xycoords='data',fontsize=12,color='blue')
 		plot.plot(wp_eng,wp_e2int,'r:',color='orange')
 		plot.scatter(wp_eng,wp_e2int,color='orange')
 		plot.annotate('Weidenspointner (2001)',xy=(2e-3,1e-3),xycoords='data',fontsize=12,color='orange')
@@ -1455,13 +1457,15 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		plot.scatter(Energy,background,color='green')
 
 		import ScienceSims
-		real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',doplot=False)
-		plot.plot(real_back_eng,real_back_rate/omega(FWHM_untracked)/EffectiveArea_Untracked,color='brown')
+		if doRealBkg:
+			real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',doplot=False)
+			plot.plot(real_back_eng,real_back_rate/omega(FWHM_untracked)/EffectiveArea_Untracked,color='brown')
 
 
-		plot.annotate('Interpolated Used Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
+		plot.annotate('Interpolated Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
 		plot.xscale('log')
 		plot.yscale('log')
+		plot.gca().set_ylim([0.000005,0.1])
 		plot.xlabel(r'Energy (MeV)')
 		plot.ylabel(r'$E^2 \times$ Intensity (MeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
 		plot.title('Diffuse Background')
