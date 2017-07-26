@@ -462,20 +462,22 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 				plot.xlabel('Energy (MeV)', fontsize=16)
 
 
-			plot.gca().set_ylim([0.,20.])
+				plot.gca().set_ylim([0.,20.])
+
+			
+
+				plot.subplots_adjust(wspace=0, hspace=.2)
+
+				if save:
+					plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
+					plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
+
+				plot.show()
+
+				plot.close()
 
 			plotNumber = plotNumber + 1
 
-
-			plot.subplots_adjust(wspace=0, hspace=.2)
-
-			if save:
-				plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
-				plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
-
-			plot.show()
-
-			plot.close()
 
 	return Energy,st,sp
 
@@ -986,14 +988,14 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 		else:
 			angle = round(numpy.degrees(numpy.arccos(angleSelection)))
-			plot.scatter(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1])
-			plot.plot(Energy, EffectiveArea_Tracked, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+			plot.scatter(Energy[1:], EffectiveArea_Tracked[1:], color=colors[plotNumber-1])
+			plot.plot(Energy[1:], EffectiveArea_Tracked[1:], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
 
 			#plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
 			#plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=2, alpha=0.5, linestyle='-.')
 
-			plot.scatter(Energy, EffectiveArea_Pair, color=colors[plotNumber-1])
-			plot.plot(Energy, EffectiveArea_Pair, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
+			plot.scatter(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1])
+			plot.plot(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
 
 
 		if plotNumber == len(angleSelections):
@@ -1008,7 +1010,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 			plot.xscale('log')
 
 		if ylog:
-			plot.gca().set_ylim([0.1,50000.])
+			plot.gca().set_ylim([1.,50000.])
 			plot.yscale('log')
 
 
@@ -1296,7 +1298,7 @@ def resultsToFits(data, outfile='output.fits'):
 ########################################################################################## 
 
 def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal=False, doPSF=None, \
-	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False):
+	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1428,13 +1430,17 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 
 	if showbackground:
+		import ScienceSims
+		if doPSF is None:
+			hist_CompARM,hist_PairARM=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',angleSelection=angleSelection,energy=Energy,st=FWHM_tracked,sp=Containment68)
+
 		plot.figure()
 		plot.plot(oldeng2,olde2int2,color='red')
 		plot.scatter(oldeng2,olde2int2,color='red')
 		plot.annotate('Strong, Moskalenko, Reimer (2000)',xy=(1e-2,1e-4),xycoords='data',fontsize=12,color='red')
-		plot.plot(alex_eng2,alex_e2int2,color='blue')
-		plot.scatter(alex_eng2,alex_e2int2,color='blue')
-		plot.annotate('Alex (new)',xy=(1e2,2e-4),xycoords='data',fontsize=12,color='blue')
+		#plot.plot(alex_eng2,alex_e2int2,color='blue')
+		#plot.scatter(alex_eng2,alex_e2int2,color='blue')
+		#plot.annotate('Alex (new)',xy=(1e2,2e-4),xycoords='data',fontsize=12,color='blue')
 		plot.plot(lateng,late2int,color='magenta')
 		plot.scatter(lateng,late2int,color='magenta')
 		plot.plot(lateng,late2int_galactic,'r--',color='magenta')
@@ -1443,9 +1449,9 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		plot.scatter(lateng,late2int_igrb,color='magenta')
 		plot.annotate('Ackermann et al. (2016) - LAT Extragalactic',xy=(5,1e-5),xycoords='data',fontsize=12,color='magenta')
 		plot.annotate('Acero et al. (2016) - LAT Galactic',xy=(1e2,3e-3),xycoords='data',fontsize=12,color='magenta')
-		plot.plot(gruber_eng,gruber_e2int,color='cyan')
-		plot.scatter(gruber_eng,gruber_e2int,color='cyan')
-		plot.annotate('Gruber et al. (1999) - HEAO, COMPTEL, EGRET',xy=(2e-3,5e-2),xycoords='data',fontsize=12,color='cyan')
+		plot.plot(gruber_eng,gruber_e2int,color='blue')
+		plot.scatter(gruber_eng,gruber_e2int,color='blue')
+		plot.annotate('Gruber et al. (1999) - HEAO, COMPTEL, EGRET',xy=(2e-3,5e-2),xycoords='data',fontsize=12,color='blue')
 		plot.plot(wp_eng,wp_e2int,'r:',color='orange')
 		plot.scatter(wp_eng,wp_e2int,color='orange')
 		plot.annotate('Weidenspointner (2001)',xy=(2e-3,1e-3),xycoords='data',fontsize=12,color='orange')
@@ -1454,14 +1460,22 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		plot.plot(Energy,background,color='green')
 		plot.scatter(Energy,background,color='green')
 
+		if doPSF is None:
+			l=len(hist_CompARM[0])
+			wc=numpy.where(hist_CompARM[1] != 0.)
+			wp=numpy.where(hist_PairARM[1] != 0.)
+			plot.plot(hist_CompARM[0][wc],hist_CompARM[0][wc]*hist_CompARM[1][wc]/omega(FWHM_untracked[wc])/EffectiveArea_Untracked[wc],color='brown')
+			plot.plot(hist_PairARM[0][wp],hist_PairARM[0][wp]*hist_PairARM[1][wp]/omega(Containment68[wp])/EffectiveArea_Pair[wp],color='brown')
+
 		import ScienceSims
-		real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',doplot=False)
-		plot.plot(real_back_eng,real_back_rate/omega(FWHM_untracked)/EffectiveArea_Untracked,color='brown')
+		if doRealBkg:
+			real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',doplot=False)
+			plot.plot(real_back_eng,real_back_rate/omega(FWHM_untracked)/EffectiveArea_Untracked,color='brown')
 
-
-		plot.annotate('Interpolated Used Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
+		plot.annotate('Interpolated Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
 		plot.xscale('log')
 		plot.yscale('log')
+		plot.gca().set_ylim([0.000005,0.1])
 		plot.xlabel(r'Energy (MeV)')
 		plot.ylabel(r'$E^2 \times$ Intensity (MeV cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
 		plot.title('Diffuse Background')
@@ -1482,7 +1496,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		if plot.fignum_exists(1):
 			plot.clf()
 		else:
-			plot.figure(figsize=(10, 6.39))
+			plot.figure()#figsize=(10, 6.39))
 			ax = plot.subplot(111)
 
 		if uniterg:
@@ -1528,8 +1542,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 	save=False, showbackground=False, doplot=True, uniterg=False):
 
 	ComPairSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,doplot=False)
-	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False)
-	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False, showbackground=showbackground)
+	ComPairIdealSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doplot=False, showbackground=showbackground)
+	ComPairGoodPSFSensitivity=plotSourceSensitivity(data,angleSelection=angleSelection,ideal=True,doPSF=2.0,doplot=False)
 
 	if uniterg:
 		mev2erg=1/624151.
@@ -1696,7 +1710,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 ##########################################################################################
 
-def applyARM(data,events,angleSelection=1.0,ARMcut=None):
+def applyARM(data,events,angleSelection=1.0,ARMcut=None,energy=None,st=None,sp=None):
 
 	import EventAnalysis
 	"""
@@ -1708,9 +1722,15 @@ def applyARM(data,events,angleSelection=1.0,ARMcut=None):
 
 	angle=angleSelection  #not sure if this should vary simply with angle given background Sims
 	sourceTheta=numpy.arccos(angle)
-	energy,st,sp=plotAngularResolution(data,angleSelections=angle,doplot=False)
-	energy=numpy.append(energy,numpy.array([1e5,1e6]))*1e3
-	sp=numpy.append(sp,numpy.repeat(sp[len(sp)-1],2))
+	if (energy == None) & (st==None) & (sp==None):
+		energy,st,sp=plotAngularResolution(data,angleSelections=angle,doplot=False)
+	st=st.astype(numpy.float)
+	sp=sp.astype(numpy.float)
+	energy=energy.astype(numpy.float)
+
+
+#	energy=numpy.append(energy,numpy.array([1e5,1e6]))*1e3
+#	sp=numpy.append(sp,numpy.repeat(sp[len(sp)-1],2))
 #	source_angRes=numpy.append(st[source_energy<=10],sp[source_energy>10])
 	mask=numpy.isfinite(st)
 	energy_comp=energy[mask]
@@ -1727,7 +1747,7 @@ def applyARM(data,events,angleSelection=1.0,ARMcut=None):
 	CompinARM=[]
 	for i in range(nCompEvents): #loop through each Compton Event in file
 
-		interpRes=f(events['energy_ComptonEvents'][i])
+		interpRes=f(events['energy_ComptonEvents'][i]*1e-3)
 		if ARMcut == None:
 			ARMcut=interpRes
 #		print numpy.degrees(events['phi_Tracker'][i]),interpRes,events['energy_ComptonEvents'][i],i
@@ -1736,18 +1756,17 @@ def applyARM(data,events,angleSelection=1.0,ARMcut=None):
 
 	f = interp1d(energy_pair,sp,fill_value="extrapolate",kind='linear')
 	angles=EventAnalysis.getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=False, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=False, filename=None, log=False, getScaledDeviation=False, onlyangles=True)
-	print len(angles)
 	nPairEvents=events['numberOfPairEvents']
 	PairinARM=[]
 	for i in range(nPairEvents):
-		interpRes=f(events['energy_pairElectron'][i]+events['energy_pairPositron'][i])
+		interpRes=f((events['energy_pairElectron'][i]+events['energy_pairPositron'][i])*1e-3)
 		if ARMcut == None:
 			ARMcut=interpRes
 		if angles[i]<ARMcut:
 			PairinARM.append(i)
 #		print angles[i],interpRes,events['energy_pairElectron'][i]+events['energy_pairPositron'][i]
 	
-	return CompinARM, PairinARM
+	return CompinARM, PairinARM, energy
 
 
 ##########################################################################################
