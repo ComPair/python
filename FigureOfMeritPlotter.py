@@ -464,8 +464,6 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 				plot.gca().set_ylim([0.,20.])
 
-			
-
 				plot.subplots_adjust(wspace=0, hspace=.2)
 
 				if save:
@@ -1430,11 +1428,15 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 
 	if showbackground:
+<<<<<<< HEAD
 		import ScienceSims
 		if doPSF is None:
 			hist_CompARM,hist_PairARM=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',angleSelection=angleSelection,energy=Energy,st=FWHM_tracked,sp=Containment68)
 
 		plot.figure()
+=======
+		plot.figure(figsize=(10, 6.39))
+>>>>>>> origin/master
 		plot.plot(oldeng2,olde2int2,color='red')
 		plot.scatter(oldeng2,olde2int2,color='red')
 		plot.annotate('Strong, Moskalenko, Reimer (2000)',xy=(1e-2,1e-4),xycoords='data',fontsize=12,color='red')
