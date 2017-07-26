@@ -20,7 +20,7 @@ import importlib
 import glob
 import EventAnalysis
 
-def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,events=None,data=None,angleSelection=1.0,ARMcut=None):
+def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,events=None,data=None,angleSelection=1.0,ARMcut=None,energy=None,st=None,sp=None):
 
 	import matplotlib.patches as mpatches
 
@@ -47,6 +47,17 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 	ComptonInARM=[]
 	PairInARM=[]
 
+	if ARMcut==None:
+		armtext='ARM'
+		bins = energy
+	else:
+		armtext=str(ARMcut)+'deg'
+		bins=10**(np.arange(-2,5,0.2))
+		energy=bins
+		st=np.full(len(bins),ARMcut)
+		sp=np.full(len(bins),ARMcut)
+
+
 	for tra in trafiles:
 		print tra
 		events=EventAnalysis.parse(tra,sourceTheta=angleSelection)
@@ -68,7 +79,7 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 			ncompton=ncompton+events['numberOfComptonEvents']
 			npair=npair+events['numberOfPairEvents']
 
-			wCompinARM,wPairinARM=FigureOfMeritPlotter.applyARM(data,events,angleSelection=angleSelection,ARMcut=ARMcut)
+			wCompinARM,wPairinARM,energy_out=FigureOfMeritPlotter.applyARM(data,events,angleSelection=angleSelection,ARMcut=ARMcut,energy=energy,st=st,sp=sp)
 
 			if len(wCompinARM)>0:
 				mask=np.zeros(events['numberOfComptonEvents'],dtype=bool)
@@ -87,10 +98,6 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 	energy_PairEvents=energy_PairEvents*1e-3 # keV to MeV
 
 	if not silent:
-		if ARMcut==None:
-			armtext='ARM'
-		else:
-			armtext=str(ARMcut)+'deg'
 
 		print 'Unknown = ',nunknown
 		print 'Compton = ',ncompton
@@ -111,7 +118,7 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 
 	if doplot:
 		fig=plot.figure()
-		bins = 10**(np.arange(-2,5,0.2))
+		
 		# plot.hist(energy_ComptonEvents[event_type_Compton=='photon']/exposure,bins=bins,log=True,label='photon - Compton')
 		# plot.hist(energy_ComptonEvents[event_type_Compton=='particle']/exposure,bins=bins,log=True,label='particle - Compton')#,alpha=0.5)
 		# plot.hist(energy_ComptonEvents[np.where((event_type_Compton=='photon') & (ComptonInARM==1))]/exposure,bins=bins,log=True,label='photon - Compton in ARM')#,alpha=0.5)
@@ -124,11 +131,10 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 
 		plot.hist(energy_ComptonEvents,bins=bins,log=True,label='Compton')
 		hist_CompARM0=plot.hist(energy_ComptonEvents[np.where(ComptonInARM==1)],bins=bins,log=True,label='Compton in ARM')#,alpha=0.5)
-		hist_CompARM=[hist_CompARM0[1],hist_CompARM0[0]/exposure]
-
+		hist_CompARM=[hist_CompARM0[1],np.append(hist_CompARM0[0][0],hist_CompARM0[0]/(hist_CompARM0[1][1:]-hist_CompARM0[1][0:len(hist_CompARM0[1])-1]))/exposure]
 		plot.hist(energy_PairEvents,bins=bins,log=True,label='Pair',alpha=0.8)
 		hist_PairARM0=plot.hist(energy_PairEvents[np.where(PairInARM==1)],bins=bins,log=True,label='Pair in ARM',alpha=0.8)
-		hist_PairARM=[hist_PairARM0[1],hist_PairARM0[0]/exposure]
+		hist_PairARM=[hist_PairARM0[1],np.append(hist_PairARM0[0][0],hist_PairARM0[0]/(hist_PairARM0[1][1:]-hist_PairARM0[1][0:len(hist_PairARM0[1])-1]))/exposure]
 
 		import matplotlib.ticker as mtick
 		def div_100(x, *args):
