@@ -1301,7 +1301,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
 ##########################################################################################
 
-def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=[0,1e5], showPlots=True, qualityCut=1.0,fileBase="5.011MeV_Cos0.8"):
+def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=False, showPlots=True, qualityCut=1.0,fileBase="5.011MeV_Cos0.8"):
 
 	# Retrieve the event data
 	energy_pairElectron = events['energy_pairElectron']
@@ -1313,6 +1313,15 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 	# Estimate the energy of the incoming photon and its associated error
 	energy_pairReconstructedPhoton = energy_pairElectron + energy_pairPositron
 	energy_pairReconstructedPhoton_error = numpy.sqrt((energy_pairElectron_error/energy_pairElectron)**2 + (energy_pairPositron_error/energy_pairPositron)**2) * energy_pairReconstructedPhoton
+
+	# Find maximum bin value to fit
+	n, b, patches = plot.hist(energy_pairReconstructedPhoton,bins=numberOfBins)
+	bin_max=numpy.where(n == n.max())
+	if energyFitRange:
+		minbin=0.5*b[bin_max][0]
+		energyFitRange=[0.5*b[bin_max][0],1.5*b[bin_max][0]]
+	else:
+		energyFitRange=[0,1e5]
 
 	# Select the events within the desired energy range
 	selection = numpy.where( (energy_pairReconstructedPhoton >= energyFitRange[0]) & (energy_pairReconstructedPhoton <= energyFitRange[1]) & (qualityOfPairReconstruction <= qualityCut))
@@ -1380,6 +1389,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 	print "********************************************************"
 	print "Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) )
 	print ""
+	print "Fitting in range: ", energyFitRange[0], energyFitRange[1]
 	print "Max of fit: %s keV" % fitMax	
 	print "FWHM of fit: %s keV" % FWHM	
 	print "sigma of fit: %s keV" % sigma
@@ -1844,7 +1854,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=3, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60.):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=10, minimumPairEnergy=5, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60.):
 
 	"""
 	A function to plot the cosima output simulation file.
@@ -1966,7 +1976,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 			print "\n\nCalculating the energy resolution for pair events..."
 			print "EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)"
 			fileBase = "%sMeV_Cos%s" % (energy,angle)
-			fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, showPlots=showPlots,fileBase=fileBase)
+			fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
 
 			# Calculate the angular resolution measurement (ARM) for pair events
 			print "\n\nCalculating the angular resolution measurement for pair events..."
