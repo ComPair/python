@@ -880,7 +880,8 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 ##########################################################################################
 
-def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, save=False, show=True, collapse=False):
+def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, \
+	save=False, show=True, collapse=False, SurroundingSphere=150):
 
 	if hasattr(angleSelections, '__iter__') == False:
 		angleSelections = [angleSelections]
@@ -937,9 +938,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 				#numberOfReconstructedEvents_pair = float(data[key][3][-1])
 
 				# Calculate the effective area
-				effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
-				effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
-				effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+				effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+				effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+				effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
 
 				# Store the results
 				Energy.append(energy)
@@ -1035,7 +1036,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 ##########################################################################################
 
-def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False):
+def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, SurroundingSphere=150):
 
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
@@ -1083,9 +1084,9 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
 		#numberOfReconstructedEvents_pair = float(data[key][3][-1])
 
 		# Calculate the effective area
-        effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
-        effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
-        effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+        effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+        effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+        effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
             
 		# Store the results
         energy_data[energy][angle] = [ effectiveArea_tracked, effectiveArea_untracked, effectiveArea_pair ]
@@ -1107,7 +1108,7 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
 
  ##########################################################################################
 
-def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False):
+def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False, SurroundingSphere=150):
 
 	if energySelections is None:
 		Energy = []	
@@ -1174,9 +1175,9 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 				numberOfSimulatedEvents = float(data[key][0])
 
 				# Calculate the effective area
-				effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
-				effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
-				effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+				effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+				effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+				effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
 
 				# Store the results
 				Angle.append(angle)
@@ -1296,7 +1297,8 @@ def resultsToFits(data, outfile='output.fits'):
 ########################################################################################## 
 
 def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal=False, doPSF=None, \
-	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True):
+	xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True, \
+	SurroundingSphere=150):
 
 	#background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
 	#background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1347,9 +1349,9 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 			containment68 = data[key][4][6]
 
 			# Calculate the effective area
-			effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * 300**2
-			effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * 300**2
-			effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * 300**2
+			effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+			effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+			effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
 		
 			# Store the effective area results
 			Energy.append(energy)
@@ -1390,29 +1392,40 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
   	# high latitude |b|>5 deg
   	# multiply by 10 to vaguely account for the albedo background
 
-	oldeng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
-	olde2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,0.0018672496,0.0017879958,0.0014717471])
+	oldeng2=numpy.array([0.10355561,0.3534914,1.2920963,4.659387,8.969312,18.735151,38.081676,69.40132,\
+		144.98259,227.4451,342.42523,462.24567,725.01324,939.413,1908.1061,28725.793])
+	olde2int2=numpy.array([2.7943178E-4,3.57757E-4,4.8821748E-4,6.806025E-4,8.0072926E-4,9.1560354E-4,\
+		0.0010469892,0.0011638523,0.0013691497,0.0015439879,0.0016334692,0.0017039803,0.0018284274,\
+		0.0018672496,0.0017879958,0.0014717471])
 
 	# Alex's new background numbers from Gruber et al. (1999) and Weidenspointer et al. (2000) and >100 MeV from Ackermann et al. (2015)
 	alex_eng2=numpy.array([0.5,0.8,1.0,2.0,3.0,5.0,8.0,10.0,50.0,100.,200,500])
 	alex_e2int2=numpy.array([2e-2,1e-2,7e-3,3e-3,2e-3,8e-4,4e-4,3e-4,3e-5,3.2e-6,2e-6,6e-7])*alex_eng2
 
 	# From Acero et al. (2016) - arxiv:1602.07246 |b| > 10 deg Galactic Diffuse
-	#lateng=numpy.array([59.03219,85.70306,130.86836,206.94946,279.0981,377.88,515.6217,751.6096,1202.7435,1746.5424,2439.6077,3421.0806,5185.3374,7920.732,12578.761,19214.623,39437.465,88850.945,493146.28])
-  	#late2int=numpy.array([8.6141995E-4,0.0011453591,0.0015459998,0.002040656,0.0022842947,0.002390658,0.0024465262,0.0025040577,0.002326049,0.0020965973,0.0018339512,0.0015110897,0.0011299471,8.449544E-4,6.041775E-4,4.417733E-4,2.6613174E-4,1.7280209E-4,7.286812E-5])
-  	lateng=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
-  	late2int_galactic=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
+  	lateng=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,\
+  		2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
+  	late2int_galactic=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,\
+  		0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,\
+  		4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
   	# From Ackermann et al. (2015) - ApJ 799 86 isotropic EGB
-  	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,31000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
-  	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,2.1e-11,9.7e-12])
+  	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,\
+  		1000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
+  	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,\
+  		2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,\
+  		2.1e-11,9.7e-12])
   	late2int_igrb0=lat_igrb*lateng_igrb
   	tck=interpolate.splrep(numpy.log10(lateng_igrb),numpy.log10(late2int_igrb0),s=0)
 	late2int_igrb=10**interpolate.splev(numpy.log10(lateng),tck,der=0)
 	late2int=late2int_galactic+late2int_igrb
   	
   	# COMPTEL * EGRET Galactic Diffuse from Gruber et al. (1999)
-  	gruber_eng=numpy.array([2.978623,5.1983213,9.07216,13.32116,19.94295,32.241817,44.707794,72.33151,136.47008,278.06522,545.20044,1132.5265,3079.0847,6774.5522,17384.865,41301.277,105963.19,317014.44,1315024.2,6868901.5,2.2191038E7,8.6879376E7])*1e-3
-  	gruber_e2int=numpy.array([5.278219,4.1341214,3.2380166,2.592378,1.8563249,1.2433603,0.8325035,0.36483333,0.13988705,0.049062684,0.01799201,0.00590178,0.0014491071,4.9711246E-4,1.3645743E-4,4.6819663E-5,1.4694342E-5,4.219293E-6,8.482257E-7,1.4922263E-7,4.098341E-8,9.63159E-9])*gruber_eng
+  	gruber_eng=numpy.array([2.978623,5.1983213,9.07216,13.32116,19.94295,32.241817,44.707794,72.33151,\
+  		136.47008,278.06522,545.20044,1132.5265,3079.0847,6774.5522,17384.865,41301.277,105963.19,\
+  		317014.44,1315024.2,6868901.5,2.2191038E7,8.6879376E7])*1e-3
+  	gruber_e2int=numpy.array([5.278219,4.1341214,3.2380166,2.592378,1.8563249,1.2433603,0.8325035,\
+  		0.36483333,0.13988705,0.049062684,0.01799201,0.00590178,0.0014491071,4.9711246E-4,1.3645743E-4,\
+  		4.6819663E-5,1.4694342E-5,4.219293E-6,8.482257E-7,1.4922263E-7,4.098341E-8,9.63159E-9])*gruber_eng
 
   	# COMPTEL extragalactic background from Weidenspointner (2001)
   	wp_eng=numpy.array([0.10258658,0.15835446,0.34505856,0.56054914,0.9957529,1.9590781,3.4359305,10.434804,57.75009,135.85852,377.31998])
@@ -1428,15 +1441,11 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 
 	if showbackground:
-<<<<<<< HEAD
 		import ScienceSims
 		if doPSF is None:
 			hist_CompARM,hist_PairARM=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',angleSelection=angleSelection,energy=Energy,st=FWHM_tracked,sp=Containment68)
 
 		plot.figure()
-=======
-		plot.figure(figsize=(10, 6.39))
->>>>>>> origin/master
 		plot.plot(oldeng2,olde2int2,color='red')
 		plot.scatter(oldeng2,olde2int2,color='red')
 		plot.annotate('Strong, Moskalenko, Reimer (2000)',xy=(1e-2,1e-4),xycoords='data',fontsize=12,color='red')
@@ -1570,23 +1579,37 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 	plot.clf()
 	#LAT
-	lat_energy=numpy.array([31.636559,55.997124,99.194466,178.46051,315.91608,558.86786,1004.1673,1801.5197,3179.561,5600.7397,10030.165,17674.44,31625.436,54096.105,98242.1,173146.97,305125.9,546138.4,990550.4,1712016.6,3043571.2])
-	lat_Aeff=numpy.array([0.07349323,0.19316217,0.3357588,0.48363942,0.6068357,0.71063167,0.8214752,0.88822705,0.9250036,0.90534276,0.9209482,0.9118694,0.9027835,0.92017376,0.89697146,0.89318365,0.8858685,0.8856009,0.8253616,0.6998877,0.50385296])*1e4
-	lat_psf_energy=numpy.array([32.03726,56.471546,99.54146,178.16881,304.57852,545.1637,990.85016,1720.002,3078.6238,5595.484,9863.066,17385.465,30179.168,53196.316,95215.85,173057.44,300407.8,529523.9,947792.44,1670658.0,2944841.2])
-	lat_psf0=numpy.array([11.73808,7.8302007,5.135973,3.368779,2.1726828,1.3098335,0.83064204,0.5179475,0.32846078,0.23048219,0.16448157,0.1255744,0.106081836,0.100847006,0.1025626,0.1025626,0.095870495,0.08961505,0.082366556,0.07570436,0.07196857])
+	lat_energy=numpy.array([31.636559,55.997124,99.194466,178.46051,315.91608,558.86786,1004.1673,\
+		1801.5197,3179.561,5600.7397,10030.165,17674.44,31625.436,54096.105,98242.1,173146.97,305125.9,\
+		546138.4,990550.4,1712016.6,3043571.2])
+	lat_Aeff=numpy.array([0.07349323,0.19316217,0.3357588,0.48363942,0.6068357,0.71063167,0.8214752,\
+		0.88822705,0.9250036,0.90534276,0.9209482,0.9118694,0.9027835,0.92017376,0.89697146,0.89318365,\
+		0.8858685,0.8856009,0.8253616,0.6998877,0.50385296])*1e4
+	lat_psf_energy=numpy.array([32.03726,56.471546,99.54146,178.16881,304.57852,545.1637,990.85016,\
+		1720.002,3078.6238,5595.484,9863.066,17385.465,30179.168,53196.316,95215.85,173057.44,300407.8,\
+		529523.9,947792.44,1670658.0,2944841.2])
+	lat_psf0=numpy.array([11.73808,7.8302007,5.135973,3.368779,2.1726828,1.3098335,0.83064204,0.5179475,\
+		0.32846078,0.23048219,0.16448157,0.1255744,0.106081836,0.100847006,0.1025626,0.1025626,0.095870495,\
+		0.08961505,0.082366556,0.07570436,0.07196857])
 	tck=interpolate.splrep(numpy.log10(lat_psf_energy),numpy.log10(lat_psf0),s=0)
 	lat_psf=10**interpolate.splev(numpy.log10(lat_energy),tck,der=0)
 
 	#LAT background
 	#  Galactic from Acero et al. (2016)
- 	lateng0=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
-  	late2int=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
+ 	lateng0=numpy.array([58.665302,83.7944,127.701385,212.20918,296.02475,493.0605,740.34045,1265.6293,\
+ 		2019.2109,3006.2268,4828.027,8546.594,18742.852,42185.098,152450.55,496614.97])
+  	late2int=numpy.array([8.653016E-4,0.0011343559,0.0015828605,0.0020333533,0.0022578337,0.002416496,\
+  		0.0023796277,0.002305653,0.0019558307,0.0016045898,0.0011626304,7.918069E-4,4.5331568E-4,\
+  		2.5003447E-4,1.3304557E-4,7.2556504E-5])
 	tck=interpolate.splrep(numpy.log10(lateng0),numpy.log10(late2int),s=0)
 	lat_background_galactic=10**interpolate.splev(numpy.log10(lat_energy),tck,der=0)
 
   	#  Extragalactic from Ackermann et al. (2015) - ApJ 799 86
-  	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,31000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
-  	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,2.1e-11,9.7e-12])
+  	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,\
+  		31000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
+  	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,\
+  		2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,\
+  		2.1e-11,9.7e-12])
   	late2int_igrb0=lat_igrb*lateng_igrb
   	tck=interpolate.splrep(numpy.log10(lateng_igrb),numpy.log10(late2int_igrb0),s=0)
 	late2int_igrb=10**interpolate.splev(numpy.log10(lat_energy),tck,der=0)
@@ -1757,7 +1780,10 @@ def applyARM(data,events,angleSelection=1.0,ARMcut=None,energy=None,st=None,sp=N
 			CompinARM.append(i)
 
 	f = interp1d(energy_pair,sp,fill_value="extrapolate",kind='linear')
-	angles=EventAnalysis.getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfBins=100, angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=False, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=False, filename=None, log=False, getScaledDeviation=False, onlyangles=True)
+	angles=EventAnalysis.getARMForPairEvents(events, sourceTheta=sourceTheta, numberOfBins=100, \
+		angleFitRange=[0,10], anglePlotRange=[0,180], openingAngleMax=180., showPlots=False, \
+		numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, \
+		showDiagnosticPlots=False, filename=None, log=False, getScaledDeviation=False, onlyangles=True)
 	nPairEvents=events['numberOfPairEvents']
 	PairinARM=[]
 	for i in range(nPairEvents):
