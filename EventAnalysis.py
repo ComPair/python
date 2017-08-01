@@ -284,7 +284,7 @@ def plotPairConversionCoordinates(events):
 
 ##########################################################################################
 
-def parse(filename, sourceTheta=None):
+def parse(filename, sourceTheta=None, testnum=-1):
 
 	# Create the dictionary that will contain all of the results
 	events = {}
@@ -348,6 +348,11 @@ def parse(filename, sourceTheta=None):
 	index_tracked = []
 	index_untracked = []
 
+	# track time of event and times between events
+	time = []
+	dt = []
+	tn=0
+
 	# Start by collecting all events
 	skipEvent = False
 
@@ -360,6 +365,16 @@ def parse(filename, sourceTheta=None):
 			sys.stdout.flush()
 		except:
 			pass
+
+		if 'TI' in line:
+			lineContents = line.split()	
+			time.append(float(lineContents[1]))
+
+		if testnum > 0:
+
+			if tn == testnum:
+				break
+			tn=tn+1
 
 		if 'ET ' in line:
 
@@ -639,7 +654,6 @@ def parse(filename, sourceTheta=None):
 				# Get the reconstruction quality
 				qualityOfPairReconstruction.append(float(lineContents[1]))
 
-
 		# Increment the line number for the progress indicator
 		lineNumber = lineNumber + 1
 
@@ -682,7 +696,8 @@ def parse(filename, sourceTheta=None):
 	events['index_untracked']= numpy.array(index_untracked)
 	events['qualityOfComptonReconstruction'] = numpy.array(qualityOfComptonReconstruction).astype(float)
 	events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
-
+	events['time'] = numpy.array(time).astype(float)
+	events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
 
 	# Print some event statistics
 	print "\n\nStatistics of Event Selection"
@@ -704,6 +719,7 @@ def parse(filename, sourceTheta=None):
 	print ""
 	print ""
 
+	fileinput.close()
 
 	return events
 
