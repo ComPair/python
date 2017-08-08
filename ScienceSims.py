@@ -20,7 +20,77 @@ import importlib
 import glob
 import EventAnalysis
 
-def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,events=None,data=None,angleSelection=1.0,ARMcut=None,energy=None,st=None,sp=None):
+def compare_sim_spectra(data,inputspectrumfile,outputspectrumfile,sourcespecfile,otherfile,exposure):
+
+	inspec=ascii.read(inputspectrumfile,names=['energy','flux'],data_start=1,data_end=102)
+	outspec=ascii.read(outputspectrumfile,names=['energy','flux'],data_start=1,data_end=102)
+	sourcespec=ascii.read(sourcespecfile,names=['DP','energy','flux'])
+	otherspec=ascii.read(otherfile,names=['energy','flux'],data_start=1,data_end=102)
+
+	EffectiveArea_Untracked, EffectiveArea_Tracked, EffectiveArea_Pair, Energy=\
+		FigureOfMeritPlotter.plotEffectiveArea(data, \
+		angleSelections=1, ideal=False, xlog=True, ylog=True, \
+		save=False, show=False, collapse=False, SurroundingSphere=300)
+
+	# plot.figure()
+	# plot.plot(Energy*1000.,EffectiveArea_Tracked,label='original')
+
+	w=np.where((np.isnan(EffectiveArea_Tracked)==False) & (EffectiveArea_Tracked>1))
+	f=interpolate.interp1d(np.log10(Energy[w]),np.log10(EffectiveArea_Tracked[w]),bounds_error=False,fill_value="extrapolate",kind='linear')
+	ineffarea=10**f(np.log10(inspec['energy']/1000.))
+	effarea=10**f(np.log10(outspec['energy']/1000.))
+	oeffarea=10**f(np.log10(otherspec['energy']/1000.))
+	de=np.append((inspec['energy'][1:]-inspec['energy'][0:len(inspec['energy'])-1]),1.)
+
+	# plot.plot(inspec['energy'],ineffarea,label='extrap')
+	# plot.xscale('log')
+	# plot.yscale('log')
+	# plot.legend()
+	# plot.savefig('Tracked_Compton_Eff_area_extrap.pdf',bbox_inches='tight')
+	# plot.show()
+
+	earea=np.pi*150**2
+	plot.figure()
+	plot.plot(sourcespec['energy'],sourcespec['flux'],label='source spectrum')
+	plot.plot(inspec['energy'],inspec['flux']/exposure/ineffarea/inspec['energy'],label='before recon')
+	plot.plot(outspec['energy'],outspec['flux']/exposure/effarea/outspec['energy'],label='after recon')
+#	plot.plot(otherspec['energy'],otherspec['flux']/exposure/earea,label='input spectrum')
+#/effarea/otherspec['energy']
+	f=interpolate.interp1d(np.log10(Energy[w]),np.log10(EffectiveArea_Tracked[w]),bounds_error=False,fill_value="extrapolate",kind='linear')
+	ineffarea=10**f(np.log10(sourcespec['energy']/1000.))
+#	plot.plot(sourcespec['energy'],sourcespec['flux']*ineffarea,label='source*effarea')
+
+	plot.xscale('log')
+	plot.yscale('log')
+#	plot.ylim([1,1e3])
+	plot.xlim([70,10e3])
+	plot.xlabel('Energy (keV)')
+	plot.ylabel(r'Photon Flux (ph cm$^{-2}$ s$^{-1}$ keV$^{-1}$)')
+	plot.legend()
+	plot.savefig('Solar_flare_spectrum.pdf', bbox_inches='tight')
+	plot.show()
+
+	return outspec['energy'],outspec['flux'],effarea,sourcespec,ineffarea
+
+def rough_backgrounds(spectrumfile,counts):
+
+	bkg=ascii.read(spectrumfile,data_start=1,names=['dp','energy','flux'])
+	f=np.trapz(bkg['flux'],bkg['energy'])
+	scale=counts/f
+	plot.figure()
+	plot.plot(bkg['energy'],bkg['flux']*scale)
+	plot.xscale('log')
+	plot.yscale('log')
+	plot.xlabel('Energy (keV)')
+	plot.ylabel(r'Photon Flux (ph cm$^{-2}$ s$^{-1}$ keV$^{-1}$)')
+	plot.xlim([100,10e6])
+	plot.show()
+
+	# need multiply by effective area to get ph/s/keV
+	# draw randomly photons with this distribution
+
+
+def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,events=None,data=None,angleSelection=1.0,ARMcut=None,energy=None,st=None,sp=None):
 
 	import matplotlib.patches as mpatches
 
@@ -49,7 +119,7 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 
 	if ARMcut==None:
 		armtext='ARM'
-		bins = energy
+		bins = None#energy
 	else:
 		armtext=str(ARMcut)+'deg'
 		bins=10**(np.arange(-2,5,0.2))
@@ -167,8 +237,8 @@ def plot_AMEGO_background_sim(dir=None,exposure=100.,doplot=True,silent=False,ev
 #		plot.legend(fontsize=8)
 #		plot.text(0.9,0.8,t1,fontsize=8,xycoords='data')
 		plot.title(armtext+', Cos(theta) = '+str(angleSelection))
-		plot.savefig('plots/Background_in_'+armtext+'.pdf', bbox_inches='tight')
-		plot.savefig('plots/Background_in_'+armtext+'.png', bbox_inches='tight')
+		plot.savefig('Background_in_'+armtext+'.pdf', bbox_inches='tight')
+		plot.savefig('Background_in_'+armtext+'.png', bbox_inches='tight')
 		plot.show()
 
 	# bins = 10**(np.arange(-2,3,0.1))

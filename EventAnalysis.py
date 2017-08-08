@@ -284,7 +284,7 @@ def plotPairConversionCoordinates(events):
 
 ##########################################################################################
 
-def parse(filename, sourceTheta=None, testnum=-1):
+def parse(filename, sourceTheta=1.0, testnum=-1):
 
 	# Create the dictionary that will contain all of the results
 	events = {}
