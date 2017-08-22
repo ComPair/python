@@ -1415,6 +1415,8 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
   		2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,\
   		2.1e-11,9.7e-12])
   	late2int_igrb0=lat_igrb*lateng_igrb
+	lateng_igrb.sort()
+  	late2int_igrb0.sort()
   	tck=interpolate.splrep(numpy.log10(lateng_igrb),numpy.log10(late2int_igrb0),s=0)
 	late2int_igrb=10**interpolate.splev(numpy.log10(lateng),tck,der=0)
 	late2int=late2int_galactic+late2int_igrb
