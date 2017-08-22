@@ -1410,7 +1410,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
   		4.5331568E-4,2.5003447E-4,1.3304557E-4,7.2556504E-5])
   	# From Ackermann et al. (2015) - ApJ 799 86 isotropic EGB
   	lateng_igrb=numpy.array([120,170,240,340,490,690,900,1350,1950,2750,3850,5450,7750,11050,15500,22200,\
-  		1000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
+  		31000,43500,61500,86000,120000,170000,245000,350000,495000,700000.])
   	lat_igrb=numpy.array([3.7e-6,2.3e-6,1.5e-6,9.7e-7,6.7e-7,4.9e-7,3e-7,1.8e-7,1.1e-7,6.9e-8,4.2e-8,\
   		2.6e-8,1.7e-8,1.2e-8,6.8e-9,4.4e-9,2.7e-9,1.8e-9,1.1e-9,6.2e-10,3.1e-10,1.9e-10,8.9e-11,6.3e-11,\
   		2.1e-11,9.7e-12])
@@ -1519,7 +1519,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 		else:
 			mev2erg=1
 			unit='MeV'
-			ylim=[1e-6,1e-3]
+			ylim=[1e-5,5e-3]
 
 		plot.scatter(Energy, Sensitivity_tracked*mev2erg, color='darkgreen')
 		plot.plot(Energy, Sensitivity_tracked*mev2erg, color='darkgreen', alpha=0.5, label='Compton')
