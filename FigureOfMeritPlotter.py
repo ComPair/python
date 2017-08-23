@@ -59,7 +59,7 @@ import matplotlib.pylab as plot
 import math
 from astropy.io import ascii
 from astropy.table import Table
-from scipy import interpolate
+from scipy import interpolate, nansum
 
 matplotlib.rcParams.update({'font.size': 14})
 colors = ['red', 'blue', 'green', 'orange', 'brown', 'purple', 'darkred']
@@ -613,7 +613,6 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 	plot.close()
 
-
 ##########################################################################################
 
 def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False):
@@ -741,7 +740,6 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 	plot.close()
 
 	return Energy,st,sp
-
 
 ##########################################################################################
 
@@ -1033,10 +1031,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
 	return EffectiveArea_Untracked, EffectiveArea_Tracked, EffectiveArea_Pair, Energy
 
-
 ##########################################################################################
 
-def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, SurroundingSphere=150):
+def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, doPrint= True, SurroundingSphere=150):
 
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
@@ -1099,14 +1096,18 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
         key = lambda entry: entry[0])
 
     # print that table
-    print 'Energy    | %s' % ('                      | '.join(['% 24.1f' % x for x in angleSelections]))
-    print '         ' + ' |  tracked  | untracked |  compton  |    pair  ' * len(angleSelections)
-    print '------------' + '-' * 48*len(angleSelections)
-    for energy, ds in table_data:
-        print '% 8.1f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds]))
+    if doPrint:
+    	print 'Energy    | %s' % ('                      | '.join(['% 24.1f' % x for x in angleSelections]))
+    	print '         ' + ' |  tracked  | untracked |  compton  |    pair  ' * len(angleSelections)
+    	print '------------' + '-' * 48*len(angleSelections)
+    	for energy, ds in table_data:
+        	print '% 8.1f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds]))
 
+    return table_data
 
- ##########################################################################################
+##########################################################################################
+
+##########################################################################################
 
 def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False, SurroundingSphere=150):
 
@@ -1263,7 +1264,6 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 
 	plot.show()
 
-
 ##########################################################################################
 def resultsToFits(data, outfile='output.fits'):
 
@@ -1292,7 +1292,6 @@ def resultsToFits(data, outfile='output.fits'):
 
 
 	#t.write(outfile,format='fits',overwrite=True)
-
 
 ########################################################################################## 
 
@@ -1548,7 +1547,6 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 	return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair 
 
-
 ##########################################################################################
 
 def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=True, ylog=True, \
@@ -1798,6 +1796,29 @@ def applyARM(data,events,angleSelection=1.0,ARMcut=None,energy=None,st=None,sp=N
 	
 	return CompinARM, PairinARM, energy
 
+
+##########################################################################################
+
+def convolveAresAeff(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, doplot=True):
+
+	AeffData=tabulateEffectiveArea(data, angleSelections=angleSelections, ideal=True, doPrint=False, SurroundingSphere=150)
+
+	AeffSum=[]
+	Acceptance=[]
+	for i in range(len(AeffData)):
+		#Sum up only results for tracked and pair events
+		#If all events are desired use [0:3] instead
+		AeffSum.append(nansum(AeffData[i][1][0][1][1:3]))
+		Acceptance.append(AeffSum[i]*2.5)
+
+	NormAeff=AeffSum/sum(AeffSum)*19.0
+
+	print NormAeff
+	print Acceptance
+
+	AresData=plotAngularResolution(data, angleSelections=angleSelections, doplot=False)
+
+	return NormAeff
 
 ##########################################################################################
 
