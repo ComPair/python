@@ -1482,7 +1482,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 1.89*10**7, ideal
 
 		import ScienceSims
 		if doRealBkg:
-			real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_100s/',doplot=False)
+			real_back_eng,real_back_rate=ScienceSims.plot_AMEGO_background_sim(dir='../Simulations/BackgroundFiles/Sims_1000s/',doplot=False)
 			plot.plot(real_back_eng,real_back_rate/omega(FWHM_untracked)/EffectiveArea_Untracked,color='brown')
 
 		plot.annotate('Interpolated Bkg',xy=(1,1e-2),xycoords='data',fontsize=12,color='green')
