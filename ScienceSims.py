@@ -126,6 +126,8 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 	ComptonInARM=[]
 	PairInARM=[]
 
+	bins=10**(np.arange(-2,5,0.2))
+
 	if ARMcut==None:
 		armtext='ARM'
 #		bins = None#energy
@@ -134,8 +136,6 @@ def plot_AMEGO_background_sim(dir=None,exposure=100,doplot=True,silent=False,eve
 		energy=bins
 		st=np.full(len(bins),ARMcut)
 		sp=np.full(len(bins),ARMcut)
-
-	bins=10**(np.arange(-2,5,0.2))
 
 	for tra in trafiles:
 		print tra
