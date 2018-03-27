@@ -26,6 +26,8 @@ def GRB_rates():
 	# extrapolate to AMEGO energy range
 	# calc frac detectable over some interval given sensitivity
 	# would be best to produce sensitivity as a function of exposure
+    pass
+
 
 def compare_sim_spectra(data,inputspectrumfile,outputspectrumfile,sourcespecfile,otherfile,exposure):
 
