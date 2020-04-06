@@ -1,20 +1,9 @@
-"""
-------------------------------------------------------------------------
-This script aims being part of the ComPair multicore analysis chain
-
-It is a wrapper through energies and angles to create cosima source files
-One only needs to define the path to the geometry file and the type of source (e.g. FarFieldPointSource)
-Energies and angles may be adjusted according to the use preference
-
-Author: Sara Buson (sara.buson@gmail.com)
-------------------------------------------------------------------------
-"""
 
 from numpy import *
 from math import *
 
 #here put your geometry file and source type
-geofile= '$COMPAIRPATH/Geometry/AMEGO_4x4TowerModel/AmegoBase.geo.setup'
+geofile= '/net/slag2/dtak/Geometry/AMEGO_Midex/AmegoBase.geo.setup'
 OneBeam= 'FarFieldPointSource'
 
 #define your energies and angles 
