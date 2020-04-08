@@ -1,3 +1,10 @@
+
+# Author: Donggeun Tak (takdg123@gmail.com)
+# Date: April 3rd, 2020
+
+# Before using this code, check geofile, Log_E, and angles parameters.
+# This code will generate runRevan.sh file.
+
 import numpy as np
 import math
 import argparse

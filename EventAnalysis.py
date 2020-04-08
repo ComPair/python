@@ -7,6 +7,9 @@ A script to replace the energy and angular resolution measurements performed by 
 Author: Daniel Kocevski (dankocevski@gmail.com)
 Date: September 3rd, 2016
 
+Modified by Donggeun Tak (takdg123@gmail.com)
+Date: April 3rd, 2020
+
 Usage Examples:
 import EventAnalysis
 
