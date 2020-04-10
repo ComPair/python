@@ -75,6 +75,7 @@ def getDetailsFromFilename(filename):
 	Really should be meta data.'''
 
 	details = {}
+    filepath, filename = os.path.split(filename)                
 	info = filename.split('_')
 
 	details['MeV'] = info[1][:-3]
@@ -2000,6 +2001,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         energies = []
         for filename in filenames:
             try:
+                filepath, filename = os.path.split(filename)                
                 energy = float(filename.split('_')[1].replace(energySearchUnit,''))
                 energies.append(energy)
 
@@ -2013,6 +2015,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         angles = []
         for filename in filenames:
             try:
+                filepath, filename = os.path.split(filename)                
                 angle = float(filename.split('_')[2].split('.inc1')[0].replace('Cos',''))
                 angles.append(angle)
 
