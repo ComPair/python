@@ -2098,7 +2098,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
                 FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_untracked, sigma_UntrackedCompton])
             else:
-                print("Energy too high for untracked electrons. \n\n")
+                print("Energy too high (> 2 MeV) for untracked electrons. \n\n")
                 mean_untracked = numpy.nan
                 FWHM_energyUntrackedComptonEvents = numpy.nan
                 UntrackedFitMax = numpy.nan
