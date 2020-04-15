@@ -360,8 +360,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
 ##########################################################################################
 
-def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False, doplot=True):
-
+def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, 
+	 						save=False, collapse=False, doplot=True, txtOutfileLabel='xxx'):
+	
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
 
@@ -379,7 +380,11 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 
     for angleSelection in angleSelections:
-
+    
+        results_txt_TC = open( '%s_AngRes_Cos%s_TC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_UC = open( '%s_AngRes_Cos%s_UC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_P = open( '%s_AngRes_Cos%s_P.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+    	
         Energy = []
         FWHM_tracked = []
         FWHM_untracked = []
@@ -423,6 +428,27 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
         k=Containment68 != 'nan'
         sp=numpy.double(Containment68)
+        
+        
+    	# writing txt files	
+        results_txt_TC.write("# Energy[MeV] AngRes_TkrCompton[deg]\n")
+        for ii, en in enumerate(Energy[i]):
+        	results_txt_TC.write("%.1f\t%.1f\n"%(en, st[i][ii]))
+        results_txt_TC.close()
+        print('Created %s_AngRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        	
+        results_txt_UC.write("# Energy[MeV] AngRes_UntkrCompton[deg]\n")
+        for ii, en in enumerate(Energy[j]):
+        	results_txt_UC.write("%.1f\t%.1f\n"%(en, sut[j][ii]))
+        results_txt_UC.close()
+        print('Created %s_AngRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        
+        results_txt_P.write("# Energy[MeV] AngRes_Pair[deg]\n")
+        for ii, en in enumerate(Energy[k]):
+        	results_txt_P.write("%.1f\t%.1f\n"%(en, sp[k][ii]))
+        results_txt_P.close()
+        print('Created %s_AngRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+
 
         # plot the data
         if doplot:
@@ -431,7 +457,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
                 plot.scatter(Energy[i],st[i],color='darkgreen')
                 plot.plot(Energy[i], st[i], color='darkgreen', alpha=0.5, label='Tracked Compton',lw=2)
-                plot.plot(Energy[i], st[i], color='darkgreen', alpha=0.5, label='Compton', lw=2)
+                #plot.plot(Energy[i], st[i], color='darkgreen', alpha=0.5, label='Compton', lw=2)
 
                 #plot.scatter(Energy[j],sut,color='blue')
                 #plot.plot(Energy[j], sut, color='blue', alpha=0.5, label='Compton (untracked)')
@@ -630,7 +656,8 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 ##########################################################################################
 
-def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False):
+def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, 
+                                         save=False, collapse=False, txtOutfileLabel='xxx'):
 
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
@@ -646,6 +673,10 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         ax = plot.subplot(111)
 
     for angleSelection in angleSelections:
+
+        results_txt_TC = open( '%s_EnRes_Cos%s_TC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_UC = open( '%s_EnRes_Cos%s_UC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_P = open( '%s_EnRes_Cos%s_P.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
 
         Energy = []
         Sigma_tracked = []
@@ -694,6 +725,27 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         #sp=numpy.double(Sigma_pair[k])/numpy.double(Energy[k])*1e-3
         sp=numpy.double(Sigma_pair[k])/numpy.double(Energy[k])*1e-3*2.355
 
+
+        # writing txt files	
+        results_txt_TC.write("# Energy[MeV] EnRes_TkrCompton[FWHM/Energy]\n")
+        for ii, en in enumerate(Energy[i]):
+        	results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
+        results_txt_TC.close()
+        print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        	
+        results_txt_UC.write("# Energy[MeV] EnRes_UntkrCompton[FWHM/Energy]\n")
+        for ii, en in enumerate(Energy[j]):
+        	results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
+        results_txt_UC.close()
+        print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        
+        results_txt_P.write("# Energy[MeV] EnRes_Pair[FWHM/Energy]\n")
+        for ii, en in enumerate(Energy[k]):
+         	results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
+        results_txt_P.close()
+        print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        
+
         # Print the data
         if collapse==False:
             ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
@@ -733,12 +785,12 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         if plotNumber == len(angleSelections):
             #plot.title('Energy Resolution')			
             plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='lower left')
-            plot.gca().set_ylim([0.,0.08])
+            plot.gca().set_ylim([0.,0.12])
             plot.gca().set_xlim([0.14, 11])
 
         if xlog:
             plot.xscale('log')
-            plot.gca().set_ylim([0.0,0.08])
+            plot.gca().set_ylim([0.0,0.12])
 
         if ylog:
             plot.yscale('log')
@@ -904,7 +956,9 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 ##########################################################################################
 
-def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, save=False, show=True, collapse=False, SurroundingSphere=150):
+def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, 
+                      ylog=False, save=False, show=True, collapse=False, 
+                    SurroundingSphere=150, txtOutfileLabel='xxx'):
 
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
@@ -920,7 +974,11 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         ax = plot.subplot(111)
 
     for angleSelection in angleSelections:
-
+        
+        results_txt_TC = open( '%s_Aeff_Cos%s_TC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_UC = open( '%s_Aeff_Cos%s_UC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_P = open( '%s_Aeff_Cos%s_P.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        
         Energy = []
         EffectiveArea_Tracked = []
         EffectiveArea_Untracked  = []
@@ -995,7 +1053,27 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             EffectiveArea_Pair[0]=numpy.nan
             EffectiveArea_Pair[1]=numpy.nan
 
-
+        
+        # writing txt files	
+        results_txt_TC.write("# Energy[MeV] Aeff_TkrCompton[cm2]\n")
+        for ii, en in enumerate(Energy):
+        	results_txt_TC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
+        results_txt_TC.close()
+        print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        	
+        results_txt_UC.write("# Energy[MeV] Aeff_UntkrCompton[cm2]\n")
+        for ii, en in enumerate(Energy):
+        	results_txt_UC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
+        results_txt_UC.close()
+        print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        
+        results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
+        for ii, en in enumerate(Energy):
+        	results_txt_P.write("%.1f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
+        results_txt_P.close()
+        print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        
+        
         # Plot the data
         if collapse == False:
             ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
@@ -1052,10 +1130,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             plot.gca().set_xlim([0.1, 10000])
 
         if ylog:
-            plot.gca().set_ylim([1.,4000.])
+            plot.gca().set_ylim([1, 4000.])
             plot.yscale('log')
         else:
-            plot.gca().set_ylim([0.,6000.])
+            plot.gca().set_ylim([0.001,6000.])
             plot.gca().set_xlim([0.12, 10000])
 
 
