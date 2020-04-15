@@ -13,6 +13,9 @@ Date: April 3rd, 2020
 Additional modifications by Sean Griffin (sean.c.griffin@gmail.com)
 Data: April 10, 2020
 
+Additional modifications by Donggeun Tak (takdg123@gmail.com)
+Data: April 15, 2020
+
 Usage Examples:
 import EventAnalysis
 
@@ -817,6 +820,8 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     if len(dphi[selection]) < 10:
         print("The number of events is not sufficient (<10)")
         return numpy.nan, numpy.nan
+    elif len(dphi[selection]) < 500:
+        numberOfBins = 20
     
     # Create the histogram
     histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -1590,7 +1595,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
             print(numpy.argmax(energy_binned), numpy.argmin(numpy.abs(bins_energy - inputEnergy*1000))-1)
             for i in range(bin_max):
                 if energy_binned[bin_max] > 500:
-                    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]):
+                    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) or (energy_binned[bin_max-i-1]< (energy_binned[bin_max]*0.3)):
                         bin_start = bincenters_energy[bin_max-i]
                         break
                 else:
@@ -1609,10 +1614,10 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
                     
             
             
-            energyFitRange = [bin_start, bin_stop]
+            energyFitRange = [min(bin_start,bincenters_energy[numpy.argmax(energy_binned)]*0.95) , max(bin_stop, bincenters_energy[numpy.argmax(energy_binned)]*1.08)]
             
         else:
-            energyFitRange =[bincenters_energy[numpy.argmax(energy_binned)]*0.95, bincenters_energy[numpy.argmax(energy_binned)]*1.05]
+            energyFitRange =[bincenters_energy[numpy.argmax(energy_binned)]*0.91, bincenters_energy[numpy.argmax(energy_binned)]*1.15]
     
     # Set the range of the energy fit to a hard coded percentage of the maximum value
     # if energyFitRange == None:
@@ -1710,15 +1715,11 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
     ax.yaxis.set_minor_locator(AutoMinorLocator(4))
 
     # Overplot the Gaussian fit
-    y_fitNormalized = y_fit/numpy.max(y_fit)*numpy.max(energy_binned)
+    y_fitNormalized = y_fit/numpy.max(y_fit)*numpy.max(histogram_energyResults[0])
     plot.plot(x, y_fitNormalized, color='darkred', linewidth=2)
     plot.plot([mu_Guassian-(FWHM_Guassian/2.), mu_Guassian+(FWHM_Guassian/2.)], [numpy.max(y_fitNormalized)/2.,numpy.max(y_fitNormalized)/2.], color='darkred', linestyle='dotted', linewidth=2)
 
     # Overplot the asymetric Gaussian fit
-    #if len(energy_ComptonEvents)>10000  and False:
-    #    y_fit2Normalized = y_fit2/numpy.max(y_fit2)*numpy.max(energy_binned)
-    #    plot.plot(bincenters_skew, y_fit2Normalized, color='green', linewidth=2)
-    #else:
     plot.plot(bincenters, y_fit2, color='green', linewidth=2)
  
     plot.plot([x1,x2],[numpy.max(y_fit2)/2.,numpy.max(y_fit2)/2.], color='green', linestyle='dotted', linewidth=2)
@@ -2005,7 +2006,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=15, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None):
 
     """
     A function to plot the cosima output simulation file.
@@ -2075,6 +2076,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
         if energy <= maximumComptonEnergy:
+        	if energy >= 3:
+        		phiRadiusCompton = phiRadiusCompton/3.
+        		
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
             print("Calculating the energy resolution for All Compton events...")
