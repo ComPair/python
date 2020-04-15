@@ -2170,6 +2170,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         if energy<0.2:
             sigma_TrackedCompton = numpy.nan
             FWHM_angleTrackedComptonEvents = numpy.nan
+        if energy > 2:
+            events['numberOfUntrackedElectronEvents'] = numpy.nan
         
         output.write("Results for simulation: %s %s Cos %s %s\n" % (energy, energySearchUnit, angle, filename))
         output.write("Compton Events Reconstructed: %s\n" % events['numberOfComptonEvents'])
