@@ -820,7 +820,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     
     if len(dphi[selection]) < 10:
         print("The number of events is not sufficient (<10)")
-        return numpy.nan, numpy.
+        return numpy.nan, numpy.nan
     elif len(dphi[selection]) < 500:
         numberOfBins = 20
     
