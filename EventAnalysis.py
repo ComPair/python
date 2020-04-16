@@ -821,8 +821,9 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         print("The number of events is not sufficient (<10)")
         return numpy.nan, numpy.nan
     elif len(dphi[selection]) < 500:
-        numberOfBins = 20
-    
+        print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
+        numberOfBins = 25
+        
     # Create the histogram
     histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
     ax1.set_xlim([-1*phiRadius,phiRadius])
@@ -1595,7 +1596,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
             print(numpy.argmax(energy_binned), numpy.argmin(numpy.abs(bins_energy - inputEnergy*1000))-1)
             for i in range(bin_max):
                 if energy_binned[bin_max] > 500:
-                    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) or (energy_binned[bin_max-i-1]< (energy_binned[bin_max]*0.3)):
+                    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) or (energy_binned[bin_max-i-1]< (energy_binned[bin_max]*0.7)):
                         bin_start = bincenters_energy[bin_max-i]
                         break
                 else:
@@ -1614,7 +1615,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
                     
             
             
-            energyFitRange = [min(bin_start,bincenters_energy[numpy.argmax(energy_binned)]*0.95) , max(bin_stop, bincenters_energy[numpy.argmax(energy_binned)]*1.08)]
+            energyFitRange = [min(bin_start,bincenters_energy[numpy.argmax(energy_binned)]*0.97) , max(bin_stop, bincenters_energy[numpy.argmax(energy_binned)]*1.15)]
             
         else:
             energyFitRange =[bincenters_energy[numpy.argmax(energy_binned)]*0.91, bincenters_energy[numpy.argmax(energy_binned)]*1.15]
@@ -2078,7 +2079,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         if energy <= maximumComptonEnergy:
             if energy >= 3:
                 phiRadiusCompton = phiRadiusCompton/3.
-                
+
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
             print("Calculating the energy resolution for All Compton events...")
