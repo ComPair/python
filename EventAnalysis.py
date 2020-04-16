@@ -49,6 +49,7 @@ from scipy.optimize import leastsq
 import scipy.optimize
 import math
 import glob
+import gzip
 
 try:
     import matplotlib.pyplot as plot
@@ -2146,14 +2147,16 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
 ##########################################################################################
 
-def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
+def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None, compressed = False, isMcosima = False):
     """
     A function to extract the number of simulated events from a cosima .sim file
+    Is also able to handle mcosima simulations and gziped files
     Usage Examples: 
     EventViewer.getNumberOfSimulatedEvents(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.sim')
     EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
+    For mcosima simulations only file-mode is supported: EventViewer.getNumberOfSimulatedEvents(filename = 'FarfieldPointSource_1000MeV_Cos1.p1.sim.gz')
     """
-
+    
     if filename == None and directory == None:
         print("*** No filename or directory provide ***")
         print("Please provide a  filename, a list of filenames, or a directory name")
@@ -2162,11 +2165,27 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
     # Check to see if the user supplied a directory.  If so, include all .sim files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.sim')
+        if compressed == False:
+            filenames = glob.glob(directory + '/*.sim')
+        else:
+            filenames = glob.glob(directory + '/*.sim.gz')
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:
-        filenames = [filename]
+        if isMcosima == True:
+            # read in the file names and store them for processing
+            files = []
+            if compressed == True:
+                with gzip.open(filename, 'rt') as f:
+                    for line in f:
+                        templine = line.split()
+                        if templine[0] == 'IN':
+                            fileSplit = templine[1].split('/')
+
+                            files.append(fileSplit[1] + '.gz')
+            filnames = files
+        else:   
+            filenames = [filename]
 
     # Create a dictionary to return the results
     triggerEfficiency = {} 		
@@ -2187,7 +2206,10 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         lookback = 1000
         IDs = []
         while len(IDs) == 0:
-            command = "tail -n %d %s" % (lookback, filename)
+            if compressed == False:
+                command = "tail -n %d %s" % (lookback, filename)
+            else:
+                command = "zcat %s | tail -n %d" % (filename, lookback)
             output = os.popen(command).read()
             IDs  = [line for line in output.split('\n') if "ID" in line]
             lookback += 1000
@@ -2231,24 +2253,38 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         output = open(savefile, 'w')
 
         # Write the results to disk
-        for filename in filenames:
+        if isMcosima == False:
+            for filename in filenames:
 
-            # Extract the values
-            numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
-            numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
+                # Extract the values
+                numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
+                numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
 
-            # Write out the values
+                # Write out the values
+                output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
+
+            # Close the file
+            output.close()
+
+            print("\nResults saved to:\n./%s\n" % savefile)
+        else:
+            totalTriggers  = 0 
+            totalPhotons = 0
+            for name in filenames:
+                totalTriggers += triggerEfficiency[name]['numberOfTriggers']
+                totalPhotons += triggerEfficiency[name]['numberOfSimulatedEvents']
             output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
+            del triggerEfficiency
+            triggerEfficiency = {}
+            triggerEfficiency[filename] = {
+            'numberOfTriggers' : totalTriggers,
+            'numberOfSimulatedEvents' : totalPhotons}
 
-        # Close the file
-        output.close()
-
-        print("\nResults saved to:\n./%s\n" % savefile)
 
 
     return triggerEfficiency
 
-def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
+def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile=None, compressed = False):
 
     """
     A function to extract the statistics from a revan tra file (used to check things)
@@ -2265,7 +2301,10 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.tra')
+        if compressed == False:
+            filenames = glob.glob(directory + '/*.tra')
+        else:
+            filenames = glob.glob(directory + './*.tra.gz')
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:	
