@@ -13,7 +13,11 @@ import re
 import ast
 import argparse
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
+sns.set()
+sns.set_style("ticks")
+
 
 
 __description__ = 'Produce IRFs comparizon plots'
@@ -36,7 +40,7 @@ PARSER.add_argument('-yM', '--ymax', type=float, default=None,
 					help='Maximum y-axis value')
 PARSER.add_argument('-xm', '--xmin', type=float, default=0.1, 
 					help='Minimum x-axis value')
-PARSER.add_argument('-xM', '--xmax', type=float, default=100,
+PARSER.add_argument('-xM', '--xmax', type=float, default=500,
 					help='Maximum x-axis value')
 PARSER.add_argument('-t', '--title', type=str, default=' ', 
 					help='Plot title')
@@ -48,11 +52,12 @@ PARSER.add_argument('-s', '--save', type=ast.literal_eval, choices=[True, False]
 FLAG_STR = '(?<=\_)\w+(?=\.txt)'
 LABEL_STR = '^\S+(?=\_[AE])'
 
-TC_color = 'green'
-UC_color = 'blue'
-P_color = 'darkred'
+TC_color = sns.color_palette("Greens_r")
+UC_color = sns.color_palette("Blues_r")
+P_color = sns.color_palette("Reds_r")
 
 def parse_figureofmerit_file(fom_file):
+	print('Parsing %s ...'%fom_file)
 	file_basename = os.path.basename(fom_file)
 	m = re.search(r'%s'%FLAG_STR, file_basename)
 	flag = m.group(0)
@@ -68,24 +73,24 @@ def compare_figureofmerit(**kwargs):
     
     file_list = kwargs['infiles']
     
-    shade_TC = 1
-    shade_UC = 1
-    shade_P = 1
+    TC_count = 0
+    UC_count = 0
+    P_count = 0
     
-    plt.figure(figsize=(10, 7))
+    plt.figure(figsize=(10, 7), facecolor='white')
     plt.title(kwargs['title'], size=20)
     for i, f in enumerate(file_list):
         en_, fom_, flag, label = parse_figureofmerit_file(f)
         if flag == 'TC':
         	legend_label = '%s Tracked Compton' %label
-        	c = TC_color
+        	c = TC_color[TC_count]
         elif flag == 'UC':
         	legend_label = '%s Untracked Compton' %label
-        	c = UC_color
+        	c = UC_color[UC_count]
         else:
         	legend_label = '%s Pair' %label
-        	c = P_color
-        plt.plot(en_, fom_, '-o', color=c, alpha=shade_TC, label=legend_label)
+        	c = P_color[P_count]
+        plt.plot(en_, fom_, '-o', color=c, label=legend_label)
         plt.xlabel('Energy [MeV]', size=18)
         plt.ylabel(kwargs['ylabel'], size=18)
         plt.xlim(kwargs['xmin'], kwargs['xmax'])
@@ -98,17 +103,19 @@ def compare_figureofmerit(**kwargs):
         	plt.ylim(left, kwargs['ymax'])
         plt.xscale(kwargs['xscale'])
         plt.yscale(kwargs['yscale'])
-        plt.legend(fontsize=18)
+        plt.legend(fontsize=15)
+        plt.grid(False)
         
         if flag == 'TC':
-        	shade_TC -= 0.3
+        	TC_count += 1
         elif flag == 'UC':
-        	shade_UC -= 0.3
+        	UC_count += 1
         else:
-        	shade_P -= 0.3
+        	P_count += 1
         	
     if kwargs['save']:
     	plt.savefig('Comparison_plot.pdf')
+    	print("Created Comparison_plot.pdf ...!")
     	
     plt.show()
 	
