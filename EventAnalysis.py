@@ -2184,9 +2184,17 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
                             continue
                         templine = line.split()
                         if templine[0] == 'IN':
-                            fileSplit = templine[1].split('/')
-
+                            #fileSplit = templine[1].split('/')
                             files.append(templine[1] + '.gz')
+            else:
+                with open(filename, 'rt') as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        templine = line.split()
+                        if templine[0] == 'IN':
+                            #fileSplit = templine[1].split('/')
+                            files.append(templine[1])
             filenames = files
         else:   
             filenames = [filename]
