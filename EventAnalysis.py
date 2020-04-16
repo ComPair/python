@@ -822,8 +822,9 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         print("The number of events is not sufficient (<10)")
         return numpy.nan, numpy.nan
     elif len(dphi[selection]) < 500:
-        numberOfBins = 20
-    
+        print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
+        numberOfBins = 25
+        
     # Create the histogram
     histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
     ax1.set_xlim([-1*phiRadius,phiRadius])
