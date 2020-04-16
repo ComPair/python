@@ -50,6 +50,7 @@ import scipy.optimize
 import math
 import glob
 import gzip
+import copy
 
 try:
     import matplotlib.pyplot as plot
@@ -2154,7 +2155,7 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
     Usage Examples: 
     EventViewer.getNumberOfSimulatedEvents(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.sim')
     EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
-    For mcosima simulations only file-mode is supported: EventViewer.getNumberOfSimulatedEvents(filename = 'FarfieldPointSource_1000MeV_Cos1.p1.sim.gz')
+    For mcosima simulations only file-mode is supported: EventAnalysis.getTriggerEfficiency(filename = 'FarfieldPointSource_1000MeV_Cos1.p1.sim.gz')
     """
     
     if filename == None and directory == None:
@@ -2172,18 +2173,21 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:
+        inputFilename = copy.deepcopy(filename)
         if isMcosima == True:
             # read in the file names and store them for processing
             files = []
             if compressed == True:
                 with gzip.open(filename, 'rt') as f:
                     for line in f:
+                        if not line.strip():
+                            continue
                         templine = line.split()
                         if templine[0] == 'IN':
                             fileSplit = templine[1].split('/')
 
-                            files.append(fileSplit[1] + '.gz')
-            filnames = files
+                            files.append(templine[1] + '.gz')
+            filenames = files
         else:   
             filenames = [filename]
 
@@ -2273,12 +2277,13 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
             for name in filenames:
                 totalTriggers += triggerEfficiency[name]['numberOfTriggers']
                 totalPhotons += triggerEfficiency[name]['numberOfSimulatedEvents']
-            output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
+            
             del triggerEfficiency
             triggerEfficiency = {}
-            triggerEfficiency[filename] = {
+            triggerEfficiency[inputFilename] = {
             'numberOfTriggers' : totalTriggers,
             'numberOfSimulatedEvents' : totalPhotons}
+            output.write("%s %s %s\n" % (inputFilename, totalTriggers, totalPhotons))
 
 
 
