@@ -16,7 +16,6 @@ Data: April 10, 2020
 Additional modifications by Donggeun Tak (takdg123@gmail.com)
 Data: April 15, 2020
 
-
 Usage Examples:
 import EventAnalysis
 
@@ -1722,10 +1721,6 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
     plot.plot([mu_Guassian-(FWHM_Guassian/2.), mu_Guassian+(FWHM_Guassian/2.)], [numpy.max(y_fitNormalized)/2.,numpy.max(y_fitNormalized)/2.], color='darkred', linestyle='dotted', linewidth=2)
 
     # Overplot the asymetric Gaussian fit
-    #if len(energy_ComptonEvents)>10000  and False:
-    #    y_fit2Normalized = y_fit2/numpy.max(y_fit2)*numpy.max(histogram_energyResults[0])
-    #    plot.plot(bincenters_skew, y_fit2Normalized, color='green', linewidth=2)
-    #else:
     plot.plot(bincenters, y_fit2, color='green', linewidth=2)
  
     plot.plot([x1,x2],[numpy.max(y_fit2)/2.,numpy.max(y_fit2)/2.], color='green', linestyle='dotted', linewidth=2)
