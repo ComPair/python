@@ -291,444 +291,453 @@ def plotPairConversionCoordinates(events):
 
 ##########################################################################################
 
-def parse(filename, sourceTheta=1.0, testnum=-1):
-
-	# Create the dictionary that will contain all of the results
-	events = {}
-
-	# Define the lists to store energy information for Compton events
-	energy_ComptonEvents = []
-	energy_ComptonEvents_error = []	
-	energy_TrackedComptonEvents = []
-	energy_UntrackedComptonEvents = []
-	energy_firstScatteredPhoton = []
-	energy_firstScatteredPhoton_error = []
-	energy_recoiledElectron = []
-	energy_recoiledElectron_error = []
-
-	# Define the lists to store energy information for pair events
-	energy_pairElectron = []
-	energy_pairElectron_error = []
-	energy_pairPositron = []
-	energy_pairPositron_error = []
-	energy_pairDepositedInFirstLayer = []
-	energy_pairDepositedInFirstLayer_error = []
-
-	# Define the lists to store position information
-	position_originalPhoton = []
-	position_firstInteraction = []
-	position_firstInteraction_error = []
-	position_secondInteraction = []
-	position_secondInteraction_error = []
-	position_pairConversion = []
-	position_firstInteraction = []
-	position_firstInteraction_error = []
-
-	# Define the lists to store the direction vectors
-	direction_recoilElectron = []
-	direction_pairElectron = []
-	direction_pairPositron = []
-
-	# Define other lists
-	phi_Tracker = []
-	qualityOfComptonReconstruction = []
-	qualityOfPairReconstruction = []
-
-
-	# Read the number of lines in the file
-	command = 'wc %s' % filename
-	output = os.popen(command).read()
-	totalNumberOfLines = float(output.split()[0])
-
-	# Start the various event and line counters
-	numberOfUnknownEventTypes = 0
-	numberOfComptonEvents = 0
-	numberOfPairEvents = 0
-	numberOfPhotoElectricEffectEvents = 0
-	numberOfTrackedElectronEvents = 0
-	numberOfUntrackedElectronEvents = 0
-	numberOfBadEvents = 0
-	lineNumber = 0
-	eventNumber = 0
-
-	# Create empty index lists to track event types
-	index_tracked = []
-	index_untracked = []
-
-	# track time of event and times between events
-	time = []
-	dt = []
-	tn=0
-
-	# Start by collecting all events
-	skipEvent = False
-
-	# Loop through the .tra file
-	print('\nParsing: %s' % filename)
-	for line in fileinput.input([filename]):
-
-		try:
-			sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
-			sys.stdout.flush()
-		except:
-			pass
-
-		if 'TI' in line:
-			lineContents = line.split()	
-			time.append(float(lineContents[1]))
-
-		if testnum > 0:
-
-			if tn == testnum:
-				break
-			tn=tn+1
-
-		if 'ET ' in line:
-
-			# Split the line
-			lineContents = line.split()	
-
-			eventType = lineContents[1]
-
-			# Skip the event if its of unknown type
-			if 'UN' in eventType:
+def parse(filename, sourceTheta=1.0, testnum=-1, compressed = False):
+
+    # Create the dictionary that will contain all of the results
+    events = {}
+
+    # Define the lists to store energy information for Compton events
+    energy_ComptonEvents = []
+    energy_ComptonEvents_error = []	
+    energy_TrackedComptonEvents = []
+    energy_UntrackedComptonEvents = []
+    energy_firstScatteredPhoton = []
+    energy_firstScatteredPhoton_error = []
+    energy_recoiledElectron = []
+    energy_recoiledElectron_error = []
+
+    # Define the lists to store energy information for pair events
+    energy_pairElectron = []
+    energy_pairElectron_error = []
+    energy_pairPositron = []
+    energy_pairPositron_error = []
+    energy_pairDepositedInFirstLayer = []
+    energy_pairDepositedInFirstLayer_error = []
+
+    # Define the lists to store position information
+    position_originalPhoton = []
+    position_firstInteraction = []
+    position_firstInteraction_error = []
+    position_secondInteraction = []
+    position_secondInteraction_error = []
+    position_pairConversion = []
+    position_firstInteraction = []
+    position_firstInteraction_error = []
+
+    # Define the lists to store the direction vectors
+    direction_recoilElectron = []
+    direction_pairElectron = []
+    direction_pairPositron = []
+
+    # Define other lists
+    phi_Tracker = []
+    qualityOfComptonReconstruction = []
+    qualityOfPairReconstruction = []
+
+
+    # Read the number of lines in the file
+    if compressed == False:
+        command = 'wc %s' % filename
+    else:
+        command = 'zcat %s | wc' % filename
+    output = os.popen(command).read()
+    totalNumberOfLines = float(output.split()[0])
+
+    # Start the various event and line counters
+    numberOfUnknownEventTypes = 0
+    numberOfComptonEvents = 0
+    numberOfPairEvents = 0
+    numberOfPhotoElectricEffectEvents = 0
+    numberOfTrackedElectronEvents = 0
+    numberOfUntrackedElectronEvents = 0
+    numberOfBadEvents = 0
+    lineNumber = 0
+    eventNumber = 0
+
+    # Create empty index lists to track event types
+    index_tracked = []
+    index_untracked = []
+
+    # track time of event and times between events
+    time = []
+    dt = []
+    tn=0
+
+    # Start by collecting all events
+    skipEvent = False
+
+    # Loop through the .tra file
+    print('\nParsing: %s' % filename)
+
+    if compressed == False:
+        fileReader = fileinput.input([filename])
+    else:
+        fileReader = gzip.open(filename, 'rt')
+    #for line in fileinput.input([filename]):
+    for line in fileReader:
+
+        try:
+            sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
+            sys.stdout.flush()
+        except:
+            pass
+
+        if 'TI' in line:
+            lineContents = line.split()	
+            time.append(float(lineContents[1]))
+
+        if testnum > 0:
+
+            if tn == testnum:
+                break
+            tn=tn+1
+
+        if 'ET ' in line:
 
-				numberOfUnknownEventTypes = numberOfUnknownEventTypes + 1
-				skipEvent = True
-				continue
+            # Split the line
+            lineContents = line.split()	
 
-			else:
-				skipEvent = False
+            eventType = lineContents[1]
 
-			if 'CO' in eventType:
-				# Increment the Compton event counter
-				numberOfComptonEvents = numberOfComptonEvents + 1
+            # Skip the event if its of unknown type
+            if 'UN' in eventType:
 
-			if 'PA' in eventType:
-				# Increment the pair event counter
-				numberOfPairEvents = numberOfPairEvents + 1
+                numberOfUnknownEventTypes = numberOfUnknownEventTypes + 1
+                skipEvent = True
+                continue
 
-			if 'PH' in eventType:
-				# Increment the photo electron effect counter
-				numberOfPhotoElectricEffectEvents = numberOfPhotoElectricEffectEvents + 1
+            else:
+                skipEvent = False
 
-		if 'BD' in line:
+            if 'CO' in eventType:
+                # Increment the Compton event counter
+                numberOfComptonEvents = numberOfComptonEvents + 1
 
-			# Split the line
-			lineContents = line.split()
+            if 'PA' in eventType:
+                # Increment the pair event counter
+                numberOfPairEvents = numberOfPairEvents + 1
 
-			whybad = lineContents[1]
+            if 'PH' in eventType:
+                # Increment the photo electron effect counter
+                numberOfPhotoElectricEffectEvents = numberOfPhotoElectricEffectEvents + 1
 
-			if whybad != 'None':
-				# Events don't get reconstructed for a number of reasons
-				# In pair, it's mostly 'TooManyHistInCSR'
-				numberOfBadEvents = numberOfBadEvents + 1
+        if 'BD' in line:
 
-		####### Compton Events #######
+            # Split the line
+            lineContents = line.split()
 
-		# Extract the Compton event energy information
-		if 'CE ' in line and skipEvent == False:
+            whybad = lineContents[1]
 
-			# Split the line
-			lineContents = line.split()	
+            if whybad != 'None':
+                # Events don't get reconstructed for a number of reasons
+                # In pair, it's mostly 'TooManyHistInCSR'
+                numberOfBadEvents = numberOfBadEvents + 1
 
-			# Get the energy of the first scattered gamma-ray
-			energy_firstScatteredPhoton.append(float(lineContents[1]))
-			energy_firstScatteredPhoton_error.append(float(lineContents[2]))
+        ####### Compton Events #######
 
-			# Get the energy of the recoiled electron
-			energy_recoiledElectron.append(float(lineContents[3]))
-			energy_recoiledElectron_error.append(float(lineContents[4]))
+        # Extract the Compton event energy information
+        if 'CE ' in line and skipEvent == False:
 
+            # Split the line
+            lineContents = line.split()	
 
-		# Extract the Compton event hit information
-		if 'CD ' in line and skipEvent == False:
+            # Get the energy of the first scattered gamma-ray
+            energy_firstScatteredPhoton.append(float(lineContents[1]))
+            energy_firstScatteredPhoton_error.append(float(lineContents[2]))
 
-			# Split the line
-			lineContents = line.split()	
+            # Get the energy of the recoiled electron
+            energy_recoiledElectron.append(float(lineContents[3]))
+            energy_recoiledElectron_error.append(float(lineContents[4]))
 
-			# Get the position of the first scattered gamma-ray
-			x1 = float(lineContents[1])
-			y1 = float(lineContents[2])
-			z1 = float(lineContents[3])
 
-			# Get the position uncertainty of the first scattered gamma-ray		
-			x1_error = float(lineContents[4])
-			y1_error = float(lineContents[5])
-			z1_error = float(lineContents[6])
+        # Extract the Compton event hit information
+        if 'CD ' in line and skipEvent == False:
 
-			# Get the position of the second scattered gamma-ray
-			x2 = float(lineContents[7])
-			y2 = float(lineContents[8])
-			z2 = float(lineContents[9])
+            # Split the line
+            lineContents = line.split()	
 
-			# Get the position uncertainty of the second scattered gamma-ray		
-			x2_error = float(lineContents[10])
-			y2_error = float(lineContents[11])
-			z2_error = float(lineContents[12])
+            # Get the position of the first scattered gamma-ray
+            x1 = float(lineContents[1])
+            y1 = float(lineContents[2])
+            z1 = float(lineContents[3])
 
-			# Get the origin position of the original gamma-ray
-			x0 = x1
-			y0 = y1
-			z0 = 1000.0
+            # Get the position uncertainty of the first scattered gamma-ray		
+            x1_error = float(lineContents[4])
+            y1_error = float(lineContents[5])
+            z1_error = float(lineContents[6])
 
-			# Get the position of the second scattered gamma-ray
-			x_electron = float(lineContents[13])
-			y_electron = float(lineContents[14])
-			z_electron = float(lineContents[15])
+            # Get the position of the second scattered gamma-ray
+            x2 = float(lineContents[7])
+            y2 = float(lineContents[8])
+            z2 = float(lineContents[9])
 
-			# Get the position uncertainty of the second scattered gamma-ray		
-			x_electron_error = float(lineContents[16])
-			y_electron_error = float(lineContents[17])
-			z_electron_error = float(lineContents[18])
+            # Get the position uncertainty of the second scattered gamma-ray		
+            x2_error = float(lineContents[10])
+            y2_error = float(lineContents[11])
+            z2_error = float(lineContents[12])
 
-			# Record the energy of the Compton event (regardless of whether it was has a tracked or untrack electron)
-			energy_ComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
+            # Get the origin position of the original gamma-ray
+            x0 = x1
+            y0 = y1
+            z0 = 1000.0
 
-			# Record the energy error of the Compton event (regardless of whether it was has a tracked or untrack electron)
-			energy_ComptonEvents_error.append( math.sqrt( energy_firstScatteredPhoton_error[-1]**2 + energy_recoiledElectron_error[-1]**2 ) )
+            # Get the position of the second scattered gamma-ray
+            x_electron = float(lineContents[13])
+            y_electron = float(lineContents[14])
+            z_electron = float(lineContents[15])
 
+            # Get the position uncertainty of the second scattered gamma-ray		
+            x_electron_error = float(lineContents[16])
+            y_electron_error = float(lineContents[17])
+            z_electron_error = float(lineContents[18])
 
-			# Determine if the recoil electron was tracked by the detector
-			if x_electron != 0:
+            # Record the energy of the Compton event (regardless of whether it was has a tracked or untrack electron)
+            energy_ComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
-				# Record the direction of the recoil electron
-				direction_recoilElectron.append([x_electron, y_electron, z_electron])
+            # Record the energy error of the Compton event (regardless of whether it was has a tracked or untrack electron)
+            energy_ComptonEvents_error.append( math.sqrt( energy_firstScatteredPhoton_error[-1]**2 + energy_recoiledElectron_error[-1]**2 ) )
 
-				# Record the energy of tracked events
-				energy_TrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
-				# Record the number of tracked events
-				numberOfTrackedElectronEvents = numberOfTrackedElectronEvents + 1
+            # Determine if the recoil electron was tracked by the detector
+            if x_electron != 0:
 
-				# Add this event to the index of tracked events
-				index_tracked.append(eventNumber)
+                # Record the direction of the recoil electron
+                direction_recoilElectron.append([x_electron, y_electron, z_electron])
 
-			else:
+                # Record the energy of tracked events
+                energy_TrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
-				# Record the direction of the recoil electron
-				direction_recoilElectron.append([numpy.nan,numpy.nan,numpy.nan])
+                # Record the number of tracked events
+                numberOfTrackedElectronEvents = numberOfTrackedElectronEvents + 1
 
-				# Record the energy of tracked events
-				energy_UntrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
+                # Add this event to the index of tracked events
+                index_tracked.append(eventNumber)
 
-				# Record the number of untracked events
-				numberOfUntrackedElectronEvents = numberOfUntrackedElectronEvents + 1
+            else:
 
-				# Add this event to the index of untracked events
-				index_untracked.append(eventNumber)
+                # Record the direction of the recoil electron
+                direction_recoilElectron.append([numpy.nan,numpy.nan,numpy.nan])
 
+                # Record the energy of tracked events
+                energy_UntrackedComptonEvents.append(energy_firstScatteredPhoton[-1] + energy_recoiledElectron[-1])
 
-			# Store the origin coordinates of the original gamma-ray 
-			position0 = numpy.array([x0, y0, z0])
-			# position0Error = numpy.array([x1_error,y1_error,z1_error])
+                # Record the number of untracked events
+                numberOfUntrackedElectronEvents = numberOfUntrackedElectronEvents + 1
 
-			# Get the x-axis offset based on the theta of the source.  This assumes phi=0
-			# Note: For Compton events adjusting the theta of the source happens in the parser
-			# for pair events, it happens in the ARM calculation. 
-			dx = numpy.tan(numpy.arccos(sourceTheta)) * (z1 - z0)
+                # Add this event to the index of untracked events
+                index_untracked.append(eventNumber)
 
-			# Set the origin position of the original gamma-ray
-			position0 = numpy.array([x1-dx, y1, z0])
 
-			# Store the coordinates of the first interaction in an array
-			position1 = numpy.array([x1, y1, z1])
-			position1Error = numpy.array([x1_error, y1_error, z1_error])
+            # Store the origin coordinates of the original gamma-ray 
+            position0 = numpy.array([x0, y0, z0])
+            # position0Error = numpy.array([x1_error,y1_error,z1_error])
 
-			# Store the coordinates of the second interaction in an array		
-			position2 = numpy.array([x2, y2, z2])
-			position2Error = numpy.array([x2_error, y2_error, z2_error])
+            # Get the x-axis offset based on the theta of the source.  This assumes phi=0
+            # Note: For Compton events adjusting the theta of the source happens in the parser
+            # for pair events, it happens in the ARM calculation. 
+            dx = numpy.tan(numpy.arccos(sourceTheta)) * (z1 - z0)
 
-			# Calculate the vector between the second and first interaction
-			directionVector2 = position2 - position1
+            # Set the origin position of the original gamma-ray
+            position0 = numpy.array([x1-dx, y1, z0])
 
-			# Calculate the vector between the first interaction and the origin of the original gamma-ray
-			directionVector1 = position1 - position0
+            # Store the coordinates of the first interaction in an array
+            position1 = numpy.array([x1, y1, z1])
+            position1Error = numpy.array([x1_error, y1_error, z1_error])
 
-			# Calculate the product of the vector magnitudes
-			product = numpy.linalg.norm(directionVector1) * numpy.linalg.norm(directionVector2)
+            # Store the coordinates of the second interaction in an array		
+            position2 = numpy.array([x2, y2, z2])
+            position2Error = numpy.array([x2_error, y2_error, z2_error])
 
-			# Make sure we don't devide by zero
-			if product != 0:
+            # Calculate the vector between the second and first interaction
+            directionVector2 = position2 - position1
 
-				# Calculate the dot product
-				dotProduct = numpy.dot(directionVector2, directionVector1)
+            # Calculate the vector between the first interaction and the origin of the original gamma-ray
+            directionVector1 = position1 - position0
 
-				# Make sure we have sane results
-				value = dotProduct/product 
-				if (value >  1.0): value =  1.0;
-				if (value < -1.0): value = -1.0;
+            # Calculate the product of the vector magnitudes
+            product = numpy.linalg.norm(directionVector1) * numpy.linalg.norm(directionVector2)
 
-				# Get the reconstructed phi angle (in radians) and add the known angle to the source 
-				phi_Tracker.append(numpy.arccos(value)) 
+            # Make sure we don't devide by zero
+            if product != 0:
 
-			else:
+                # Calculate the dot product
+                dotProduct = numpy.dot(directionVector2, directionVector1)
 
-				# Return zero in case the denominator is zero
-				phi_Tracker.append(0.0)
+                # Make sure we have sane results
+                value = dotProduct/product 
+                if (value >  1.0): value =  1.0;
+                if (value < -1.0): value = -1.0;
 
-			# Add the position information to their respective list of positions
-			position_originalPhoton.append(position0)
-			position_firstInteraction.append(position1)
-			position_firstInteraction_error.append(position1Error)
-			position_secondInteraction.append(position2)
-			position_secondInteraction_error.append(position2Error)
+                # Get the reconstructed phi angle (in radians) and add the known angle to the source 
+                phi_Tracker.append(numpy.arccos(value)) 
 
-			# Increment the event number
-			eventNumber = eventNumber + 1
+            else:
 
+                # Return zero in case the denominator is zero
+                phi_Tracker.append(0.0)
 
-		####### Pair Events #######
+            # Add the position information to their respective list of positions
+            position_originalPhoton.append(position0)
+            position_firstInteraction.append(position1)
+            position_firstInteraction_error.append(position1Error)
+            position_secondInteraction.append(position2)
+            position_secondInteraction_error.append(position2Error)
 
-		# Extract the pair conversion hit information
-		if 'PC ' in line and skipEvent == False:
+            # Increment the event number
+            eventNumber = eventNumber + 1
 
-			# Split the line
-			lineContents = line.split()	
 
-			# Get the position of the pair conversion
-			x1 = float(lineContents[1])
-			y1 = float(lineContents[2])
-			z1 = float(lineContents[3])
+        ####### Pair Events #######
 
-			# Save the position
-			position_pairConversion.append([x1,y1,z1])
+        # Extract the pair conversion hit information
+        if 'PC ' in line and skipEvent == False:
 
+            # Split the line
+            lineContents = line.split()	
 
+            # Get the position of the pair conversion
+            x1 = float(lineContents[1])
+            y1 = float(lineContents[2])
+            z1 = float(lineContents[3])
 
-		# Extract the pair electron information
-		if 'PE ' in line and skipEvent == False:
+            # Save the position
+            position_pairConversion.append([x1,y1,z1])
 
 
-			# Split the line
-			lineContents = line.split()
 
-			# Get the electron information
-			energy_pairElectron.append(float(lineContents[1]))
-			energy_pairElectron_error.append(float(lineContents[2]))
+        # Extract the pair electron information
+        if 'PE ' in line and skipEvent == False:
 
-			# Get the direction of the pair electron
-			x = float(lineContents[3])
-			y = float(lineContents[4])
-			z = float(lineContents[5])
 
-			# Store the direction of the pair electron
-			direction_pairElectron.append([x,y,z])
+            # Split the line
+            lineContents = line.split()
 
-		# Extract the pair positron information
-		if 'PP ' in line and skipEvent == False:
+            # Get the electron information
+            energy_pairElectron.append(float(lineContents[1]))
+            energy_pairElectron_error.append(float(lineContents[2]))
 
-			# Split the line
-			lineContents = line.split()
+            # Get the direction of the pair electron
+            x = float(lineContents[3])
+            y = float(lineContents[4])
+            z = float(lineContents[5])
 
-			# Get the electron information
-			energy_pairPositron.append(float(lineContents[1]))
-			energy_pairPositron_error.append(float(lineContents[2]))
+            # Store the direction of the pair electron
+            direction_pairElectron.append([x,y,z])
 
-			# Get the direction of the pair electron
-			x = float(lineContents[3])
-			y = float(lineContents[4])
-			z = float(lineContents[5])
+        # Extract the pair positron information
+        if 'PP ' in line and skipEvent == False:
 
-			# Store the direction of the pair electron
-			direction_pairPositron.append([x,y,z])
+            # Split the line
+            lineContents = line.split()
 
+            # Get the electron information
+            energy_pairPositron.append(float(lineContents[1]))
+            energy_pairPositron_error.append(float(lineContents[2]))
 
-		if 'PI ' in line and skipEvent == False:
+            # Get the direction of the pair electron
+            x = float(lineContents[3])
+            y = float(lineContents[4])
+            z = float(lineContents[5])
 
-			# Split the line
-			lineContents = line.split()
+            # Store the direction of the pair electron
+            direction_pairPositron.append([x,y,z])
 
-			# Get the electron information
-			energy_pairDepositedInFirstLayer.append(float(lineContents[1]))
 
+        if 'PI ' in line and skipEvent == False:
 
+            # Split the line
+            lineContents = line.split()
 
+            # Get the electron information
+            energy_pairDepositedInFirstLayer.append(float(lineContents[1]))
 
-		# Extract the reconstruction quality
-		if 'TQ ' in line and skipEvent == False:
 
-			# Split the line
-			lineContents = line.split()
 
-			if 'CO' in eventType:
 
-				# Get the reconstruction quality
-				qualityOfComptonReconstruction.append(float(lineContents[1]))
+        # Extract the reconstruction quality
+        if 'TQ ' in line and skipEvent == False:
 
-			if 'PA' in eventType:
+            # Split the line
+            lineContents = line.split()
 
-				# Get the reconstruction quality
-				qualityOfPairReconstruction.append(float(lineContents[1]))
+            if 'CO' in eventType:
 
-		# Increment the line number for the progress indicator
-		lineNumber = lineNumber + 1
+                # Get the reconstruction quality
+                qualityOfComptonReconstruction.append(float(lineContents[1]))
 
+            if 'PA' in eventType:
 
-	# Add all of the lists to the results dictionary
-	events['energy_ComptonEvents'] = numpy.array(energy_ComptonEvents).astype(float)
-	events['energy_ComptonEvents_error'] = numpy.array(energy_ComptonEvents_error).astype(float)
-	events['energy_TrackedComptonEvents'] = numpy.array(energy_TrackedComptonEvents).astype(float)
-	events['energy_UntrackedComptonEvents'] = numpy.array(energy_UntrackedComptonEvents).astype(float)
-	events['energy_firstScatteredPhoton'] = numpy.array(energy_firstScatteredPhoton).astype(float)
-	events['energy_firstScatteredPhoton_error'] = numpy.array(energy_firstScatteredPhoton_error).astype(float)
-	events['energy_recoiledElectron'] = numpy.array(energy_recoiledElectron).astype(float)
-	events['energy_recoiledElectron_error'] = numpy.array(energy_recoiledElectron_error).astype(float)
-	events['energy_pairElectron'] = numpy.array(energy_pairElectron).astype(float)
-	events['energy_pairElectron_error'] = numpy.array(energy_pairElectron_error).astype(float)
-	events['energy_pairPositron'] = numpy.array(energy_pairPositron).astype(float)
-	events['energy_pairPositron_error'] = numpy.array(energy_pairPositron_error).astype(float)
-	events['energy_pairDepositedInFirstLayer'] = numpy.array(energy_pairDepositedInFirstLayer).astype(float)
-	events['energy_pairDepositedInFirstLayer_error'] = numpy.array(energy_pairDepositedInFirstLayer_error).astype(float)
+                # Get the reconstruction quality
+                qualityOfPairReconstruction.append(float(lineContents[1]))
 
-	events['position_originalPhoton'] = numpy.array(position_originalPhoton).astype(float)
-	events['position_firstInteraction'] = numpy.array(position_firstInteraction).astype(float)
-	events['position_firstInteraction_error'] = numpy.array(position_firstInteraction_error).astype(float)
-	events['position_secondInteraction'] = numpy.array(position_secondInteraction).astype(float)
-	events['position_secondInteraction_error'] = numpy.array(position_secondInteraction_error).astype(float)
-	events['position_pairConversion'] = numpy.array(position_pairConversion).astype(float)
+        # Increment the line number for the progress indicator
+        lineNumber = lineNumber + 1
 
-	events['direction_recoilElectron'] = numpy.array(direction_recoilElectron).astype(float)
-	events['direction_pairElectron'] = numpy.array(direction_pairElectron).astype(float)
-	events['direction_pairPositron'] = numpy.array(direction_pairPositron).astype(float)
 
-	events['phi_Tracker'] = numpy.array(phi_Tracker).astype(float)
-	events['numberOfComptonEvents'] =numberOfComptonEvents
-	events['numberOfUntrackedElectronEvents'] =numberOfUntrackedElectronEvents
-	events['numberOfTrackedElectronEvents'] =numberOfTrackedElectronEvents
-	events['numberOfPairEvents'] = numberOfPairEvents
-	events['numberOfUnknownEventTypes'] = numberOfUnknownEventTypes
-	events['numberOfBadEvents'] = numberOfBadEvents
-	events['index_tracked'] = numpy.array(index_tracked)
-	events['index_untracked']= numpy.array(index_untracked)
-	events['qualityOfComptonReconstruction'] = numpy.array(qualityOfComptonReconstruction).astype(float)
-	events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
-	events['time'] = numpy.array(time).astype(float)
-	events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
+    # Add all of the lists to the results dictionary
+    events['energy_ComptonEvents'] = numpy.array(energy_ComptonEvents).astype(float)
+    events['energy_ComptonEvents_error'] = numpy.array(energy_ComptonEvents_error).astype(float)
+    events['energy_TrackedComptonEvents'] = numpy.array(energy_TrackedComptonEvents).astype(float)
+    events['energy_UntrackedComptonEvents'] = numpy.array(energy_UntrackedComptonEvents).astype(float)
+    events['energy_firstScatteredPhoton'] = numpy.array(energy_firstScatteredPhoton).astype(float)
+    events['energy_firstScatteredPhoton_error'] = numpy.array(energy_firstScatteredPhoton_error).astype(float)
+    events['energy_recoiledElectron'] = numpy.array(energy_recoiledElectron).astype(float)
+    events['energy_recoiledElectron_error'] = numpy.array(energy_recoiledElectron_error).astype(float)
+    events['energy_pairElectron'] = numpy.array(energy_pairElectron).astype(float)
+    events['energy_pairElectron_error'] = numpy.array(energy_pairElectron_error).astype(float)
+    events['energy_pairPositron'] = numpy.array(energy_pairPositron).astype(float)
+    events['energy_pairPositron_error'] = numpy.array(energy_pairPositron_error).astype(float)
+    events['energy_pairDepositedInFirstLayer'] = numpy.array(energy_pairDepositedInFirstLayer).astype(float)
+    events['energy_pairDepositedInFirstLayer_error'] = numpy.array(energy_pairDepositedInFirstLayer_error).astype(float)
 
-	# Print some event statistics
-	print("\n\nStatistics of Event Selection")
-	print("***********************************")
-	print("Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents))
+    events['position_originalPhoton'] = numpy.array(position_originalPhoton).astype(float)
+    events['position_firstInteraction'] = numpy.array(position_firstInteraction).astype(float)
+    events['position_firstInteraction_error'] = numpy.array(position_firstInteraction_error).astype(float)
+    events['position_secondInteraction'] = numpy.array(position_secondInteraction).astype(float)
+    events['position_secondInteraction_error'] = numpy.array(position_secondInteraction_error).astype(float)
+    events['position_pairConversion'] = numpy.array(position_pairConversion).astype(float)
 
-	if numberOfComptonEvents + numberOfPairEvents == 0:
-		print("No events pass selection")
-		events=False
-		return events
+    events['direction_recoilElectron'] = numpy.array(direction_recoilElectron).astype(float)
+    events['direction_pairElectron'] = numpy.array(direction_pairElectron).astype(float)
+    events['direction_pairPositron'] = numpy.array(direction_pairPositron).astype(float)
 
-	print("")
-	print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-	print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-	print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-	if numberOfComptonEvents > 0:
-		print(" - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents)))
-		print(" - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents)))
-	print("")
-	print("")
+    events['phi_Tracker'] = numpy.array(phi_Tracker).astype(float)
+    events['numberOfComptonEvents'] =numberOfComptonEvents
+    events['numberOfUntrackedElectronEvents'] =numberOfUntrackedElectronEvents
+    events['numberOfTrackedElectronEvents'] =numberOfTrackedElectronEvents
+    events['numberOfPairEvents'] = numberOfPairEvents
+    events['numberOfUnknownEventTypes'] = numberOfUnknownEventTypes
+    events['numberOfBadEvents'] = numberOfBadEvents
+    events['index_tracked'] = numpy.array(index_tracked)
+    events['index_untracked']= numpy.array(index_untracked)
+    events['qualityOfComptonReconstruction'] = numpy.array(qualityOfComptonReconstruction).astype(float)
+    events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
+    events['time'] = numpy.array(time).astype(float)
+    events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
 
-	fileinput.close()
+    # Print some event statistics
+    print("\n\nStatistics of Event Selection")
+    print("***********************************")
+    print("Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents))
 
-	return events
+    if numberOfComptonEvents + numberOfPairEvents == 0:
+        print("No events pass selection")
+        events=False
+        return events
+
+    print("")
+    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    if numberOfComptonEvents > 0:
+        print(" - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents)))
+        print(" - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents)))
+    print("")
+    print("")
+
+    fileinput.close()
+
+    return events
 
 
 ##########################################################################################
@@ -1974,7 +1983,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=5, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None, compressed = False):
 
     """
     A function to plot the cosima output simulation file.
@@ -1989,7 +1998,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
-        filenames = glob.glob(directory + '/*.tra')
+        if compressed == False:
+            filenames = glob.glob(directory + '/*.tra')
+        else:
+            filenames = glob.glob(directory + '/*.tra.gz')
 
 
     # Check if the user supplied a single file vs a list of files
@@ -2004,7 +2016,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             try:
                 energy = float(filename.split('_')[1].replace(energySearchUnit,''))
                 energies.append(energy)
-
+                #print(energy)
             except:
                 print("*** Unable to resolve energy from filename ***")
                 print("Expected filename format: FarFieldPointSource_100MeV_Cos1.inc1.id1.tra")
@@ -2019,9 +2031,14 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 angles.append(angle)
 
             except:
-                print("*** Unable to resolve angle from filename ***")
-                print("Expected filename format: FarFieldPointSource_100MeV_Cos1.inc1.id1.tra")
-                return
+                try:
+                    angle = float(filename.split('_')[2].split('.p1')[0].replace('Cos',''))
+                    #print('Appending angle: ',angle)
+                    angles.append(angle)
+                except:
+                    print("*** Unable to resolve angle from filename ***")
+                    print("Expected filename format: FarFieldPointSource_100MeV_Cos1.inc1.id1.tra")
+                    return
 
     # Print the identified files
     print("\nFiles identified for analysis:")
@@ -2035,7 +2052,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         if parsing:
             print("Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             # Parse the .tra file obtained from revan
-            events = parse(filename, sourceTheta=angle)
+            events = parse(filename, compressed=compressed, sourceTheta=angle)
 
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
