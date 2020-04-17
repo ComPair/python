@@ -2126,7 +2126,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             FWHM_pairComptonEvents = numpy.nan
 
         # Open the results filename for writing
-        output_filename = filename.replace('.tra','.log')
+        if compressed == False:
+            output_filename = filename.replace('.tra','.log')
+        else:
+            output_filename = filename.replace('.tra.gz','.log')
         output = open(output_filename, 'w')
 
         # Write the results to disk
@@ -2165,10 +2168,63 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
 ##########################################################################################
 
+def getMcosimaTriggerEfficiency(filename = None, directory = None, save=True, savefile=None, compressed=True):
+    '''
+    Wrapper for mcosima simulations. Assumes compressed sim files. Works with single files (although a bit redundant) or directories
+    '''
+    if filename == None and directory == None:
+        print("*** No filename or directory provide ***")
+        print("Please provide a  filename, a list of filenames, or a directory name")
+        return
+
+    # Check to see if the user supplied a directory.  If so, include all .sim files in the directory
+    if directory != None:
+        print("\nSearching: %s\n" % directory)
+        if compressed == False:
+            filenames = glob.glob(directory + '/*.sim')
+        else:
+            filenames = glob.glob(directory + '/*.sim.gz')
+    if isinstance(filename, list) == False and filename != None:
+         filenames = [filename]
+    triggerEfficiency = {}
+    
+    for name in filenames:
+        triggerEfficiency[name] = getTriggerEfficiency(filename=name, save=False, compressed=compressed, isMcosima=True)
+        print(triggerEfficiency)
+        
+    if save == True:
+
+        # Set a default filename if none was provided
+        if savefile == None:
+            savefile = 'TriggerEfficiency.txt'
+
+        # Open the file for writing
+        output = open(savefile, 'w')
+
+        # Write the results to disk
+        
+        for name in filenames:
+
+            # Extract the values
+            print(triggerEfficiency[name][name].keys())
+            numberOfTriggers = triggerEfficiency[name][name]['numberOfTriggers']
+            numberOfSimulatedEvents = triggerEfficiency[name][name]['numberOfSimulatedEvents']
+
+            # Write out the values
+            output.write("%s %s %s\n" % (name, numberOfTriggers, numberOfSimulatedEvents))
+
+        # Close the file
+        output.close()
+
+        print("\nResults saved to:\n./%s\n" % savefile)   
+    return triggerEfficiency
+
+
+
 def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None, compressed = False, isMcosima = False):
     """
     A function to extract the number of simulated events from a cosima .sim file
-    Is also able to handle mcosima simulations and gziped files
+    Is also able to handle mcosima simulations and gziped files but should just be called via the wrapper getMcosimaTriggerEfficiency()
     Usage Examples: 
     EventViewer.getNumberOfSimulatedEvents(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.sim')
     EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
@@ -2282,34 +2338,37 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         output = open(savefile, 'w')
 
         # Write the results to disk
-        if isMcosima == False:
-            for filename in filenames:
+    if isMcosima == False:
+        for filename in filenames:
 
-                # Extract the values
-                numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
-                numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
+            # Extract the values
+            numberOfTriggers = triggerEfficiency[filename]['numberOfTriggers']
+            numberOfSimulatedEvents = triggerEfficiency[filename]['numberOfSimulatedEvents']
 
-                # Write out the values
+            # Write out the values
+            if save == True:
                 output.write("%s %s %s\n" % (filename, numberOfTriggers, numberOfSimulatedEvents))
 
-            # Close the file
-            output.close()
+             # Close the file
+                output.close()
 
-            print("\nResults saved to:\n./%s\n" % savefile)
-        else:
-            totalTriggers  = 0 
-            totalPhotons = 0
-            for name in filenames:
-                totalTriggers += triggerEfficiency[name]['numberOfTriggers']
-                totalPhotons += triggerEfficiency[name]['numberOfSimulatedEvents']
-            
-            del triggerEfficiency
-            triggerEfficiency = {}
-            triggerEfficiency[inputFilename] = {
-            'numberOfTriggers' : totalTriggers,
-            'numberOfSimulatedEvents' : totalPhotons}
+                print("\nResults saved to:\n./%s\n" % savefile)
+    else:
+        totalTriggers  = 0 
+        totalPhotons = 0
+        for name in filenames:
+            totalTriggers += triggerEfficiency[name]['numberOfTriggers']
+            totalPhotons += triggerEfficiency[name]['numberOfSimulatedEvents']
+        
+        del triggerEfficiency
+        triggerEfficiency = {}
+        triggerEfficiency[inputFilename] = {
+        'numberOfTriggers' : totalTriggers,
+        'numberOfSimulatedEvents' : totalPhotons}
+        if save == True:
             output.write("%s %s %s\n" % (inputFilename, totalTriggers, totalPhotons))
-
+            output.close()
+            print("\nResults saved to:\n./%s\n" % savefile)
 
 
     return triggerEfficiency
