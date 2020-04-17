@@ -30,6 +30,8 @@ PARSER = argparse.ArgumentParser(description=__description__,
                                  formatter_class=formatter)
 PARSER.add_argument('-f', '--infiles', type=str, required=True, nargs='*',
                     help='input .txt file(s) (generated with plotFigureOfMwerit.py)')
+PARSER.add_argument('-f2', '--compfiles', type=str, required=False, nargs='*',
+                    help='input .txt file(s) (generated with plotFigureOfMwerit.py)')
 PARSER.add_argument('-xs', '--xscale', type=str, choices=['linear', 'log'],
                     default='log', help='specify the scale of the x axis')
 PARSER.add_argument('-ys', '--yscale', type=str, choices=['linear', 'log'],
@@ -72,6 +74,10 @@ def compare_figureofmerit(**kwargs):
     """
     
     file_list = kwargs['infiles']
+    if kwargs['compfiles'] is None:
+        files2 = []
+    else:
+        files2 = kwargs['compfiles']
     
     TC_count = 0
     UC_count = 0
@@ -91,20 +97,6 @@ def compare_figureofmerit(**kwargs):
         	legend_label = '%s Pair' %label
         	c = P_color[P_count]
         plt.plot(en_, fom_, '-o', color=c, label=legend_label)
-        plt.xlabel('Energy [MeV]', size=18)
-        plt.ylabel(kwargs['ylabel'], size=18)
-        plt.xlim(kwargs['xmin'], kwargs['xmax'])
-        left, right = plt.ylim()
-        if kwargs['ymin'] is not None and kwargs['ymax'] is not None:
-        	plt.ylim(kwargs['ymin'], kwargs['ymax'])
-        elif kwargs['ymin'] is not None and kwargs['ymax'] is None:
-        	plt.ylim(kwargs['ymin'], right)
-        elif kwargs['ymin'] is None and kwargs['ymax'] is not None:
-        	plt.ylim(left, kwargs['ymax'])
-        plt.xscale(kwargs['xscale'])
-        plt.yscale(kwargs['yscale'])
-        plt.legend(fontsize=15)
-        plt.grid(False)
         
         if flag == 'TC':
         	TC_count += 1
@@ -112,11 +104,49 @@ def compare_figureofmerit(**kwargs):
         	UC_count += 1
         else:
         	P_count += 1
+
+    for i, f in enumerate(files2):
+        en_, fom_, flag, label = parse_figureofmerit_file(f)
+        if flag == 'TC':
+            legend_label = '%s Tracked Compton' %label
+            c = TC_color[TC_count]
+        elif flag == 'UC':
+            legend_label = '%s Untracked Compton' %label
+            c = UC_color[UC_count]
+        else:
+            legend_label = '%s Pair' %label
+            c = P_color[P_count]
+        plt.plot(en_, fom_, '--o', color=c, label=legend_label)
+        
+        if flag == 'TC':
+            TC_count += 1
+        elif flag == 'UC':
+            UC_count += 1
+        else:
+            P_count += 1            
         	
+    plt.xlabel('Energy [MeV]', size=18)
+    plt.ylabel(kwargs['ylabel'], size=18)
+    plt.xlim(kwargs['xmin'], kwargs['xmax'])
+    left, right = plt.ylim()
+    if kwargs['ymin'] is not None and kwargs['ymax'] is not None:
+        plt.ylim(kwargs['ymin'], kwargs['ymax'])
+    elif kwargs['ymin'] is not None and kwargs['ymax'] is None:
+        plt.ylim(kwargs['ymin'], right)
+    elif kwargs['ymin'] is None and kwargs['ymax'] is not None:
+        plt.ylim(left, kwargs['ymax'])
+
+
+    plt.xscale(kwargs['xscale'])
+    plt.yscale(kwargs['yscale'])
+    plt.legend(fontsize=15)
+    plt.grid(False)    	
+    plt.tight_layout()
+
     if kwargs['save']:
-    	plt.savefig('Comparison_plot.pdf')
-    	print("Created Comparison_plot.pdf ...!")
-    	
+        plt.savefig('Comparison_plot.pdf')
+        print("Created Comparison_plot.pdf ...!")
+
     plt.show()
 	
 if __name__ == '__main__':
