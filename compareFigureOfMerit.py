@@ -47,10 +47,9 @@ PARSER.add_argument('-xM', '--xmax', type=float, default=500,
 PARSER.add_argument('-t', '--title', type=str, default=' ', 
 					help='Plot title')
 PARSER.add_argument('-yl', '--ylabel', type=str, default='Figure of Merit', 
-					help='labe to display on the y axis')
-PARSER.add_argument('-s', '--save', type=ast.literal_eval, choices=[True, False],
-                    default=False, help='set to True to save the plot map')
-                    
+					help='y-axis label')
+PARSER.add_argument('-s', '--save', type=str, default='', help='Save the plot; argument=filename') 
+
 FLAG_STR = '(?<=\_)\w+(?=\.txt)'
 LABEL_STR = '^\S+(?=\_[AE])'
 
@@ -143,9 +142,10 @@ def compare_figureofmerit(**kwargs):
     plt.grid(False)    	
     plt.tight_layout()
 
-    if kwargs['save']:
-        plt.savefig('Comparison_plot.pdf')
-        print("Created Comparison_plot.pdf ...!")
+    if kwargs['save'] != '':
+        filename = kwargs['save']
+        plt.savefig(f'{filename}')
+        print(f"Created {filename} ...!")
 
     plt.show()
 	
