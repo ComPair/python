@@ -52,7 +52,7 @@ def logE2ene(allEne):
 energies=logE2ene(Log_E)
 cos_ang =ang2cos(angles)
 
-with open("./runCosima.sh", mode='w') as f:
+with open("./runMcosima.sh", mode='w') as f:
    for myene in energies:
       for cosTh,ang in zip(cos_ang,angles):
          
