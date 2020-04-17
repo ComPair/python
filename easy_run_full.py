@@ -7,11 +7,9 @@ Tiny helper script for running performCompleteAnalysis on Revan output files.
 import EventAnalysis      
 import sys
 
-
-
 if __name__ == "__main__":
 	if len(sys.argv) != 2 and len(sys.argv) != 4:
-		print(f"Usage: {sys.argv[0]} <path to directory | .tra file> [low bound for fit] [upper bound for fit]")
+		print(f"Usage: {sys.argv[0]} <path to directory | .tra file> [low bound for fit in keV] [upper bound for fit in keV]")
 		exit(-1)
 
 	fname = sys.argv[1]
