@@ -241,6 +241,14 @@ def parseMimrecLogs(sumlationsIDs=None):
 ##########################################################################################
 
 def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=False, compressed=False):
+    '''
+    Parses the log files containing the fit parameters from the event analysis and the triggerEfficiency.txt for plot generation
+    directory: the path to the directory where the data is stored. Do NOT include '/' at the end of the directory's name
+    triggerEfficiencyFilename: NAME of the file containing the trigger efficiencies in the specified directory
+    silent: verbosity on/off
+    compressed: wether data is from compressed or uncompressed sims
+    returns: data dict for plot generation 
+    '''
 
     if triggerEfficiencyFilename == None:
         triggerEfficiencyFilename = directory + '/TriggerEfficiency.txt'
@@ -366,7 +374,17 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 ##########################################################################################
 
 def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False, doplot=True, isMcosima=False, compressed=False ):
-
+    '''
+    Plots angular resolution vs. energy for selected incidend angles
+    data: input data from EventAnalysis (trigger efficiency + fit parameters)
+    angleSelections: incident angles to plot in Cos Theta
+    xlog: logatithmic x-scale
+    ylog: logarithmic y-scale
+    save: save plots as pdf and png
+    collapse: ????
+    compressed: gzip compressed .tra and .sim files
+    isMcosima: sim run mcosima (different file signature!)
+    '''
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
 
@@ -649,7 +667,17 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 ##########################################################################################
 
 def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, save=False, collapse=False, compressed=False, isMcosima=False):
-
+    '''
+    Plots relative energy resolution vs energy for selected incident angles
+    data: input data from EventAnalysis (trigger efficiency + fit parameters)
+    angleSelections: incident angles to plot in Cos Theta
+    xlog: logatithmic x-scale
+    ylog: logarithmic y-scale
+    save: save plots as pdf and png
+    collapse: ????
+    compressed: gzip compressed .tra and .sim files
+    isMcosima: sim run mcosima (different file signature!)
+    '''
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
 
@@ -930,7 +958,20 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 ##########################################################################################
 
 def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, ylog=False, save=False, show=True, collapse=False, SurroundingSphere=150, compressed=False, isMcosima=False):
-
+    '''
+    Plots effective area vs energy for selected incident angles
+    data: input data from EventAnalysis (trigger efficiency + fit parameters)
+    angleSelections: incident angles to plot in Cos Theta
+    ideal: ???
+    xlog: logatithmic x-scale
+    ylog: logarithmic y-scale
+    save: wether to save plots as pdf and png
+    show: show plot
+    collapse: ????
+    SurroundingSphere: Area of the starting area used to start particles, defaults to 150
+    compressed: gzip compressed .tra and .sim files
+    isMcosima: sim run mcosima (different file signature!)
+    '''
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
 
