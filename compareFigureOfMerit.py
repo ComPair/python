@@ -51,10 +51,13 @@ PARSER.add_argument('-s', '--save', type=ast.literal_eval, choices=[True, False]
                     
 FLAG_STR = '(?<=\_)\w+(?=\.txt)'
 LABEL_STR = '^\S+(?=\_[AE])'
+ANG_STR = '(?<=Cos)[0-9]\.[0-9]'
 
 TC_color = sns.color_palette("Greens_r")
 UC_color = sns.color_palette("Blues_r")
 P_color = sns.color_palette("Reds_r")
+
+lines = ['-', '--', '-.', ':', '-', '--', '-.', ':']
 
 def parse_figureofmerit_file(fom_file):
 	print('Parsing %s ...'%fom_file)
@@ -63,8 +66,10 @@ def parse_figureofmerit_file(fom_file):
 	flag = m.group(0)
 	m1 = re.search(r'%s'%LABEL_STR, file_basename)
 	label = m1.group(0)
+	m3 = re.search(r'%s'%ANG_STR, file_basename)
+	ang = m3.group(0)
 	en, fom = np.loadtxt(fom_file).T
-	return en, fom, flag, label
+	return en, fom, flag, float(ang), label
 	
 	
 def compare_figureofmerit(**kwargs):
@@ -80,17 +85,20 @@ def compare_figureofmerit(**kwargs):
     plt.figure(figsize=(10, 7), facecolor='white')
     plt.title(kwargs['title'], size=20)
     for i, f in enumerate(file_list):
-        en_, fom_, flag, label = parse_figureofmerit_file(f)
+        en_, fom_, flag, ang, label = parse_figureofmerit_file(f)
         if flag == 'TC':
-        	legend_label = '%s Tracked Compton' %label
+        	legend_label = '%s (cos=%.1f) Tracked Compton' %(label, ang)
         	c = TC_color[TC_count]
+        	l = lines[TC_count]
         elif flag == 'UC':
-        	legend_label = '%s Untracked Compton' %label
+        	legend_label = '%s (cos=%.1f) Untracked Compton' %(label, ang)
         	c = UC_color[UC_count]
+        	l = lines[UC_count]
         else:
-        	legend_label = '%s Pair' %label
+        	legend_label = '%s (cos=%.1f) Pair' %(label, ang)
         	c = P_color[P_count]
-        plt.plot(en_, fom_, '-o', color=c, label=legend_label)
+        	l = lines[P_count]
+        plt.plot(en_, fom_, 'o', color=c, linestyle=l, label=legend_label)
         plt.xlabel('Energy [MeV]', size=18)
         plt.ylabel(kwargs['ylabel'], size=18)
         plt.xlim(kwargs['xmin'], kwargs['xmax'])
