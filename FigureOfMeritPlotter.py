@@ -380,10 +380,9 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 
     for angleSelection in angleSelections:
-    
-        results_txt_TC = open( '%s_AngRes_Cos%s_TC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
-        results_txt_UC = open( '%s_AngRes_Cos%s_UC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
-        results_txt_P = open( '%s_AngRes_Cos%s_P.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_TC = open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_TC.txt", 'w')
+        results_txt_UC = open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_UC.txt", 'w')
+        results_txt_P =  open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_P.txt", 'w')
     	
         Energy = []
         FWHM_tracked = []
@@ -435,19 +434,19 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
         for ii, en in enumerate(Energy[i]):
         	results_txt_TC.write("%.1f\t%.1f\n"%(en, st[i][ii]))
         results_txt_TC.close()
-        print('Created %s_AngRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_AngRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] AngRes_UntkrCompton[deg]\n")
         for ii, en in enumerate(Energy[j]):
         	results_txt_UC.write("%.1f\t%.1f\n"%(en, sut[j][ii]))
         results_txt_UC.close()
-        print('Created %s_AngRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_AngRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] AngRes_Pair[deg]\n")
         for ii, en in enumerate(Energy[k]):
         	results_txt_P.write("%.1f\t%.1f\n"%(en, sp[k][ii]))
         results_txt_P.close()
-        print('Created %s_AngRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_AngRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
 
 
         # plot the data
@@ -674,9 +673,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
     for angleSelection in angleSelections:
 
-        results_txt_TC = open( '%s_EnRes_Cos%s_TC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
-        results_txt_UC = open( '%s_EnRes_Cos%s_UC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
-        results_txt_P = open( '%s_EnRes_Cos%s_P.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_TC = open( '%s_EnRes_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_UC = open( '%s_EnRes_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_P = open( '%s_EnRes_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
 
         Energy = []
         Sigma_tracked = []
@@ -731,19 +730,19 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         for ii, en in enumerate(Energy[i]):
         	results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
         results_txt_TC.close()
-        print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] EnRes_UntkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[j]):
         	results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
         results_txt_UC.close()
-        print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] EnRes_Pair[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[k]):
          	results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
         results_txt_P.close()
-        print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
 
         # Print the data
@@ -975,9 +974,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
     for angleSelection in angleSelections:
         
-        results_txt_TC = open( '%s_Aeff_Cos%s_TC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
-        results_txt_UC = open( '%s_Aeff_Cos%s_UC.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
-        results_txt_P = open( '%s_Aeff_Cos%s_P.txt' % (txtOutfileLabel, angleSelections[0]), 'w')
+        results_txt_TC = open( '%s_Aeff_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_UC = open( '%s_Aeff_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_P = open( '%s_Aeff_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
         
         Energy = []
         EffectiveArea_Tracked = []
@@ -1059,19 +1058,19 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         for ii, en in enumerate(Energy):
         	results_txt_TC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
         results_txt_TC.close()
-        print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections))
         	
         results_txt_UC.write("# Energy[MeV] Aeff_UntkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
         	results_txt_UC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
         results_txt_UC.close()
-        print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
         for ii, en in enumerate(Energy):
         	results_txt_P.write("%.1f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
         results_txt_P.close()
-        print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelections[0]))
+        print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
         
         # Plot the data
