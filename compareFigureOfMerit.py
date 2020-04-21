@@ -52,12 +52,12 @@ PARSER.add_argument('-s', '--save', type=str, default='', help='Save the plot; a
 FLAG_STR = '(?<=\_)\w+(?=\.txt)'
 LABEL_STR = '^\S+(?=\_[AE])'
 ANG_STR = '(?<=Cos)[0-9]\.[0-9]'
+TC_color = np.concatenate((sns.color_palette("Greens_r")[:-2], sns.color_palette("Greens_r")[:-2]))
+UC_color = np.concatenate((sns.color_palette("Blues_r")[:-2], sns.color_palette("Blues_r")[:-2]))
+P_color  = np.concatenate((sns.color_palette("Reds_r")[:-2], sns.color_palette("Reds_r")[:-2]))
 
-TC_color = sns.color_palette("Greens_r")
-UC_color = sns.color_palette("Blues_r")
-P_color = sns.color_palette("Reds_r")
+lines = ['-', '--', ':', '-.', '-', '--', ':', '-.']
 
-lines = ['-', '--', '-.', ':', '-', '--', '-.', ':']
 
 def parse_figureofmerit_file(fom_file):
     print('Parsing %s ...'%fom_file)
@@ -87,15 +87,15 @@ def compare_figureofmerit(**kwargs):
     for i, f in enumerate(file_list):
         en_, fom_, flag, ang, label = parse_figureofmerit_file(f)
         if flag == 'TC':
-            legend_label = '%s (cos=%.1f) Tracked Compton' %(label, ang)
+            legend_label = f'{label} Cos{ang:.1f} Tracked'
             c = TC_color[TC_count]
             l = lines[TC_count]
         elif flag == 'UC':
-            legend_label = '%s (cos=%.1f) Untracked Compton' %(label, ang)
+            legend_label = f'{label} Cos{ang:.1f} Untracked'
             c = UC_color[UC_count]
             l = lines[UC_count]
         else:
-            legend_label = '%s (cos=%.1f) Pair' %(label, ang)
+            legend_label = f'{label} Cos{ang:.1f} Pair'
             c = P_color[P_count]
             l = lines[P_count]
         plt.plot(en_, fom_, 'o', color=c, linestyle=l, label=legend_label)
@@ -120,7 +120,8 @@ def compare_figureofmerit(**kwargs):
             UC_count += 1
         else:
             P_count += 1
-            
+        
+    plt.tight_layout()    
     if kwargs['save'] != '':
         filename = kwargs['save']
         plt.savefig(f'{filename}')
