@@ -52,9 +52,9 @@ PARSER.add_argument('-s', '--save', type=str, default='', help='Save the plot; a
 FLAG_STR = '(?<=\_)\w+(?=\.txt)'
 LABEL_STR = '^\S+(?=\_[AE])'
 ANG_STR = '(?<=Cos)[0-9]\.[0-9]'
-TC_color = np.concatenate((sns.color_palette("Greens_r")[:-2], sns.color_palette("Greens_r")[:-2]))
-UC_color = np.concatenate((sns.color_palette("Blues_r")[:-2], sns.color_palette("Blues_r")[:-2]))
-P_color  = np.concatenate((sns.color_palette("Reds_r")[:-2], sns.color_palette("Reds_r")[:-2]))
+TC_color = np.concatenate((sns.color_palette("Greens_r")[:-2], sns.color_palette("Greens_r")[:-2][-1:None:-1]))
+UC_color = np.concatenate((sns.color_palette("Blues_r")[:-2], sns.color_palette("Blues_r")[:-2][-1:None:-1]))
+P_color  = np.concatenate((sns.color_palette("Reds_r")[:-2], sns.color_palette("Reds_r")[:-2][-1:None:-1]))
 
 lines = ['-', '--', ':', '-.', '-', '--', ':', '-.']
 
