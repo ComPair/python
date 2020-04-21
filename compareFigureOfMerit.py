@@ -50,14 +50,14 @@ PARSER.add_argument('-s', '--save', type=ast.literal_eval, choices=[True, False]
                     default=False, help='set to True to save the plot map')
                     
 FLAG_STR = '(?<=\_)\w+(?=\.txt)'
-LABEL_STR = '^\S+(?=\_[AE])'
+LABEL_STR = '^.\w*(?=\_)(?=.*)(?=\_[AE])'
 ANG_STR = '(?<=Cos)[0-9]\.[0-9]'
 
-TC_color = sns.color_palette("Greens_r")
+TC_color = np.concatenate((sns.color_palette("Greens_r"), sns.color_palette("Greens_r")))
 UC_color = sns.color_palette("Blues_r")
 P_color = sns.color_palette("Reds_r")
 
-lines = ['-', '--', '-.', ':', '-', '--', '-.', ':']
+lines = ['-', '--', '-.', ':', ':', '_.', '--', '-']
 
 def parse_figureofmerit_file(fom_file):
 	print('Parsing %s ...'%fom_file)
