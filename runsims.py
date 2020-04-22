@@ -9,22 +9,8 @@ Modified by Sean Griffin
 """
 
 import os
-def setPath(comPath = ""):
-    '''Checks for COMPAIRPATH.  Returns 0 if ok, 1 if bad.'''
-    if comPath:
-        if '~' in comPath:
-            os.environ['COMPAIRPATH'] = os.path.expanduser(comPath)
-            return 0
-        else:
-            os.environ['COMPAIRPATH'] = comPath
-            return 0
-    elif not ('COMPAIRPATH' in os.environ):
-        print('Set or provide COMPAIRPATH')
-        return 1
-    else:
-        return 0
 
-def runCosima(srcFile):
+def runCosima(srcFile, seed):
 
     import subprocess
     import gzip
@@ -33,27 +19,47 @@ def runCosima(srcFile):
 
     lock.acquire()
     
-    random_sleep = random.rand() + 1.
-    print("Sleeping for {0:f} s. This does nothing if a seed is being used in the simulations.".format(random_sleep))
-    time.sleep(random_sleep)
+    if seed == "":
+        random_sleep = random.rand() + 1.
+        print("Sleeping for {0:f} s. This is to vary seed times.".format(random_sleep))
+        time.sleep(random_sleep)
+
     lock.release()
 
-    print(f"Running cosima on {srcFile}")
+    tStart = time.time()
+    tshow =time.strftime("%H:%M:%S")
+
+    print(f"Running cosima on {srcFile}; started at {tshow}")
     base = os.path.splitext(os.path.basename(srcFile))    
     with open(base[0]+'.cosima.stdout.log', 'wb') as fout:
         with open(base[0]+'.cosima.stderr.log', 'wb') as ferr:
-            process = subprocess.call(['cosima', '-s', "120", srcFile],
-                                 stdout=fout,
-                                 stderr=ferr)
+            if seed != '':
+                process = subprocess.call(['cosima', '-s', seed, srcFile],
+                                     stdout=fout,
+                                     stderr=ferr)
+            else: 
+                process = subprocess.call(['cosima', srcFile],
+                                     stdout=fout,
+                                     stderr=ferr)                
 
-    print(f"Done with {srcFile}!")
+    tStop = time.stop()
+    
+    deltaT = tStop - tStart
+
+    print(f"Done with {srcFile}! Time taken: {deltaT:.1f} seconds. ")
 
 
 def runRevan(simFile, cfgFile, geoFile):
 
     import subprocess
     import gzip
-    print(f"Running revan on {simFile}")
+    import time 
+
+    
+    tStart = time.time()
+    tshow =time.strftime("%H:%M:%S")
+
+    print(f"Running revan on {simFile}; started at {tshow}")
 
     base = os.path.splitext(os.path.basename(simFile))
     with open(base[0]+'.revan.stdout.log', 'wb') as fout:
@@ -63,36 +69,23 @@ def runRevan(simFile, cfgFile, geoFile):
                                 stdout=fout,
                                 stderr=ferr)
 
-    print(f"Done with {simFile}!")    
+    tStop = time.stop()
+    deltaT = tStop - tStart
+    print(f"Done with {simFile}! Time taken: {deltaT:.1f} seconds.")    
     
+def runCosima_star(files):
+    """Convert `f([1,2])` to `f(1,2)` call."""
+    return runCosima(*files)
+
+
 def runRevan_star(files):
     """Convert `f([1,2])` to `f(1,2)` call."""
     return runRevan(*files)
 
 def getFiles(searchDir = '', extension = 'source'):
     from glob import glob
-    if not ('COMPAIRPATH' in os.environ):
-        print('Set or provide COMPAIRPATH')
-        return ""
-    if searchDir:
-        return glob(searchDir+'/*.'+extension)
-    else:
-        return glob(os.environ['COMPAIRPATH']+'/Simulations/PerformancePlotSourceFiles/*.'+extension)
-
-def makeLinks(files, folderName='SimFiles'):
-    '''Function to make links in directories.  Probably not useful.'''
-    from os import symlink
-    from os import chdir
-    groups = { 1 : ["Cos0.5","Cos0.7"],
-               2 : ["Cos0.6","Cos0.9"],
-               3 : ["Cos0.8","Cos1.0"]}
-    for filename in files:
-        for group,angles in groups.iteritems():
-            if any(x in filename for x in angles):
-                chdir(folderName + str(group))
-                symlink('../'+filename, filename)
-                chdir('../')
-
+    return glob(searchDir+'/*.'+extension)
+    
 def notDone(sims, tras):
     sims_base = [name[0:-4] for name in sims]
     tras_base = [name[0:-4] for name in tras]
@@ -116,19 +109,15 @@ def cli():
     parser.add_argument("jobs", type=int, help="The number of jobs you wish to spawn (usually the number of cores on your machine).")
     parser.add_argument("--runCosima", type=bool, default=False, help="Run cosima (default is false)")
     parser.add_argument("--runRevan", type=bool, default=False, help="Run revan (default is false)")
-    parser.add_argument("--COMPAIRPATH",help="Path to compair files.  You can set this via an environment variable")
     parser.add_argument("--sourcePath",help="Where the source files live.  If not given, will get from COMPAIRPATH.")
     parser.add_argument("--simPath", help="Where the sim files live (from cosima).")
     parser.add_argument("--revanCfg", help="Revan config file (need full path).")
     parser.add_argument("--geoFile", help="Revan geometry file (need full path).")
     parser.add_argument("--reRun", type=bool, default=False, help="Re run/re write")
+    parser.add_argument("--seed", default='', help="Cosima seed (optional)")    
     args = parser.parse_args()
     print(args)
-    if setPath(args.COMPAIRPATH):
-        exit()
-    else:
-        print(f"COMPAIRPATH set to {os.environ['COMPAIRPATH']}")
-    
+
     if args.runCosima:
         srcFiles = getFiles(args.sourcePath,'source')
         print(srcFiles)
@@ -139,7 +128,8 @@ def cli():
             print(f"Got this many source files: {str(len(srcFiles))}")
             print("Spawing jobs")
             pool = Pool(processes=args.jobs, initializer=init_lock, initargs=(l,))
-            pool.map(runCosima, srcFiles)
+            #pool.map(runCosima, srcFiles)
+            pool.map(runCosima_star, zip(srcFiles, repeat(args.seed)))
 
     
     if args.runRevan:
