@@ -1584,7 +1584,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
     energy_binned = histogram_energyResults[0]
     bins_energy = histogram_energyResults[1]
     bincenters_energy = 0.5*(bins_energy[1:]+bins_energy[:-1])
-
+    bin_start = 0
     # Set the range of the energy fit by finding the inflection points in the histogram. This will not work with poorly sampled data
     if energyFitRange == None:
         if max(energy_binned)>10:
