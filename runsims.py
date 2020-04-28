@@ -42,7 +42,7 @@ def runCosima(srcFile, seed):
                                      stdout=fout,
                                      stderr=ferr)                
 
-    tStop = time.stop()
+    tStop = time.time()
     
     deltaT = tStop - tStart
 
@@ -69,7 +69,7 @@ def runRevan(simFile, cfgFile, geoFile):
                                 stdout=fout,
                                 stderr=ferr)
 
-    tStop = time.stop()
+    tStop = time.time()
     deltaT = tStop - tStart
     print(f"Done with {simFile}! Time taken: {deltaT:.1f} seconds.")    
     
