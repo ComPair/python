@@ -1,4 +1,4 @@
-#!/usr/bin/env python                                                          #
+#!/usr/bin/env python                                                          
 #                                                                              #
 # Autor: Michela Negro, NASA-GSFC.                                             #
 # On behalf of the AMEGO Team.                                                 #
