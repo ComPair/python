@@ -1057,6 +1057,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
         # Calculate the product of the vector magnitudes
         #print direction_source, direction_source_reconstructed
         angle = angularSeparation(direction_source, direction_source_reconstructed)
+                
         #angle_shift = angle-float(sourceTheta)
         #print angle, angle_shift
 
@@ -2022,7 +2023,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
-        filenames = glob.glob(directory + '/*.tra')
+        old_dir = os.getcwd()
+        os.chdir( directory )
+        print ("Working in directory", directory )
+        filenames = glob.glob( './*.tra')
 
 
     # Check if the user supplied a single file vs a list of files
@@ -2071,6 +2075,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             # Parse the .tra file obtained from revan
             events = parse(filename, sourceTheta=angle)
+            if not events:
+                continue
 
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
@@ -2130,6 +2136,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             FWHM_energyComptonEvents = numpy.nan
             FWHM_angleComptonEvents = numpy.nan
             sigma_Compton = numpy.nan
+            fitMax = numpy.nan
             mean_tracked = numpy.nan
             FWHM_energyTrackedComptonEvents = numpy.nan
             FWHM_angleTrackedComptonEvents = numpy.nan
@@ -2138,6 +2145,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             FWHM_energyUntrackedComptonEvents = numpy.nan
             FWHM_angleUntrackedComptonEvents = numpy.nan
             sigma_UntrackedCompton = numpy.nan
+            fitMax = numpy.nan
+            UntrackedFitMax = numpy.nan
+            TrackedFitMax = numpy.nan
 
         # Don't bother measuring the energy and angular resolutuon values for pair events below the specified minimumPairEnergy
         if energy >= minimumPairEnergy:
@@ -2146,7 +2156,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the energy resolution for pair events...")
             print("EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)")
             fileBase = "%sMeV_Cos%s" % (energy,angle)
-            fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
+            fitMax_pair, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
 
             # Calculate the angular resolution measurement (ARM) for pair events
             print("\n\nCalculating the angular resolution measurement for pair events...")
@@ -2155,6 +2165,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         else:
             sigma_pair = numpy.nan
+            fitMax_pair = numpy.nan
             contaimentData_68 = numpy.nan
             FWHM_pairComptonEvents = numpy.nan
 
@@ -2172,16 +2183,23 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         output.write("Results for simulation: %s %s Cos %s %s\n" % (energy, energySearchUnit, angle, filename))
         output.write("Compton Events Reconstructed: %s\n" % events['numberOfComptonEvents'])
         output.write("Compton Energy Resolution (keV): %s\n" % sigma_Compton) #FWHM_energyComptonEvents
+        output.write("Compton Energy Mean (keV): %s\n" % mean)
+        output.write("Compton Energy FitMax (keV): %s\n" % fitMax)
         output.write("Compton Angular Resolution (deg): %s\n" % FWHM_angleComptonEvents)
         output.write("Untracked Compton Events Reconstructed: %s\n" % events['numberOfUntrackedElectronEvents'])
+        output.write("Untracked Compton Energy Mean (keV): %s\n" % mean_untracked)
+        output.write("Untracked Compton Energy FitMax (keV): %s\n" % UntrackedFitMax)
         output.write("Untracked Compton Energy Resolution (keV): %s\n" % sigma_UntrackedCompton) #FWHM_energyUntrackedComptonEvents
         output.write("Untracked Compton Angular Resolution (deg): %s\n" % FWHM_angleUntrackedComptonEvents)
         output.write("Tracked Compton Events Reconstructed: %s\n" % events['numberOfTrackedElectronEvents'])
         output.write("Tracked Compton Energy Resolution (keV): %s\n" % sigma_TrackedCompton) #FWHM_energyTrackedComptonEvents
+        output.write("Tracked Compton Energy Mean (keV): %s\n" % mean_tracked)
+        output.write("Tracked Compton Energy FitMax (keV): %s\n" % TrackedFitMax)
         output.write("Tracked Compton Angular Resolution (deg): %s\n" % FWHM_angleTrackedComptonEvents)
 
         output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
+        output.write("Pair Energy FitMax (keV): %s\n" % fitMax_pair)
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
@@ -2195,7 +2213,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         #    clear_output(wait=True)
         #except:
         #    pass
-        
+    
+    if directory is not None:
+        os.chdir( old_dir )
+
     return events
 
 ##########################################################################################

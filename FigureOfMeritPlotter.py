@@ -279,6 +279,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
         except:
             print("*** Could not find log file: %s" % analysisLog)
+            continue
 
         # Loop through the analysis log file
         numberOfPairEventsIdeal = None
@@ -293,6 +294,12 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
             if "Compton Energy Resolution (keV): " in analysisLogLine:
                 FWHM_energyComptonEvents = analysisLogLine.split()[-1]
+            
+            if "Compton Energy Mean (keV): " in analysisLogLine:
+                mean_energyComptonEvents = analysisLogLine.split()[-1]
+            
+            if "Compton Energy FitMax (keV): " in analysisLogLine:
+                fitmax_energyComptonEvents = analysisLogLine.split()[-1]
 
             if "Compton Angular Resolution (deg): " in analysisLogLine:
                 FWHM_angleComptonEvents = analysisLogLine.split()[-1]
@@ -302,6 +309,12 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
             if "Untracked Compton Energy Resolution (keV): " in analysisLogLine:
                 FWHM_energyUntrackedComptonEvents = analysisLogLine.split()[-1]
+            
+            if "Untracked Compton Energy Mean (keV): " in analysisLogLine:
+                mean_energyUntrackedComptonEvents = analysisLogLine.split()[-1]
+            
+            if "Untracked Compton Energy FitMax (keV): " in analysisLogLine:
+                fitmax_energyUntrackedComptonEvents = analysisLogLine.split()[-1]
 
             if "Untracked Compton Angular Resolution (deg): " in analysisLogLine:
                 FWHM_angleUntrackedComptonEvents = analysisLogLine.split()[-1]
@@ -311,6 +324,12 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
             if "Tracked Compton Energy Resolution (keV): " in analysisLogLine:
                 FWHM_energyTrackedComptonEvents = analysisLogLine.split()[-1]
+            
+            if "Tracked Compton Energy Mean (keV): " in analysisLogLine:
+                mean_energyTrackedComptonEvents = analysisLogLine.split()[-1]
+            
+            if "Tracked Compton Energy FitMax (keV): " in analysisLogLine:
+                fitmax_energyTrackedComptonEvents = analysisLogLine.split()[-1]
 
             if "Tracked Compton Angular Resolution (deg): " in analysisLogLine:
                 FWHM_angleTrackedComptonEvents = analysisLogLine.split()[-1]
@@ -320,6 +339,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
             if "Pair Energy Resolution (keV): " in analysisLogLine:
                 FWHM_pairEvents = analysisLogLine.split()[-1]
+
+            if "Pair Energy FitMax (keV): " in analysisLogLine:
+                fitmax_pairEvents = analysisLogLine.split()[-1]
 
             if "Pair Angular Containment " in analysisLogLine:
                 contaimentData_68 = analysisLogLine.split()[-1]
@@ -339,9 +361,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         holder=-999. # This is required for historic reasons
 
         if float(energy) <=30.0:
-            data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
-            data[simulationName].append([holder, holder, holder, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
-            data[simulationName].append([holder, holder, holder, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents])
+            data[simulationName].append([holder, holder, fitmax_energyComptonEvents, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
+            data[simulationName].append([holder, holder, fitmax_energyTrackedComptonEvents, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
+            data[simulationName].append([holder, holder, fitmax_energyUntrackedComptonEvents, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents, ])
         else:
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
@@ -351,7 +373,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
     #			data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, holder, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
 
         if float(energy) >=3.0:
-                data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, numberOfPairEventsIdeal, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
+                data[simulationName].append([holder, holder, fitmax_pairEvents, holder, FWHM_pairEvents, numberOfPairEventsIdeal, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
         else:
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
@@ -390,6 +412,8 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
         Containment68 = []
 
         for key in data.keys():
+            if len(data[key]) <= 1:
+                continue
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
@@ -655,7 +679,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 ##########################################################################################
 
-def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, 
+def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False,
                                          save=False, collapse=False, txtOutfileLabel='xxx'):
 
     if hasattr(angleSelections, '__iter__') == False:
@@ -725,22 +749,22 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         sp=numpy.double(Sigma_pair[k])/numpy.double(Energy[k])*1e-3*2.355
 
 
-        # writing txt files	
+        # writing txt files
         results_txt_TC.write("# Energy[MeV] EnRes_TkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[i]):
-        	results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
+            results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
         results_txt_TC.close()
         print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
-        	
+            
         results_txt_UC.write("# Energy[MeV] EnRes_UntkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[j]):
-        	results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
+            results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
         results_txt_UC.close()
         print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] EnRes_Pair[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[k]):
-         	results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
+             results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
         results_txt_P.close()
         print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
@@ -760,9 +784,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
             #plot.plot(Energy[k],sp, color='darkred', alpha=0.5, lw=2, label='Pair')
 
             #plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
-             #   	verticalalignment='bottom', horizontalalignment='right',
-             #   	transform=ax.transAxes,
-             #   	color='black', fontsize=16)
+             #       verticalalignment='bottom', horizontalalignment='right',
+             #       transform=ax.transAxes,
+             #       color='black', fontsize=16)
 
         else:
 
@@ -782,7 +806,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 
         if plotNumber == len(angleSelections):
-            #plot.title('Energy Resolution')			
+            #plot.title('Energy Resolution')
             plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='lower left')
             plot.gca().set_ylim([0.,0.12])
             plot.gca().set_xlim([0.14, 11])
@@ -955,6 +979,176 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 ##########################################################################################
 
+def plotEnergyBias(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False,
+                                         save=False, collapse=False, txtOutfileLabel='xxx'):
+
+    if hasattr(angleSelections, '__iter__') == False:
+        angleSelections = [angleSelections]
+
+    plotNumber = 1
+    if len(angleSelections)==1:
+        plot.figure(figsize=(8,6))
+    elif collapse == False:
+        # Create the new subplot
+        plot.figure(figsize=(10,12))
+    else:
+        plot.figure(figsize=(10, 6.39))
+        ax = plot.subplot(111)
+
+    for angleSelection in angleSelections:
+
+        results_txt_TC = open( '%s_EnBias_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_UC = open( '%s_EnBias_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_P = open( '%s_EnBias_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
+
+        Energy = []
+        Bias_tracked = []
+        Bias_untracked = []
+        Bias_pair = []
+
+        # print 'Name, fwhm_tracked, fwhm_untracked, containment'
+
+        for key in data.keys():
+    
+            if len(data[key]) <= 1:
+                continue
+            energy = float(key.split('_')[1].replace('MeV',''))
+            #angle = float(key.split('_')[2].replace('Cos',''))
+            half = key.split('_')[2].replace('Cos','')
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+
+            if angle == angleSelection:
+                Energy.append(energy)
+
+                Bias_tracked.append(data[key][2][2] )
+                Bias_untracked.append(data[key][3][2] )
+                Bias_pair.append(data[key][4][2] )
+
+
+        # Convert everything to a numpy array
+        Energy = numpy.array(Energy)
+        Bias_tracked = numpy.array(Bias_tracked)
+        Bias_untracked = numpy.array(Bias_untracked)
+        Bias_pair = numpy.array(Bias_pair)
+
+        # Sort by energy
+        i = [numpy.argsort(Energy)]
+        Energy = Energy[i]
+        Bias_tracked = Bias_tracked[i]
+        Bias_untracked = Bias_untracked[i]
+        Bias_pair = Bias_pair[i]
+
+        # Remove the nan's
+        i=Bias_tracked != 'nan'
+        #st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3
+        bt=numpy.double(Bias_tracked[i])/numpy.double(Energy[i])*1e-3 - 1.0
+
+        j=Bias_untracked != 'nan'
+        #sut=numpy.double(Sigma_untracked[j])/numpy.double(Energy[j])*1e-3
+        but=numpy.double(Bias_untracked[j])/numpy.double(Energy[j])*1e-3 - 1.0
+
+        k=Bias_pair != 'nan'
+        #sp=numpy.double(Sigma_pair[k])/numpy.double(Energy[k])*1e-3
+        bp=numpy.double(Bias_pair[k])/numpy.double(Energy[k])*1e-3 - 1.0
+
+
+        # writing txt files
+        results_txt_TC.write("# Energy[MeV] EnBias_TkrCompton[FitMax/Energy-1]\n")
+        for ii, en in enumerate(Energy[i]):
+            results_txt_TC.write("%.1f\t%.3f\n"%(en, bt[ii]))
+        results_txt_TC.close()
+        print('Created %s_EnBias_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
+            
+        results_txt_UC.write("# Energy[MeV] EnBias_UntkrCompton[FitMax/Energy-1]\n")
+        for ii, en in enumerate(Energy[j]):
+            results_txt_UC.write("%.1f\t%.3f\n"%(en, but[ii]))
+        results_txt_UC.close()
+        print('Created %s_EnBias_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
+        
+        results_txt_P.write("# Energy[MeV] EnBias_Pair[FitMax/Energy-1]\n")
+        for ii, en in enumerate(Energy[k]):
+             results_txt_P.write("%.1f\t%.3f\n"%(en, bp[ii]))
+        results_txt_P.close()
+        print('Created %s_EnBias_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
+        
+
+        # Print the data
+        if collapse==False:
+            ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
+
+            plot.scatter(Energy[i],bt,color='darkgreen')
+            #plot.plot(Energy[i], bt, color='darkgreen', alpha=0.5, lw=2, label='Compton')
+            plot.plot(Energy[i], bt, color='darkgreen', alpha=0.5, lw=2, label='Tracked Compton')
+
+            plot.scatter(Energy[j],but,color='blue')
+            plot.plot(Energy[j], but, color='blue', alpha=0.5, lw=2, label='Untracked Compton')
+
+            plot.scatter(Energy[k],bp,color='darkred')
+            plot.plot(Energy[k],bp, color='darkred', alpha=0.5, lw=2, label='Pair')
+
+            #plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
+             #       verticalalignment='bottom', horizontalalignment='right',
+             #       transform=ax.transAxes,
+             #       color='black', fontsize=16)
+
+        else:
+
+            angle = round(numpy.degrees(numpy.arccos(angleSelection)))
+
+            plot.scatter(Energy[i],bt, color=colors[plotNumber-1])
+            plot.plot(Energy[i], bt, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+
+            plot.scatter(Energy[j][1:-1], but[1:-1], color=colors[plotNumber-1])
+            plot.plot(Energy[j][1:-1], but[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
+
+            #plot.scatter(Energy[j][1:-1], but[1:-1], color=colors[plotNumber-1])
+            #plot.plot(Energy[j][1:-1], but[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
+
+            plot.scatter(Energy[k],bp, color=colors[plotNumber-1])
+            plot.plot(Energy[k],bp, color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+
+
+        if plotNumber == len(angleSelections):
+            #plot.title('Energy Resolution')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='lower left')
+            #plot.gca().set_ylim([-0.3,0.1])
+            #plot.gca().set_xlim([0.14, 11])
+
+        if xlog:
+            plot.xscale('log')
+            #plot.gca().set_xlim([0.14, 11])
+            #plot.gca().set_ylim([-0.3,0.1])
+
+
+        if ylog:
+            plot.yscale('log')
+
+        plot.ylabel(r'Energy Bias (FitMax / Energy - 1)')
+
+        if plotNumber != len(angleSelections):
+            ax.set_xticklabels([])
+
+        if plotNumber == len(angleSelections):
+            plot.xlabel(r'Energy (MeV)')
+
+        plotNumber = plotNumber + 1
+
+
+    plot.subplots_adjust(wspace=0, hspace=.2)
+
+    if save:
+        plot.savefig('EnergyBias_Cos%s.pdf' % angleSelections[0])
+        plot.savefig('EnergyBias_Cos%s.png' % angleSelections[0])
+
+    plot.show()
+
+    plot.close()
+
+    return Energy,bt,bp
+
+
+##########################################################################################
+
 def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, 
                       ylog=False, save=False, show=True, collapse=False, 
                     SurroundingSphere=150, txtOutfileLabel='xxx'):
@@ -984,6 +1178,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Pair  = []
 
         for key in data.keys():
+        
+            if len(data[key]) <= 1 :
+                continue
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
@@ -1437,6 +1634,9 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
     Containment68 = []
 
     for key in data.keys():
+
+        if len(data[key]) <= 1.0:
+            continue
 
         energy = float(key.split('_')[1].replace('MeV',''))
 
