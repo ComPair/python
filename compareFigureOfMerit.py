@@ -68,7 +68,10 @@ def parse_figureofmerit_file(fom_file):
     label = m1.group(0)
     m3 = re.search(r'%s'%ANG_STR, file_basename)
     ang = m3.group(0)
-    en, fom = np.loadtxt(fom_file).T
+    try:
+        en, fom = np.loadtxt(fom_file).T
+    except:
+        en, fom = (None, None)
     return en, fom, flag, float(ang), label
     
     
@@ -86,6 +89,8 @@ def compare_figureofmerit(**kwargs):
     plt.title(kwargs['title'], size=20)
     for i, f in enumerate(file_list):
         en_, fom_, flag, ang, label = parse_figureofmerit_file(f)
+        if en_ is None or fom_ is None:
+            continue
         if flag == 'TC':
             legend_label = f'{label} Cos{ang:.1f} Tracked'
             c = TC_color[TC_count]
@@ -127,7 +132,8 @@ def compare_figureofmerit(**kwargs):
         plt.savefig(f'{filename}')
         print(f"Created {filename} ...!")
         
-    plt.show()
+    else:
+        plt.show()
     
 if __name__ == '__main__':
     args = PARSER.parse_args()
