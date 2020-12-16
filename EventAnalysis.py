@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+"""### # ! /usr/bin/env python
+"""
 """
 ------------------------------------------------------------------------
 
@@ -55,6 +56,7 @@ from scipy.optimize import leastsq
 import scipy.optimize
 import math
 import glob
+import gzip
 
 try:
     import matplotlib.pyplot as plot
@@ -370,7 +372,13 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
     # Loop through the .tra file
     print('\nParsing: %s' % filename)
-    for line in fileinput.input([filename]):
+
+    if filename[-2:] == "gz": #compressed file
+        lines = gzip.open(filename, mode="rt")
+    else:
+        lines = fileinput.input([filename])
+    
+    for line in lines:
 
         try:
             sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
@@ -2026,7 +2034,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         old_dir = os.getcwd()
         os.chdir( directory )
         print ("Working in directory", directory )
-        filenames = glob.glob( './*.tra')
+        filenames = glob.glob( './*.tra') + glob.glob( './*.tra.gz')
 
 
     # Check if the user supplied a single file vs a list of files
@@ -2128,7 +2136,11 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_tracked, sigma_TrackedCompton])
             else:
                 print("Energy too low (<0.2 MeV) for Tracked Compton events...")
-
+                mean_tracked = numpy.nan
+                TrackedFitMax = numpy.nan
+                FWHM_energyTrackedComptonEvents = numpy.nan
+                FWHM_skewed_energyTrackedComptonEvents = numpy.nan
+                sigma_TrackedCompton = numpy.nan
 
         else:
 
@@ -2237,7 +2249,7 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
     # Check to see if the user supplied a directory.  If so, include all .sim files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.sim')
+        filenames = glob.glob(directory + '/*.sim' ) + glob.glob(directory + '/*.sim.gz' )
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:
@@ -2262,7 +2274,10 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         lookback = 1000
         IDs = []
         while len(IDs) == 0:
-            command = "tail -n %d %s" % (lookback, filename)
+            if filename[-2:] == "gz": 
+                command = "zcat %s | tail -n %d" % (filename, lookback) 
+            else:
+                command = "tail -n %d %s" % (lookback, filename)
             output = os.popen(command).read()
             IDs  = [line for line in output.split('\n') if "ID" in line]
             lookback += 1000
