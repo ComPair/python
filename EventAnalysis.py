@@ -93,6 +93,37 @@ def getDetailsFromFilename(filename):
 
     return details
 
+def RadialGaussian(x, norm, sigma):
+    """
+    RadialGaussian(x, norm, sigma)
+    Symmetric gaussian distribution in radial coordinates
+    Funtcion Parameters:
+    norm: Overall normalization
+    sigma: sigma (width) of the underlying gaussian distribution
+    """
+
+    return x * norm / ((2*numpy.pi)*sigma**2) * numpy.exp(-numpy.power( x/sigma, 2) / 2.0 )
+
+def RadialDoubleGaussian(x, norm1, sigma1, norm2, sigma2):
+    """
+    RadialGaussian(x, norm, sigma)
+    Symmetric gaussian distribution in radial coordinates
+    Funtcion Parameters:
+    norm: Overall normalization
+    sigma: sigma (width) of the underlying gaussian distribution
+    """
+
+    return RadialGaussian(x, norm1, sigma1 ) + RadialGaussian(x, norm2, sigma2)
+    
+
+def RadialKing(x, norm, sigma, gamma):
+    
+    return x * norm * 2 *numpy.pi * kingFunction(x, sigma, gamma)
+    
+def RadialDoubleKing(x, norm, f1, sigma1, gamma1, sigma2, gamma2):
+    
+    return x * norm * 2 *numpy.pi * (f1 * kingFunction(x, sigma1, gamma1) + (1-f1) * kingFunction(x, sigma2, gamma2)  )
+    
 
 
 def DoubleLorentzAsymGausArm(x, par):
@@ -1303,13 +1334,19 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
     if len(angles_fit) < 10:
         print("The number of events is too small (<10)")
-        return numpy.nan, numpy.nan, numpy.nan, numpy.nan
+        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, []
 
     # Set the plot size
     plot.figure(figsize=[10,7])
 
+    gs = gridspec.GridSpec(4,1)
+    ax1 = plot.subplot(gs[:3, :])
+
     # Create the axis
-    ax1 = plot.subplot(111)
+    # ax1 = plot.subplot(111)
+
+    containmentData_90 = numpy.quantile( angles_fit, .90 )
+    anglePlotRange[1] = containmentData_90
 
     # Create the histogram
     histogramResults = ax1.hist(angles_fit, bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -1349,14 +1386,79 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     contaimentBinned_68 = bincenters[index_68]
 
     # Add the containment values to the plot
-    ax1.plot([contaimentData_68,contaimentData_68], [0,ax1.get_ylim()[1]], color='green', linewidth=1.5, linestyle='--', label="68%% (data): %.2f deg" % contaimentData_68)
-    ax1.plot([contaimentBinned_68,contaimentBinned_68], [0,ax1.get_ylim()[1]], color='darkred', linewidth=1.5, linestyle='--', label="68%% (histogram): %.2f deg" %  contaimentBinned_68)
-    plot.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper right')
+    ax1.axvline(contaimentData_68, color='green', linewidth=1.5, linestyle='--', label="68%% (data): %.2f deg" % contaimentData_68)
+    ax1.axvline(contaimentBinned_68, color='#3e4d8b', linewidth=1.5, linestyle='--', label="68%% (histogram): %.2f deg" %  contaimentBinned_68)
 
     # Change to log scaling
     if log == True:
         ax1.set_xscale('log')
         ax1.set_yscale('log')
+        
+    
+    #Radial 2D gaussian is the product of 2 normal distributions, so 1 sigma corresponds to the 68% * 68% = 47% containment radius ec.
+    #68% containment radius is given by from scipy.stats import norm; norm.ppf( (numpy.sqrt(0.68) + 1 )/2.0 ) = 1.3551214210715499 sigma
+    sigma2D_to_68 = 1.3551214210715499
+    
+    try:
+    #if True:
+    
+        #startingValues = [numpy.sum(angles_binned), contaimentBinned_68 / sigma2D_to_68, numpy.sum(angles_binned), 5.0  ]
+        
+        #startingValues = [ numpy.sum(angles_binned), contaimentBinned_68 / sigma2D_to_68, 3 ]
+        
+        startingValues = [ numpy.sum(angles_binned), 0.5, 0.5*contaimentBinned_68, 3, 2*contaimentBinned_68, 2 ]
+       
+       
+        #F = RadialDoubleGaussian
+        #F = RadialKing
+        F = RadialDoubleKing
+        optimizedParameters, covariance = scipy.optimize.curve_fit(F, bincenters, angles_binned, startingValues)
+
+        # Calculate the optimized curve
+        y_fit = F(bincenters, *optimizedParameters)
+
+        angles_fit_cumulativeSum = numpy.cumsum(y_fit)
+        angles_fit_cumulativeMax = angles_fit_cumulativeSum[-1]
+
+        # Find the index that corresponds to 68% of the max
+        index_68 = numpy.where(angles_fit_cumulativeSum >= angles_fit_cumulativeMax*0.68)[0][0]
+
+        # Get the 68% containment of the cumulative sum of the binned angle distribution
+        containmentFit_68 = bincenters[index_68]
+
+        # Annotate the plot
+        ax1.axvline(containmentFit_68, color='darkred', linewidth=1.5, linestyle='--', label="68%% (%s fit): %.2f deg" % (F.__name__, containmentFit_68 ))
+
+        # Plot the fit results
+        ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
+
+        # Create a subplot for the residuals
+        
+        
+        ax2 = plot.subplot(gs[3, :])
+
+        # Plot the residuals
+        ax2.step(bincenters, angles_binned-y_fit, color='#3e4d8b', alpha=0.9)
+        ax2.plot([bincenters[0],bincenters[-1]], [0,0], color='darkred', linewidth=2, linestyle='--')
+        ax2.set_xlim(anglePlotRange)
+        ax2.set_ylabel( "Data - Fit" )
+        ax2.set_xlabel('Angular resolution (deg)')
+
+        # Set the minor ticks
+        #ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
+        #ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
+        #ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
+
+    except Exception as E:
+    #if False:
+
+        print("**** Warning: fit failed to converge! ****")
+        print(E)
+        optimizedParameters = []
+        containmentFit_68 = numpy.nan
+
+    ax1.legend(numpoints=1, scatterpoints=1, fontsize='medium', frameon=True, loc='upper right')
+
 
     # Print some statistics
     print("\n\nStatistics of ARM histogram and fit (Pair Events)")
@@ -1371,6 +1473,8 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     print("68%% containment (data): %.2f deg" % contaimentData_68)
     print("68%% containment (histogram): %.2f deg" %  contaimentBinned_68)
     print("")
+    print("%s fit parameters:" % F.__name__, optimizedParameters)
+    print("68%% containment (fit): %.2f deg" %  containmentFit_68)
 
     if filename is not None:
         f=getDetailsFromFilename(filename)
@@ -1384,7 +1488,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     else:
         plot.close()
 
-    return angles, openingAngles, contaimentData_68, contaimentBinned_68
+    return angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters
 
 
 ##########################################################################################
@@ -2173,7 +2277,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             # Calculate the angular resolution measurement (ARM) for pair events
             print("\n\nCalculating the angular resolution measurement for pair events...")
             print("EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)")
-            angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots, filename=filename)
+            #angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=True, angleFitRange=[0,30], anglePlotRange=[30/500/10,30])
+            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,30])
 
         else:
             sigma_pair = numpy.nan
@@ -2213,6 +2318,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
         output.write("Pair Energy FitMax (keV): %s\n" % fitMax_pair)
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
+        output.write("Pair Angular Resolution Fit Parameters: %s \n" % " ".join(map(str, optimizedParameters)))
 
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
 
