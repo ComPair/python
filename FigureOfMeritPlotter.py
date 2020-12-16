@@ -456,19 +456,19 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
     	# writing txt files	
         results_txt_TC.write("# Energy[MeV] AngRes_TkrCompton[deg]\n")
         for ii, en in enumerate(Energy[i]):
-        	results_txt_TC.write("%.1f\t%.1f\n"%(en, st[i][ii]))
+        	results_txt_TC.write("%.3f\t%.2f\n"%(en, st[i][ii]))
         results_txt_TC.close()
         print('Created %s_AngRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] AngRes_UntkrCompton[deg]\n")
         for ii, en in enumerate(Energy[j]):
-        	results_txt_UC.write("%.1f\t%.1f\n"%(en, sut[j][ii]))
+        	results_txt_UC.write("%.3f\t%.2f\n"%(en, sut[j][ii]))
         results_txt_UC.close()
         print('Created %s_AngRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] AngRes_Pair[deg]\n")
         for ii, en in enumerate(Energy[k]):
-        	results_txt_P.write("%.1f\t%.1f\n"%(en, sp[k][ii]))
+        	results_txt_P.write("%.3f\t%.2f\n"%(en, sp[k][ii]))
         results_txt_P.close()
         print('Created %s_AngRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
 
@@ -716,7 +716,6 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
             if angle == angleSelection:
                 Energy.append(energy)
-
                 Sigma_tracked.append(data[key][2][4])
                 Sigma_untracked.append(data[key][3][4])
                 Sigma_pair.append(data[key][4][4])
@@ -752,19 +751,19 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         # writing txt files
         results_txt_TC.write("# Energy[MeV] EnRes_TkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[i]):
-            results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
+            results_txt_TC.write("%.3f\t%.3f\n"%(en, st[ii]))
         results_txt_TC.close()
         print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
             
         results_txt_UC.write("# Energy[MeV] EnRes_UntkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[j]):
-            results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
+            results_txt_UC.write("%.3f\t%.3f\n"%(en, sut[ii]))
         results_txt_UC.close()
         print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] EnRes_Pair[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[k]):
-             results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
+             results_txt_P.write("%.3f\t%.3f\n"%(en, sp[ii]))
         results_txt_P.close()
         print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
@@ -1055,19 +1054,19 @@ def plotEnergyBias(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylo
         # writing txt files
         results_txt_TC.write("# Energy[MeV] EnBias_TkrCompton[FitMax/Energy-1]\n")
         for ii, en in enumerate(Energy[i]):
-            results_txt_TC.write("%.1f\t%.3f\n"%(en, bt[ii]))
+            results_txt_TC.write("%.3f\t%.3f\n"%(en, bt[ii]))
         results_txt_TC.close()
         print('Created %s_EnBias_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
             
         results_txt_UC.write("# Energy[MeV] EnBias_UntkrCompton[FitMax/Energy-1]\n")
         for ii, en in enumerate(Energy[j]):
-            results_txt_UC.write("%.1f\t%.3f\n"%(en, but[ii]))
+            results_txt_UC.write("%.3f\t%.3f\n"%(en, but[ii]))
         results_txt_UC.close()
         print('Created %s_EnBias_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] EnBias_Pair[FitMax/Energy-1]\n")
         for ii, en in enumerate(Energy[k]):
-             results_txt_P.write("%.1f\t%.3f\n"%(en, bp[ii]))
+             results_txt_P.write("%.3f\t%.3f\n"%(en, bp[ii]))
         results_txt_P.close()
         print('Created %s_EnBias_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
@@ -1253,19 +1252,19 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         # writing txt files	
         results_txt_TC.write("# Energy[MeV] Aeff_TkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_TC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
+        	results_txt_TC.write("%.3f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
         results_txt_TC.close()
         print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections))
         	
         results_txt_UC.write("# Energy[MeV] Aeff_UntkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_UC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
+        	results_txt_UC.write("%.3f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
         results_txt_UC.close()
         print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_P.write("%.1f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
+        	results_txt_P.write("%.3f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
         results_txt_P.close()
         print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
@@ -1423,7 +1422,7 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
     	print('         ' + ' |  tracked  | untracked |  compton  |    pair  ' * len(angleSelections))
     	print('------------' + '-' * 48*len(angleSelections))
     	for energy, ds in table_data:
-        	print('% 8.1f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds])))
+        	print('% 8.2f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds])))
 
     return table_data
 
@@ -1846,7 +1845,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         else:
             mev2erg=1
             unit='MeV'
-            ylim=[1e-7,5e-5]
+            ylim=[1e-7,5e-4]
 
         plot.scatter(Energy, Sensitivity_tracked*mev2erg, color='darkgreen')
         plot.plot(Energy, Sensitivity_tracked*mev2erg, color='darkgreen', alpha=0.5, label='Compton')
@@ -1864,7 +1863,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         if ylog:
             plot.yscale('log')
 
-        plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+        plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='best')
 
         if save:
             plot.savefig('SourceSensitivity.pdf', bbox_inches='tight')
