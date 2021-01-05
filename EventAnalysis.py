@@ -1125,7 +1125,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
         # Calculate the product of the vector magnitudes
         #print direction_source, direction_source_reconstructed
         angle = angularSeparation(direction_source, direction_source_reconstructed)
-                
+
         #angle_shift = angle-float(sourceTheta)
         #print angle, angle_shift
 
@@ -2307,13 +2307,15 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the angular resolution measurement for pair events...")
             print("EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)")
             #angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=True, angleFitRange=[0,30], anglePlotRange=[30/500/10,30])
-            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,30])
+            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=3000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,30])
 
         else:
             sigma_pair = numpy.nan
             fitMax_pair = numpy.nan
             contaimentData_68 = numpy.nan
             FWHM_pairComptonEvents = numpy.nan
+            optimizedParameters=[]
+            
 
         # Open the results filename for writing
         output_filename = filename.replace('.tra','.log')
