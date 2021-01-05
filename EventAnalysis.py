@@ -366,6 +366,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     direction_recoilElectron = []
     direction_pairElectron = []
     direction_pairPositron = []
+    
+    # Original photon directions
+    true_direction_PairEvents = []
+    
 
     # Define other lists
     phi_Tracker = []
@@ -429,6 +433,9 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
         if 'ET ' in line:
 
+            # new event -- reset true information just to be safe
+            trueDirection = None
+
             # Split the line
             lineContents = line.split() 
 
@@ -467,6 +474,14 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 # Events don't get reconstructed for a number of reasons
                 # In pair, it's mostly 'TooManyHistInCSR'
                 numberOfBadEvents = numberOfBadEvents + 1
+
+        ####### True Information #######
+        
+        if 'OI' in line and skipEvent == False:
+        
+            lineContents = line.split()
+            xTrue, yTrue, zTrue = lineContents[4:7]
+            trueDirection = [-float(xTrue), -float(yTrue), -float(zTrue)]
 
         ####### Compton Events #######
 
@@ -531,7 +546,6 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
             # Record the energy error of the Compton event (regardless of whether it was has a tracked or untrack electron)
             energy_ComptonEvents_error.append( math.sqrt( energy_firstScatteredPhoton_error[-1]**2 + energy_recoiledElectron_error[-1]**2 ) )
-
 
             # Determine if the recoil electron was tracked by the detector
             if x_electron != 0:
@@ -638,6 +652,9 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Save the position
             position_pairConversion.append([x1,y1,z1])
 
+                            
+            # True information should have been read in earlier
+            true_direction_PairEvents.append( trueDirection )
 
 
         # Extract the pair electron information
@@ -750,6 +767,9 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['time'] = numpy.array(time).astype(float)
     events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
 
+    events['true_direction_PairEvents'] = true_direction_PairEvents
+    
+
     # Print some event statistics
     print("\n\nStatistics of Event Selection")
     print("***********************************")
@@ -797,6 +817,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
             energy_firstScatteredPhoton = events['energy_firstScatteredPhoton'][index_tracked]
             energy_recoiledElectron = events['energy_recoiledElectron'][index_tracked]
             phi_Tracker = events['phi_Tracker'][index_tracked]
+            
             if onlyUntrackedElectrons == True:
                 print("select either tracked or untracked compton events!!")
                 exit()
@@ -805,6 +826,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
             energy_firstScatteredPhoton = events['energy_firstScatteredPhoton'][index_untracked]
             energy_recoiledElectron = events['energy_recoiledElectron'][index_untracked]
             phi_Tracker = events['phi_Tracker'][index_untracked]
+
             if onlyTrackedElectrons == True:
                 print("select either tracked or untracked compton events!!")
                 exit()
@@ -815,7 +837,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         phi_Tracker = events['phi_Tracker']
         index_tracked = events['index_tracked']
         index_untracked=events['index_untracked']
-
+        
         # Determine whether to include only Tracked or Untracked electron events
         if onlyTrackedElectrons == True:
             energy_firstScatteredPhoton = energy_firstScatteredPhoton[index_tracked]
@@ -1062,13 +1084,23 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
         # Get the position of the gamma conversion
         position_conversion = events['position_pairConversion'][index]
 
-        # Get the x-axis offset based on the theta of the source.  This assumes phi=0
-        # Note: For Compton events adjusting the theta of the source happens in the parser
-        # for pair events, it happens here in the ARM calculation. 
-        dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+        direction_source = events['true_direction_PairEvents'][index]
+        #print( direction_source )
 
-        # Set the origin position of the original gamma-ray
-        position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+        if direction_source is None:
+
+            # Try to reconstruct the source direction from the cosTheta in the file name.
+            # Get the x-axis offset based on the theta of the source.  This assumes phi=0
+            # Note: For Compton events adjusting the theta of the source happens in the parser
+            # for pair events, it happens here in the ARM calculation.
+            dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+
+            # Set the origin position of the original gamma-ray
+            position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+
+            # Calculate the vector between the first interaction and the origin of the original gamma-ray
+            direction_source = -1*(position_conversion - position_source)
+            #print( direction_source )
 
         # Get the electron and positron direction vectors. These are unit vectors.
         direction_electron = events['direction_pairElectron'][index]
@@ -1084,9 +1116,6 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
         # Invert the bisect vector to obtain the reconstructed source vector
         direction_source_reconstructed = -1*direction_bisect
-
-        # Calculate the vector between the first interaction and the origin of the original gamma-ray
-        direction_source = -1*(position_conversion - position_source)
 
         # Calculate the distance of the conversion point to the top-center of the spacecraft
         position_topCenter = numpy.array([0,0,60])
