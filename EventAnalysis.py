@@ -1009,7 +1009,8 @@ def fcore(N, sigma_tail, sigma_core):
 
 ##########################################################################################
 
-def latScaleFactor(energy, c0=0.153, c1=0.0057000001, beta=-0.8):
+#def latScaleFactor(energy, c0=0.153, c1=0.0057000001, beta=-0.8):
+def latScaleFactor(energy, c0=3.687, c1=0.328, beta=-0.590):
 
     scaleFactor = numpy.sqrt( (c0 * ((energy/100)**beta) )**2 + c1**2)
 
@@ -2307,7 +2308,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the angular resolution measurement for pair events...")
             print("EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)")
             #angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=True, angleFitRange=[0,30], anglePlotRange=[30/500/10,30])
-            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=3000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,30])
+            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=3000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,30], getScaledDeviation=True)
 
         else:
             sigma_pair = numpy.nan
