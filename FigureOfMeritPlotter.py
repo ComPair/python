@@ -417,7 +417,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim',''))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -1183,7 +1183,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim',''))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
             #print energy, angle
 
             if angle == angleSelection:
