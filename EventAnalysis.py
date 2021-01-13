@@ -1392,7 +1392,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     # ax1 = plot.subplot(111)
 
     containmentData_90 = numpy.quantile( angles_fit, .90 )
-    anglePlotRange[1] = containmentData_90
+    #anglePlotRange[1] = containmentData_90
 
     # Create the histogram
     histogramResults = ax1.hist(angles_fit, bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
