@@ -1039,14 +1039,14 @@ def getScaledDeviation(events, sourceTheta=0):
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,30], anglePlotRange=[0,30], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,30], anglePlotRange=[0,30], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False, useTrueEnergyForScaling=True, sourceEnergy = None):
 
 
     # Define the list to contain the resulting angle measurements
     angles = []
     openingAngles = []
     distances = []
-
+    
     # Start some counters
     plotNumber = 0
     numberOfRejectedEvents = 0
@@ -1133,11 +1133,23 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
         # Normalized by the incoming photon's reconstructed energy (for PSF fitting)
         if getScaledDeviation == True:
 
-            # Convert from keV to MeV 
-            energy_PairSum_MeV = energy_PairSum * 0.001 
+            if useTrueEnergyForScaling:
 
-            # Calculate the scale factor
-            scaleFactor = latScaleFactor(energy_PairSum_MeV)
+                # True energy
+                trueEnergy = events['trueEnergy'][index] / 1e3
+        
+                if trueEnergy is None:
+                    trueEnergy = sourceEnergy / 1e3
+
+                scaleFactor = latScaleFactor(trueEnergy)
+
+            else:
+
+                # Convert from keV to MeV
+                energy_PairSum_MeV = energy_PairSum * 0.001
+
+                # Calculate the scale factor
+                scaleFactor = latScaleFactor(energy_PairSum_MeV)
 
             # Get the energy scaled angular seperation
             angle = angle / scaleFactor
@@ -2308,7 +2320,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the angular resolution measurement for pair events...")
             print("EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)")
             #angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=True, angleFitRange=[0,30], anglePlotRange=[30/500/10,30])
-            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=1000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,10], anglePlotRange=[-0.1,3], getScaledDeviation=True)
+
+            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=1000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,10], anglePlotRange=[-0.1,3], getScaledDeviation=True, useTrueEnergyForScaling=True, sourceEnergy=energy*1e3)
 
         else:
             sigma_pair = numpy.nan
