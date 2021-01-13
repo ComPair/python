@@ -369,7 +369,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     
     # Original photon directions
     true_direction_PairEvents = []
-    
+    true_energy_PairEvents = []
 
     # Define other lists
     phi_Tracker = []
@@ -435,6 +435,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
             # new event -- reset true information just to be safe
             trueDirection = None
+            trueEnergy = None
 
             # Split the line
             lineContents = line.split() 
@@ -482,6 +483,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             lineContents = line.split()
             xTrue, yTrue, zTrue = lineContents[4:7]
             trueDirection = [-float(xTrue), -float(yTrue), -float(zTrue)]
+            trueEnergy = float( lineContents[10] )
 
         ####### Compton Events #######
 
@@ -655,6 +657,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                             
             # True information should have been read in earlier
             true_direction_PairEvents.append( trueDirection )
+            true_energy_PairEvents.append( trueEnergy )
 
 
         # Extract the pair electron information
@@ -768,7 +771,8 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
 
     events['true_direction_PairEvents'] = true_direction_PairEvents
-    
+    events['true_energy_PairEvents'] = true_energy_PairEvents
+
 
     # Print some event statistics
     print("\n\nStatistics of Event Selection")
@@ -1136,7 +1140,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
             if useTrueEnergyForScaling:
 
                 # True energy
-                trueEnergy = events['trueEnergy'][index] / 1e3
+                trueEnergy = events['true_energy_PairEvents'][index] / 1e3
         
                 if trueEnergy is None:
                     trueEnergy = sourceEnergy / 1e3
