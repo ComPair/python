@@ -2241,8 +2241,14 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
         if energy <= maximumComptonEnergy:
-            if energy >= 3:
-                phiRadiusCompton = phiRadiusCompton/3.
+            
+            phiRadiusCompton = 15
+            
+            if energy < 0.3:
+                phiRadiusCompton = 30
+            
+            #if energy >= 3:
+                #phiRadiusCompton = phiRadiusCompton/3.
 
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
@@ -2277,6 +2283,15 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 dphi_untracked = numpy.nan
 
             if energy>0.2:
+
+                phiRadiusCompton = 15
+            
+                if energy < 0.6:
+                    phiRadiusCompton = 30
+                    
+                if energy < 0.3:
+                    phiRadiusCompton = 45
+
                 print("--------- Tracked Compton Events ---------")
                 print("Calculating the energy resolution for Tracked Compton events...")
                 print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
@@ -2325,7 +2340,17 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)")
             #angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=500, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=True, angleFitRange=[0,30], anglePlotRange=[30/500/10,30])
 
-            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=1000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,10], anglePlotRange=[-0.1,3], getScaledDeviation=True, useTrueEnergyForScaling=True, sourceEnergy=energy*1e3)
+            #WITH SCALING
+            #angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=1000, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,10], anglePlotRange=[-0.1,3], getScaledDeviation=True, useTrueEnergyForScaling=True, sourceEnergy=energy*1e3)
+            
+            plotPair = 30
+            if energy > 20:
+                plotPair = 15
+            if energy >= 100:
+                    plotPair = 7.5
+                    
+            
+            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=300, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,plotPair], getScaledDeviation=False )
 
         else:
             sigma_pair = numpy.nan
