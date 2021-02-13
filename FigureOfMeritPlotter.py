@@ -1950,9 +1950,9 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     plot.gca().set_yscale('log')
     plot.gca().set_xlim([1e-2,1e6])
     plot.gca().set_ylim(ylim)
-    plot.gca().set_xlabel('Energy (MeV)', fontsize=16, fontname="Helvetica")
+    plot.gca().set_xlabel('Energy (MeV)', fontsize=16, )# fontname="Helvetica")
     plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ ($\gamma$ '+unit+' cm$^{-2}$ s$^{-1}$)', fontsize=16)
-    plot.annotate('Fermi-LAT', xy=(1e3,(1e-6*mev2erg)),xycoords='data',fontsize=16,color='magenta')
+    plot.annotate('Fermi-LAT', xy=(2e3,(1e-6*mev2erg)),xycoords='data',fontsize=16,color='magenta')
 
     #EGRET from https://heasarc.gsfc.nasa.gov/docs/cgro/egret/egret_tech.html#N_4_
     ind=numpy.arange(69,74,1)
@@ -1976,7 +1976,7 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     #SPI
     ind=numpy.arange(20,46)
     plot.plot(energy[ind],sens[ind]*mev2erg,color='green',lw=2)
-    plot.annotate('SPI', xy=(6e-2,(1e-4*mev2erg)),xycoords='data',fontsize=16,color='green')
+    plot.annotate('SPI', xy=(2e-2,(1e-5*mev2erg)),xycoords='data',fontsize=16,color='green')
 
     #COMPTEL
     comptel_energy=numpy.array([0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747])
@@ -2043,14 +2043,15 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 
     #Combine with activation simulation numbers
-    amego_activation_interp = numpy.interp(compair_eng[(compair_eng>0.5) & (compair_eng<=10)],amego_activation_energy, amego_activation_sens)
+    #HFamego_activation_interp = numpy.interp(compair_eng[(compair_eng>0.5) & (compair_eng<=10)],amego_activation_energy, amego_activation_sens)
     #plot.plot(compair_eng[(compair_eng>0.3) & (compair_eng<=10)], amego_activation_interp,color='blue', lw=3, linestyle='--')
-    for e in range(len(compair_eng[(compair_eng>0.5) & (compair_eng<=10)])):
-        combined[e+2]= (amego_activation_interp[e] + combined[e+2])/2
+    #HFfor e in range(len(compair_eng[(compair_eng>0.5) & (compair_eng<=10)])):
+    #HF    combined[e+2]= (amego_activation_interp[e] + combined[e+2])/2
 
     #plot.plot(compair_eng,tracked,'r--',color='grey',lw=2)	
     #plot.plot(compair_eng,pair,'r--',color='grey',lw=2)
-    plot.plot(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)],combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
+    #HFplot.plot(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)],combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
+    plot.plot(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)],combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg,color='grey',lw=4, ls="--")
 
     print("Final AMEGO Numbers, energy:", compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])
     print("Final AMEGO Numbers, energy:", combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg )
@@ -2066,17 +2067,23 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     #plot.annotate('Previous ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
 
     #plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
-    plot.annotate('AMEGO', xy=(1,(3e-7*mev2erg)),xycoords='data',fontsize=22)
+    plot.annotate('AMEGO-X (DSSD)', xy=(0.5,(1e-5*mev2erg)),xycoords='data',fontsize=16, color="grey")
+
+
+    pixel = ascii.read("/Users/hfleisc1/amego_software/ComPair/simfiles/pixel_results_to_copy/AMEGO_sensitivity_Cos0.8.dat", names = ["E", "sensitivity"] )
+    plot.plot( pixel["E"], pixel["sensitivity"] ,color='black',lw=4)
+    plot.annotate('AMEGO-X (AstroPix)', xy=(0.2,(8e-7*mev2erg)),xycoords='data',fontsize=20)
+
 
     if save:
-        plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
+        #plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
         plot.savefig('full_sensitivity_Cos%s.png' % angleSelection)
         fout=open('AMEGO_sensitivity_Cos%s.dat' %angleSelection,"w")
-        fout.write('Energy (MeV)'+"\t"+ 'E2xSensitivity ('+unit+'cm-2 s-1)')
-        for i in range(len(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])):
-            fout.write(str(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)][i])+"\t"+\
-                str(combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg))
-
+        fout.write('Energy (MeV)'+"\t"+ 'E2xSensitivity ('+unit+'cm-2 s-1)\n')
+        for i in range(len(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)])):
+            fout.write(str(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)][i])+"\t"+\
+                str(combined[(compair_eng>0.05) & (compair_eng<=1e3)][i]*mev2erg) + "\n")
+        fout.close()
     if doplot == True:
         plot.show()
 
