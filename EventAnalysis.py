@@ -343,6 +343,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     energy_firstScatteredPhoton_error = []
     energy_recoiledElectron = []
     energy_recoiledElectron_error = []
+    
 
     # Define the lists to store energy information for pair events
     energy_pairElectron = []
@@ -577,33 +578,39 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
                 # Add this event to the index of untracked events
                 index_untracked.append(eventNumber)
-
-
-            # Store the origin coordinates of the original gamma-ray 
+                
+            # Store the origin coordinates of the original gamma-ray
             position0 = numpy.array([x0, y0, z0])
             # position0Error = numpy.array([x1_error,y1_error,z1_error])
-
-            # Get the x-axis offset based on the theta of the source.  This assumes phi=0
-            # Note: For Compton events adjusting the theta of the source happens in the parser
-            # for pair events, it happens in the ARM calculation. 
-            dx = numpy.tan(numpy.arccos(sourceTheta)) * (z1 - z0)
-
-            # Set the origin position of the original gamma-ray
-            position0 = numpy.array([x1-dx, y1, z0])
 
             # Store the coordinates of the first interaction in an array
             position1 = numpy.array([x1, y1, z1])
             position1Error = numpy.array([x1_error, y1_error, z1_error])
 
-            # Store the coordinates of the second interaction in an array       
+            # Store the coordinates of the second interaction in an array
             position2 = numpy.array([x2, y2, z2])
             position2Error = numpy.array([x2_error, y2_error, z2_error])
 
             # Calculate the vector between the second and first interaction
             directionVector2 = position2 - position1
 
-            # Calculate the vector between the first interaction and the origin of the original gamma-ray
-            directionVector1 = position1 - position0
+
+            if trueDirection is None:
+            
+                # Get the x-axis offset based on the theta of the source.  This assumes phi=0
+                # Note: For Compton events adjusting the theta of the source happens in the parser
+                # for pair events, it happens in the ARM calculation.
+                dx = numpy.tan(numpy.arccos(sourceTheta)) * (z1 - z0)
+
+                # Set the origin position of the original gamma-ray
+                position0 = numpy.array([x1-dx, y1, z0])
+                
+                # Calculate the vector between the first interaction and the origin of the original gamma-ray
+                directionVector1 = position1 - position0
+                print(directionVector1)
+
+            else:
+                directionVector1 = [-x for x in trueDirection]
 
             # Calculate the product of the vector magnitudes
             product = numpy.linalg.norm(directionVector1) * numpy.linalg.norm(directionVector2)
@@ -653,7 +660,6 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
             # Save the position
             position_pairConversion.append([x1,y1,z1])
-
                             
             # True information should have been read in earlier
             true_direction_PairEvents.append( trueDirection )
@@ -882,12 +888,12 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     gs = gridspec.GridSpec(4,1)
     ax1 = plot.subplot(gs[:3, :])
     
-    if len(dphi[selection]) < 10:
-        print("The number of events is not sufficient (<10)")
+    if len(dphi[selection]) < 50:
+        print("The number of events is not sufficient (<50)")
         return numpy.nan, numpy.nan
-    elif len(dphi[selection]) < 500:
-        print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
-        numberOfBins = 25
+    #elif len(dphi[selection]) < 500:
+    #    print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
+    #    numberOfBins = 25
         
     # Create the histogram
     histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -895,11 +901,11 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
 
     # Extract the binned data and bin locations
     dphi_binned = histogram_angleResults[0]
-    if max(dphi_binned) < 10:
-        numberOfBins = 20
-        histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
-        ax1.set_xlim([-1*phiRadius,phiRadius])
-        dphi_binned = histogram_angleResults[0]
+    #if max(dphi_binned) < 10:
+    #    numberOfBins = 20
+    #    histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+    #    ax1.set_xlim([-1*phiRadius,phiRadius])
+    #    dphi_binned = histogram_angleResults[0]
 
     bins = histogram_angleResults[1]
     bincenters = 0.5*(bins[1:]+bins[:-1])
