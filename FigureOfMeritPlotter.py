@@ -586,7 +586,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -712,7 +712,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -884,7 +884,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
 			if energy == energySelection:
 				Angle.append(angle)
@@ -1014,7 +1014,7 @@ def plotEnergyBias(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylo
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -1183,7 +1183,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", "").replace(".gz", ""))
             #print energy, angle
 
             if angle == angleSelection:
@@ -1366,7 +1366,7 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
     for key in data.keys():
         energy = float(key.split('_')[1].replace('MeV', ''))
         half = key.split('_')[2].replace('Cos', '')
-        angle = float(half.replace('.inc1.id1.sim', ''))
+        angle = float(half.replace('.inc1.id1.sim', '').replace(".gz", ""))
 
         #print energy, angle
 
@@ -1473,7 +1473,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -1595,7 +1595,7 @@ def resultsToFits(data, outfile='output.fits'):
 	for key in data.keys():
 		energy = float(key.split('_')[1].replace('MeV',''))
 		half = key.split('_')[2].replace('Cos','')
-		angle = float(half.replace('.inc1.id1.sim',''))
+		angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
 		if energy not in Energy:
 			Energy.append(energy)
 		if angle not in Angle:
@@ -1641,7 +1641,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
 
         #angle = float(key.split('_')[2].replace('Cos',''))
         half = key.split('_')[2].replace('Cos','')
-        angle = float(half.replace('.inc1.id1.sim',''))
+        angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
         if angle == angleSelection:
 
             # Get the number of reconstructed events
