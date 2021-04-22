@@ -6,6 +6,8 @@ Various scripts and config files to obtain simulated background spectra from `.t
 
 `PlotBackground.cxx`: Reads in the root files from the previous step to normalize and plot the spectra and calculate the total background rates (sum over all components). Again, input and output files and simulated time are hardcoded. Output: plots (png, pdf) of the reconstructed background spectrum for each component, root files with said spectra, and root files with just the total background histogram for each event type. Use the `hadd` macro to combine those into one file if desired. 
 
+`PlotTotalBG.C`: Root script to plot total Untracked Compton/Tracked Compton/Pair background spectra (summed over all components), using the output from the previous script.
+
 `mimrec_AMEGOX_PlotBkgSpectrum_all.cfg`: Config file, selecting both Compton and pair events.
 
 `mimrec_AMEGOX_PlotBkgSpectrum_C.cfg`: Config file, Compton only.
