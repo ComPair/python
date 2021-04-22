@@ -1,6 +1,8 @@
 GEO=/Home/eud/hfleisc1/amego_software/ComPair/Geometry/AMEGO_Midex/TradeStudies/Tracker/BasePixelTracker/AmegoBase.geo.setup
 #GEO=/Home/eud/hfleisc1/amego_software/ComPair/Geometry/AMEGO_Midex/AmegoBase.geo.setup
 
+SIMDIR=/data/slag2/hfleisc1/amego_sims/simfiles/
+
 INDIR=$SIMDIR/pixel/BG_above_0.01MeV/
 CWDIR=${PWD}
 
