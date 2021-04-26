@@ -340,6 +340,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     qualityOfComptonReconstruction = []
     qualityOfPairReconstruction = []
 
+    # Original (true) information
+    true_direction_PairEvents = []
+    true_energy_PairEvents = []
+
 
     # Read the number of lines in the file
     command = 'wc %s' % filename
@@ -397,6 +401,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
         if 'ET ' in line:
 
+            # new event -- reset true information just to be safe
+            trueDirection = None
+            trueEnergy = None
+
             # Split the line
             lineContents = line.split() 
 
@@ -435,6 +443,15 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 # Events don't get reconstructed for a number of reasons
                 # In pair, it's mostly 'TooManyHistInCSR'
                 numberOfBadEvents = numberOfBadEvents + 1
+
+        ####### True Information #######
+        
+        if 'OI' in line and skipEvent == False:
+        
+            lineContents = line.split()
+            xTrue, yTrue, zTrue = lineContents[4:7]
+            trueDirection = [-float(xTrue), -float(yTrue), -float(zTrue)]
+            trueEnergy = float( lineContents[10] )
 
         ####### Compton Events #######
 
@@ -606,6 +623,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Save the position
             position_pairConversion.append([x1,y1,z1])
 
+            # True information should have been read in earlier
+            true_direction_PairEvents.append( trueDirection )
+            true_energy_PairEvents.append( trueEnergy )
+
 
 
         # Extract the pair electron information
@@ -717,6 +738,8 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
     events['time'] = numpy.array(time).astype(float)
     events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
+    events['true_direction_PairEvents'] = true_direction_PairEvents
+    events['true_energy_PairEvents'] = true_energy_PairEvents
 
     # Print some event statistics
     print("\n\nStatistics of Event Selection")
@@ -1029,14 +1052,23 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
         # Get the position of the gamma conversion
         position_conversion = events['position_pairConversion'][index]
+        direction_source = events['true_direction_PairEvents'][index]
+        #print( direction_source )
 
-        # Get the x-axis offset based on the theta of the source.  This assumes phi=0
-        # Note: For Compton events adjusting the theta of the source happens in the parser
-        # for pair events, it happens here in the ARM calculation. 
-        dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+        if direction_source is None:
 
-        # Set the origin position of the original gamma-ray
-        position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+            # Try to reconstruct the source direction from the cosTheta in the file name.
+            # Get the x-axis offset based on the theta of the source.  This assumes phi=0
+            # Note: For Compton events adjusting the theta of the source happens in the parser
+            # for pair events, it happens here in the ARM calculation.
+            dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+
+            # Set the origin position of the original gamma-ray
+            position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+
+            # Calculate the vector between the first interaction and the origin of the original gamma-ray
+            direction_source = -1*(position_conversion - position_source)
+            #print( direction_source )
 
         # Get the electron and positron direction vectors. These are unit vectors.
         direction_electron = events['direction_pairElectron'][index]
