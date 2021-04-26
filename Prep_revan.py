@@ -66,4 +66,4 @@ if __name__ == "__main__":
             for cosTh,ang in zip(cos_ang,angles):
                 source_file='%s_%.3fMeV_Cos%.1f'%(OneBeam,myene/1000.,cosTh)
                 create_file(source_file)
-                f.write("revan -a -n -f {}.inc1.id1.sim -g {}/{} -c {}.cfg\n".format(source_file, geometry_dir,geometry_file, source_file))
+                f.write("revan -a -n -f {}.inc1.id1.sim -g {}/{} -c {}.revan.cfg\n".format(source_file, geometry_dir,geometry_file, source_file))
