@@ -292,6 +292,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
             if "Compton Events Reconstructed: " in analysisLogLine:
                 numberOfComptonEvents = analysisLogLine.split()[-1]
 
+            if "Compton Events After Cuts: " in analysisLogLine:
+                numberOfComptonEventsCut = analysisLogLine.split()[-1]
+
             if "Compton Energy Resolution (keV): " in analysisLogLine:
                 FWHM_energyComptonEvents = analysisLogLine.split()[-1]
             
@@ -307,6 +310,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
             if "Untracked Compton Events Reconstructed: " in analysisLogLine:
                 numberOfUntrackedComptonEvents = analysisLogLine.split()[-1]
 
+            if "Untracked Compton Events After Cuts: " in analysisLogLine:
+                numberOfUntrackedComptonEventsCut = analysisLogLine.split()[-1]
+
             if "Untracked Compton Energy Resolution (keV): " in analysisLogLine:
                 FWHM_energyUntrackedComptonEvents = analysisLogLine.split()[-1]
             
@@ -321,6 +327,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
             if "Tracked Compton Events Reconstructed: " in analysisLogLine:
                 numberOfTrackedComptonEvents = analysisLogLine.split()[-1]
+                
+            if "Tracked Compton Events After Cuts: " in analysisLogLine:
+                numberOfTrackedComptonEventsCut = analysisLogLine.split()[-1]
 
             if "Tracked Compton Energy Resolution (keV): " in analysisLogLine:
                 FWHM_energyTrackedComptonEvents = analysisLogLine.split()[-1]
@@ -336,6 +345,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
             if "Pair Events Reconstructed: " in analysisLogLine:
                 numberOfPairEvents = analysisLogLine.split()[-1]
+
+            if "Pair Events After Cuts: " in analysisLogLine:
+                numberOfPairEventsCut = analysisLogLine.split()[-1]
 
             if "Pair Energy Resolution (keV): " in analysisLogLine:
                 FWHM_pairEvents = analysisLogLine.split()[-1]
@@ -361,9 +373,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         holder=-999. # This is required for historic reasons
 
         if float(energy) <=30.0:
-            data[simulationName].append([holder, holder, fitmax_energyComptonEvents, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
-            data[simulationName].append([holder, holder, fitmax_energyTrackedComptonEvents, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
-            data[simulationName].append([holder, holder, fitmax_energyUntrackedComptonEvents, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents, ])
+            data[simulationName].append([holder, numberOfComptonEventsCut, fitmax_energyComptonEvents, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
+            data[simulationName].append([holder, numberOfTrackedComptonEventsCut, fitmax_energyTrackedComptonEvents, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
+            data[simulationName].append([holder, numberOfUntrackedComptonEventsCut, fitmax_energyUntrackedComptonEvents, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents, ])
         else:
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
@@ -373,7 +385,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
     #			data[simulationName].append([holder, holder, holder, holder, FWHM_pairEvents, holder, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
 
         if float(energy) >=3.0:
-                data[simulationName].append([holder, holder, fitmax_pairEvents, holder, FWHM_pairEvents, numberOfPairEventsIdeal, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
+                data[simulationName].append([holder, numberOfPairEventsCut, fitmax_pairEvents, holder, FWHM_pairEvents, numberOfPairEventsIdeal, contaimentData_68, numberOfPairEvents, numberOfNotReconstructedEvents])
         else:
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
@@ -1150,7 +1162,7 @@ def plotEnergyBias(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylo
 
 def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, 
                       ylog=False, save=False, show=True, collapse=False, 
-                    SurroundingSphere=150, txtOutfileLabel='xxx'):
+                    SurroundingSphere=150, txtOutfileLabel='xxx', includeCutEffectiveArea = False):
 
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
@@ -1175,6 +1187,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Tracked = []
         EffectiveArea_Untracked  = []
         EffectiveArea_Pair  = []
+        CutEffectiveArea_Tracked = []
+        CutEffectiveArea_Untracked  = []
+        CutEffectiveArea_Pair  = []
 
         for key in data.keys():
         
@@ -1208,6 +1223,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
                     numberOfReconstructedEvents_tracked = float(data[key][2][-1])
                     numberOfReconstructedEvents_untracked = float(data[key][3][-1])
                     numberOfReconstructedEvents_pair = float(data[key][4][-2])
+                    cut_numberOfReconstructedEvents_tracked = float(data[key][2][1])
+                    cut_numberOfReconstructedEvents_untracked = float(data[key][3][1])
+                    cut_numberOfReconstructedEvents_pair = float(data[key][4][1])
 
                 #numberOfReconstructedEvents_tracked = float(data[key][1][-1])
                 #numberOfReconstructedEvents_untracked = float(data[key][2][-1])
@@ -1217,12 +1235,18 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
                 effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+                cut_effectiveArea_tracked = (cut_numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+                cut_effectiveArea_untracked = (cut_numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+                cut_effectiveArea_pair = (cut_numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
 
                 # Store the results
                 Energy.append(energy)
                 EffectiveArea_Tracked.append(effectiveArea_tracked)
                 EffectiveArea_Untracked.append(effectiveArea_untracked)
                 EffectiveArea_Pair.append(effectiveArea_pair)
+                CutEffectiveArea_Tracked.append(cut_effectiveArea_tracked)
+                CutEffectiveArea_Untracked.append(cut_effectiveArea_untracked)
+                CutEffectiveArea_Pair.append(cut_effectiveArea_pair)
 
 
         # Convert everything to a numpy array
@@ -1230,6 +1254,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
         EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
         EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
+        CutEffectiveArea_Tracked = numpy.array(CutEffectiveArea_Tracked)
+        CutEffectiveArea_Untracked = numpy.array(CutEffectiveArea_Untracked)
+        CutEffectiveArea_Pair = numpy.array(CutEffectiveArea_Pair)
 
         # Sort by energy
         i = [numpy.argsort(Energy)]
@@ -1237,7 +1264,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Tracked = EffectiveArea_Tracked[i]
         EffectiveArea_Untracked = EffectiveArea_Untracked[i]
         EffectiveArea_Pair = EffectiveArea_Pair[i]
-    
+        CutEffectiveArea_Tracked = CutEffectiveArea_Tracked[i]
+        CutEffectiveArea_Untracked = CutEffectiveArea_Untracked[i]
+        CutEffectiveArea_Pair = CutEffectiveArea_Pair[i]
+
         #EffectiveArea_UntrackedSiStart=numpy.array([96.0/2884228*70685.8, 14936.0/2132319*70685.8, 21777.0/1744552*70685.8,\
  #                                                   17861.0/1568899*70685.8, 13722.0/1567836*70685.8, #numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, \
 #                                                    numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
@@ -1252,19 +1282,19 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         # writing txt files	
         results_txt_TC.write("# Energy[MeV] Aeff_TkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_TC.write("%.3f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
+        	results_txt_TC.write("%.3f\t%.1f\t%.1f\n"%(en, EffectiveArea_Tracked[ii], CutEffectiveArea_Tracked[ii]))
         results_txt_TC.close()
         print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections))
         	
         results_txt_UC.write("# Energy[MeV] Aeff_UntkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_UC.write("%.3f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
+        	results_txt_UC.write("%.3f\t%.1f\t%.1f\n"%(en, EffectiveArea_Untracked[ii], CutEffectiveArea_Untracked[ii]))
         results_txt_UC.close()
         print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_P.write("%.3f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
+        	results_txt_P.write("%.3f\t%.1f\t%.1f\n"%(en, EffectiveArea_Pair[ii], CutEffectiveArea_Pair[ii]))
         results_txt_P.close()
         print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
@@ -1280,8 +1310,14 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             #plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
             plot.plot(Energy, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=3, label='Tracked Compton')
 
+            if includeCutEffectiveArea:
+                plot.plot(Energy, CutEffectiveArea_Tracked, color='darkgreen', alpha = 0.5, lw=2, ls="--")
+
             plot.scatter(Energy, EffectiveArea_Untracked, color='blue')
             plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=3, label='Untracked Compton')
+
+            if includeCutEffectiveArea:
+                plot.plot(Energy, CutEffectiveArea_Untracked, color='blue', alpha = 0.5, lw=2, ls="--")
 
             #plot.scatter(Energy, EffectiveArea_UntrackedSiStart, color='blue')
             #plot.plot(Energy, EffectiveArea_UntrackedSiStart, color='blue', linestyle="--", alpha=0.5, lw=3, label='Untracked Compton in Silicon')
@@ -1289,6 +1325,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             plot.scatter(Energy, EffectiveArea_Pair, color='darkred')
             #plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=2, label='Pair')
             plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=3, label='Pair')
+
+            if includeCutEffectiveArea:
+                plot.plot(Energy, CutEffectiveArea_Pair, color='darkred', alpha = 0.5, lw=2, ls="--")
 
             #plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
              #   verticalalignment='bottom', horizontalalignment='right',
@@ -1322,7 +1361,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
         if xlog:
             plot.xscale('log')
-            plot.gca().set_xlim([0.1, 10000])
+            plot.gca().set_xlim([0.05, 10000])
 
         if ylog:
             plot.gca().set_ylim([1, 4000.])
@@ -1344,8 +1383,8 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
     plot.subplots_adjust(wspace=0, hspace=.2)
 
     if save:
-        plot.savefig('EffectiveArea_Cos%s.pdf' % angleSelections[0], bbox_inches='tight')
-        plot.savefig('EffectiveArea_Cos%s.png' % angleSelections[0], bbox_inches='tight')
+        plot.savefig('%s_EffectiveArea_Cos%s.pdf' % (txtOutfileLabel, angleSelections[0]), bbox_inches='tight')
+        plot.savefig('%s_EffectiveArea_Cos%s.png' % (txtOutfileLabel, angleSelections[0]), bbox_inches='tight')
 
     if show:
         plot.show()
@@ -1826,6 +1865,34 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
     Sensitivity_untracked = Isrc(Energy, exposure, EffectiveArea_Untracked, 3., omega(FWHM_untracked), background*50.)
     Sensitivity_pair = Isrc(Energy, exposure, EffectiveArea_Pair, 3., omega(Containment68), background)
 
+    tracked = Sensitivity_tracked
+    untracked = Sensitivity_untracked
+    pair = Sensitivity_pair
+    
+    combined=numpy.zeros(len(Energy))
+
+    for e in range(len(Energy)):
+        print("untracked and tracked and pair", untracked[e], tracked[e], pair[e])
+        if numpy.isnan(Sensitivity_pair[e]) and numpy.isnan(tracked[e]):
+            combined[e]=untracked[e]
+        if numpy.isnan(pair[e]) and numpy.isfinite(tracked[e]):
+            if untracked[e] > tracked[e]:
+                combined[e]=tracked[e]*(untracked[e]/(untracked[e]+tracked[e]))**0.5
+            if untracked[e] < tracked[e]:
+                combined[e]=untracked[e]*(tracked[e]/(tracked[e]+untracked[e]))**0.5
+        if numpy.isfinite(pair[e]) and numpy.isfinite(tracked[e]):
+            if tracked[e] > pair[e]:
+                combined[e]=pair[e]*(tracked[e]/(tracked[e]+pair[e]))**0.5
+                #print (tracked[e]/(tracked[e]+pair[e]))**0.5
+            if tracked[e] < pair[e]:
+                combined[e]=tracked[e]*(pair[e]/(tracked[e]+pair[e]))**0.5
+                #print (pair[e]/(tracked[e]+pair[e]))**0.5
+        if numpy.isnan(untracked[e]) and numpy.isnan(pair[e]):
+            combined[e]=tracked[e]
+        if numpy.isnan(untracked[e]) and numpy.isnan(tracked[e]):
+            combined[e]=pair[e]
+
+
     if doPSF:
         Sensitivity_pair[0]=numpy.nan
         Sensitivity_pair[1]=numpy.nan
@@ -1852,10 +1919,11 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         plot.scatter(Energy, Sensitivity_untracked*mev2erg, color='blue')	
         plot.plot(Energy, Sensitivity_untracked*mev2erg, color='blue', alpha=0.5, label='Compton (untracked)')
         plot.scatter(Energy, Sensitivity_pair*mev2erg, color='darkred')
-        plot.plot(Energy, Sensitivity_pair*mev2erg, color='darkred', alpha=0.5, label='Pair')	
+        plot.plot(Energy, Sensitivity_pair*mev2erg, color='darkred', alpha=0.5, label='Pair')
+        plot.plot(Energy, combined*mev2erg, color='grey', alpha=1.0, label='Combined')
         plot.xlabel(r'Energy (MeV)')
         plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
-        plot.ylim(ylim)
+        #plot.ylim(ylim)
 
         if xlog:
             plot.xscale('log')
@@ -1872,7 +1940,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
     if doplot:
         plot.show()
 
-    return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair 
+    return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair, combined
 
 ##########################################################################################
 

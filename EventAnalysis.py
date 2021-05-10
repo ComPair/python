@@ -77,6 +77,10 @@ except:
     pass
 ##########################################################################################
 
+# Set some constants
+electron_mc2 = 511.0        # KeV
+
+
 def getDetailsFromFilename(filename):
 
     '''Function to get the energy and angle from a filename.
@@ -344,6 +348,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     energy_recoiledElectron = []
     energy_recoiledElectron_error = []
     
+    cone_axis_angle = []
 
     # Define the lists to store energy information for pair events
     energy_pairElectron = []
@@ -367,6 +372,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     direction_recoilElectron = []
     direction_pairElectron = []
     direction_pairPositron = []
+
     
     # Original photon directions
     true_direction_PairEvents = []
@@ -594,6 +600,42 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Calculate the vector between the second and first interaction
             directionVector2 = position2 - position1
 
+            #HORIZON ANGLE CALCULATION
+
+            EarthAxis = (0,0,-1)
+            product = numpy.linalg.norm(directionVector2) * numpy.linalg.norm(EarthAxis)
+            if product != 0:
+
+                # Calculate the dot product
+                dotProduct = numpy.dot(-directionVector2, EarthAxis)
+
+                # Make sure we have sane results
+                value = dotProduct/product
+                if (value >  1.0): value =  1.0;
+                if (value < -1.0): value = -1.0;
+
+                # Get the reconstructed phi angle (in radians) and add the known angle to the source
+                ConeAxisAngle = numpy.rad2deg( numpy.arccos(value) )
+
+            else:
+
+                # Return zero in case the denominator is zero
+                ConeAxisAngle = 0.0
+                
+            value = 1 - electron_mc2 * (1/energy_firstScatteredPhoton[-1] - 1/(energy_recoiledElectron[-1] + energy_firstScatteredPhoton[-1]))
+
+            if (value >  1.0): value =  1.0;
+            if (value < -1.0): value = -1.0;
+
+            ComptonAngle = numpy.rad2deg( numpy.arccos(value) )
+            
+            HorizonAngle = numpy.abs(  ConeAxisAngle - ComptonAngle )
+
+            #print( directionVector2, [" %4.1f" %i for i in [ ConeAxisAngle, ComptonAngle, HorizonAngle ] ])
+
+            #END HORIZON ANGLE CALCULATION
+            
+            cone_axis_angle.append( ConeAxisAngle )
 
             if trueDirection is None:
             
@@ -778,6 +820,8 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
     events['true_direction_PairEvents'] = true_direction_PairEvents
     events['true_energy_PairEvents'] = true_energy_PairEvents
+    
+    events['cone_axis_angle'] = numpy.array(cone_axis_angle).astype(float)
 
 
     # Print some event statistics
@@ -807,10 +851,8 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
 ##########################################################################################
 
-def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True, filename=None, energyCutSelection=False, energyCut = [0, 0]):
+def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True, filename=None, energyCutSelection=False, energyCut = [0, 0], EHCut = None, ARMCut = None):
 
-    # Set some constants
-    electron_mc2 = 511.0        # KeV
 
     # Retrieve the event data
 #    energyCutSelection=False
@@ -822,12 +864,14 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         energy_firstScatteredPhoton = events['energy_firstScatteredPhoton'][energySelection]
         energy_recoiledElectron = events['energy_recoiledElectron'][energySelection]
         phi_Tracker = events['phi_Tracker'][energySelection]
+        cone_axis_angle = events['cone_axis_angle'][energySelection]
             
         if onlyTrackedElectrons == True:
             energy_firstScatteredPhoton = events['energy_firstScatteredPhoton'][index_tracked]
             energy_recoiledElectron = events['energy_recoiledElectron'][index_tracked]
             phi_Tracker = events['phi_Tracker'][index_tracked]
-            
+            cone_axis_angle = events['cone_axis_angle'][index_tracked]
+
             if onlyUntrackedElectrons == True:
                 print("select either tracked or untracked compton events!!")
                 exit()
@@ -836,6 +880,8 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
             energy_firstScatteredPhoton = events['energy_firstScatteredPhoton'][index_untracked]
             energy_recoiledElectron = events['energy_recoiledElectron'][index_untracked]
             phi_Tracker = events['phi_Tracker'][index_untracked]
+            cone_axis_angle = events['cone_axis_angle'][index_untracked]
+
 
             if onlyTrackedElectrons == True:
                 print("select either tracked or untracked compton events!!")
@@ -847,12 +893,14 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         phi_Tracker = events['phi_Tracker']
         index_tracked = events['index_tracked']
         index_untracked=events['index_untracked']
+        cone_axis_angle = events['cone_axis_angle']
         
         # Determine whether to include only Tracked or Untracked electron events
         if onlyTrackedElectrons == True:
             energy_firstScatteredPhoton = energy_firstScatteredPhoton[index_tracked]
             energy_recoiledElectron = energy_recoiledElectron[index_tracked]
             phi_Tracker = phi_Tracker[index_tracked]
+            cone_axis_angle = cone_axis_angle[index_tracked]
             if onlyUntrackedElectrons == True:
                 print("select either tracked or untracked compton events!!")
                 exit()
@@ -861,6 +909,8 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
             energy_firstScatteredPhoton = energy_firstScatteredPhoton[index_untracked]
             energy_recoiledElectron = energy_recoiledElectron[index_untracked]
             phi_Tracker = phi_Tracker[index_untracked]
+            cone_axis_angle = cone_axis_angle[index_untracked]
+
             if onlyTrackedElectrons == True:
                 print("select either tracked or untracked compton events!!")
                 exit()
@@ -873,10 +923,25 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     # value = value[index]
 
     # Calculate the theoretical phi angle (in radians)
-    phi_Theoretical = numpy.arccos(value);
+    phi_Theoretical = numpy.arccos(value)
 
     # Calculate the difference between the tracker reconstructed scattering angle and the theoretical scattering angle
     dphi = numpy.degrees(phi_Tracker) - numpy.degrees(phi_Theoretical)
+
+    #number of events passing ARM cuts/EH cuts
+    if ARMCut is not None:
+        arm_selection = (dphi > -ARMCut) & (dphi < ARMCut )
+    else:
+        arm_selection = ( dphi is not None )
+
+    if EHCut is not None:
+        EH_selection = numpy.fabs( numpy.degrees(phi_Theoretical) - cone_axis_angle ) < EHCut
+    else:
+        EH_selection = ( dphi is not None )
+
+    source_selection = (EH_selection & arm_selection)
+    n_selected = numpy.sum(source_selection)
+
 
     # Fit only a subsample of the data
     selection = numpy.where( (dphi > (-1*phiRadius)) & (dphi < phiRadius) )
@@ -890,7 +955,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     
     if len(dphi[selection]) < 50:
         print("The number of events is not sufficient (<50)")
-        return numpy.nan, numpy.nan
+        return numpy.nan, numpy.nan, n_selected
     #elif len(dphi[selection]) < 500:
     #    print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
     #    numberOfBins = 25
@@ -974,6 +1039,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     print("\n\nStatistics of ARM histogram and fit (Compton Events)")
     print("***********************************")
     print("Compton and pair events in ARM histogram: %s (%s%%)" % ( len(dphi[selection]), 100*len(dphi[selection])/(len(dphi)) ))
+    print("Events passin ARM and EH Cuts: %s (%s%%)" % ( n_selected, 100*n_selected/(len(dphi)) ))
     print("")
     print("Mean of fit: %s" % mean) 
     print("FWHM of fit: %s" %  FWHM)
@@ -998,7 +1064,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         plot.close()
 
 
-    return FWHM, dphi
+    return FWHM, dphi, n_selected
 
 
 ########################################################
@@ -1049,7 +1115,7 @@ def getScaledDeviation(events, sourceTheta=0):
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,30], anglePlotRange=[0,30], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False, useTrueEnergyForScaling=True, sourceEnergy = None):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,30], anglePlotRange=[0,30], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False, useTrueEnergyForScaling=True, sourceEnergy = None, ARMCut = None):
 
 
     # Define the list to contain the resulting angle measurements
@@ -1369,6 +1435,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     if onlyangles:
         return numpy.array(angles)
 
+    n_selected = numpy.sum( angles < ARMCut )
 
     # # Select the events within the desired quality range
     # selection_quality = numpy.where( events['qualityOfPairReconstruction'] <= qualityCut )
@@ -1518,6 +1585,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     print("")
     print("Total number of pair events: %s" % events['numberOfPairEvents'])
     print("Number of pair events passing quality cut  : %s (%s%%)" % ( len(angles), 100*len(angles)/(events['numberOfPairEvents']) ) )
+    print("Number of pair events passing ARM cut  : %s (%s%%)" % ( n_selected, 100*n_selected/(events['numberOfPairEvents']) ) )
     print("Number of pair events passing opening angle: %s (%s%%)" % ( oa_len, 100*oa_len/(events['numberOfPairEvents']) ) )
     print("Number of pair events included in ARM histogram: %s (%s%%)" % ( len(angles_fit), 100*len(angles_fit)/(len(angles_fit)) ) )
     print("")
@@ -1540,7 +1608,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
     else:
         plot.close()
 
-    return angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters
+    return angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters, n_selected
 
 
 ##########################################################################################
@@ -1937,7 +2005,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
 def plotDiagnostics(events, showPlots=True):
 
     # Get the angular resolution measurements
-    FWHM, dphi = getARMForComptonEvents(events, showPlots=False)
+    FWHM, dphi, n_selected = getARMForComptonEvents(events, showPlots=False)
 
     # Retrieve the event information
     energy_ComptonEvents = events['energy_ComptonEvents']
@@ -2172,7 +2240,7 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=15, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=15, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None, ARMCut = 180):
 
     """
     A function to plot the cosima output simulation file.
@@ -2265,7 +2333,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             # Calculate the angular resolution measurement (ARM) for All Compton events
             print("\n\nCalculating the angular resolution measurement for Compton events...")
             print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
-            FWHM_angleComptonEvents, dphi = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean, sigma_Compton])
+            #_, _, n_selected = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = False, ARMCut = ARMCut)
+
+            FWHM_angleComptonEvents, dphi, n_selected = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean, sigma_Compton], ARMCut = ARMCut )
 
             # Calculate the energy resolution for tracked vs untracked Compton events
             print("--------- Untracked Compton Events ---------")
@@ -2277,7 +2347,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
                 print("\n\nCalculating the angular resolution measurement for Untracked Compton events...")
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
-                FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_untracked, sigma_UntrackedCompton])
+                #_, _, n_selected_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = False, ARMCut = ARMCut)
+                
+                FWHM_angleUntrackedComptonEvents, dphi_untracked, _ = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_untracked, sigma_UntrackedCompton])
+                FWHM_angleUntrackedComptonEvents, dphi_untracked, n_selected_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_untracked, sigma_UntrackedCompton], ARMCut = ARMCut)
             else:
                 print("Energy too high (> 2 MeV) for untracked electrons. \n\n")
                 mean_untracked = numpy.nan
@@ -2287,6 +2360,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 sigma_UntrackedCompton = numpy.nan
                 FWHM_angleUntrackedComptonEvents = numpy.nan
                 dphi_untracked = numpy.nan
+                n_selected_untracked = numpy.nan 
 
             if energy>0.2:
 
@@ -2304,7 +2378,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton= getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
                 print("\n\nCalculating the angular resolution measurement for Tracked Compton events...")
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
-                FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_tracked, sigma_TrackedCompton])
+                #_, _, n_selected_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = False, ARMCut = ARMCut)
+                FWHM_angleTrackedComptonEvents, dphi_tracked, n_selected_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_tracked, sigma_TrackedCompton], ARMCut = ARMCut )
             else:
                 print("Energy too low (<0.2 MeV) for Tracked Compton events...")
                 mean_tracked = numpy.nan
@@ -2312,6 +2387,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 FWHM_energyTrackedComptonEvents = numpy.nan
                 FWHM_skewed_energyTrackedComptonEvents = numpy.nan
                 sigma_TrackedCompton = numpy.nan
+                n_selected_tracked = numpy.nan
 
         else:
 
@@ -2331,6 +2407,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             fitMax = numpy.nan
             UntrackedFitMax = numpy.nan
             TrackedFitMax = numpy.nan
+            n_selected = numpy.nan
+            n_selected_tracked = numpy.nan
+            n_selected_untracked = numpy.nan
 
         # Don't bother measuring the energy and angular resolutuon values for pair events below the specified minimumPairEnergy
         if energy >= minimumPairEnergy:
@@ -2356,7 +2435,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                     plotPair = 7.5
                     
             
-            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=300, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,plotPair], getScaledDeviation=False )
+            _, _, _, _, _, _, n_selected_pair = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=300, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,plotPair], getScaledDeviation=False, ARMCut = ARMCut, energyCut = energy*1e3 * 0.2 )
+            
+            angles, openingAngles, contaimentData_68, contaimentBinned_68, containmentFit_68, optimizedParameters, _ = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=300, showDiagnosticPlots=False, showPlots=showPlots, filename=filename, log=False, angleFitRange=[0,30], anglePlotRange=[-0.1,plotPair], getScaledDeviation=False, ARMCut = ARMCut )
 
         else:
             sigma_pair = numpy.nan
@@ -2364,7 +2445,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             contaimentData_68 = numpy.nan
             FWHM_pairComptonEvents = numpy.nan
             optimizedParameters=[]
-            
+            n_selected_pair = numpy.nan
 
         # Open the results filename for writing
         output_filename = filename.replace('.tra','.log')
@@ -2379,22 +2460,26 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         
         output.write("Results for simulation: %s %s Cos %s %s\n" % (energy, energySearchUnit, angle, filename))
         output.write("Compton Events Reconstructed: %s\n" % events['numberOfComptonEvents'])
+        output.write("Compton Events After Cuts: %s\n" % n_selected)
         output.write("Compton Energy Resolution (keV): %s\n" % sigma_Compton) #FWHM_energyComptonEvents
         output.write("Compton Energy Mean (keV): %s\n" % mean)
         output.write("Compton Energy FitMax (keV): %s\n" % fitMax)
         output.write("Compton Angular Resolution (deg): %s\n" % FWHM_angleComptonEvents)
         output.write("Untracked Compton Events Reconstructed: %s\n" % events['numberOfUntrackedElectronEvents'])
+        output.write("Untracked Compton Events After Cuts: %s\n" % n_selected_untracked)
         output.write("Untracked Compton Energy Mean (keV): %s\n" % mean_untracked)
         output.write("Untracked Compton Energy FitMax (keV): %s\n" % UntrackedFitMax)
         output.write("Untracked Compton Energy Resolution (keV): %s\n" % sigma_UntrackedCompton) #FWHM_energyUntrackedComptonEvents
         output.write("Untracked Compton Angular Resolution (deg): %s\n" % FWHM_angleUntrackedComptonEvents)
         output.write("Tracked Compton Events Reconstructed: %s\n" % events['numberOfTrackedElectronEvents'])
+        output.write("Tracked Compton Events After Cuts: %s\n" % n_selected_tracked)
         output.write("Tracked Compton Energy Resolution (keV): %s\n" % sigma_TrackedCompton) #FWHM_energyTrackedComptonEvents
         output.write("Tracked Compton Energy Mean (keV): %s\n" % mean_tracked)
         output.write("Tracked Compton Energy FitMax (keV): %s\n" % TrackedFitMax)
         output.write("Tracked Compton Angular Resolution (deg): %s\n" % FWHM_angleTrackedComptonEvents)
 
         output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
+        output.write("Pair Events After Cuts: %s\n" % n_selected_pair)
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
         output.write("Pair Energy FitMax (keV): %s\n" % fitMax_pair)
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
@@ -2541,7 +2626,7 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.tra')
+        filenames = glob.glob( './*.tra') + glob.glob( './*.tra.gz')
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:    
