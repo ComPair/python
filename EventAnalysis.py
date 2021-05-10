@@ -1453,7 +1453,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
     if len(angles_fit) < 10:
         print("The number of events is too small (<10)")
-        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, []
+        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, [], numpy.nan
 
     # Set the plot size
     plot.figure(figsize=[10,7])
