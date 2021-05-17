@@ -11,7 +11,8 @@ import argparse
 
 #define your energies and angles
 Log_E=[1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5,5.7,6]
-theta_angles  =[0, 25.8, 36.9, 45.6, 53.1, 60]
+#theta_angles  =[0, 25.8, 36.9, 45.6, 53.1, 60]
+theta_angles  =[0, 36.9]
 phi_angles=[0.0]
 
 Log_E=np.array(Log_E)
