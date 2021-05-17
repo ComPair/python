@@ -1085,9 +1085,6 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
         # Invert the bisect vector to obtain the reconstructed source vector
         direction_source_reconstructed = -1*direction_bisect
 
-        # Calculate the vector between the first interaction and the origin of the original gamma-ray
-        direction_source = -1*(position_conversion - position_source)
-
         # Calculate the distance of the conversion point to the top-center of the spacecraft
         position_topCenter = numpy.array([0,0,60])
         distance = numpy.linalg.norm(position_conversion-position_topCenter)
@@ -2061,7 +2058,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
-        filenames = glob.glob( './*.tra') + glob.glob( './*.tra.gz')
+        filenames = glob.glob( '{}/*.tra'.format(directory)) + glob.glob( '{}/*.tra.gz'.format(directory))
 
 
     # Check if the user supplied a single file vs a list of files
@@ -2110,6 +2107,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             # Parse the .tra file obtained from revan
             events = parse(filename, sourceTheta=angle)
+            if not events: #no events pass the selection
+                continue
 
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
