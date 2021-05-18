@@ -55,6 +55,7 @@ from scipy.optimize import leastsq
 import scipy.optimize
 import math
 import glob
+import gzip
 
 try:
     import matplotlib.pyplot as plot
@@ -339,6 +340,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     qualityOfComptonReconstruction = []
     qualityOfPairReconstruction = []
 
+    # Original (true) information
+    true_direction_PairEvents = []
+    true_energy_PairEvents = []
+
 
     # Read the number of lines in the file
     command = 'wc %s' % filename
@@ -370,7 +375,13 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
     # Loop through the .tra file
     print('\nParsing: %s' % filename)
-    for line in fileinput.input([filename]):
+
+    if filename[-2:] == "gz": #compressed file
+        lines = gzip.open(filename, mode="rt")
+    else:
+        lines = fileinput.input([filename])
+    
+    for line in lines:
 
         try:
             sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
@@ -389,6 +400,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             tn=tn+1
 
         if 'ET ' in line:
+
+            # new event -- reset true information just to be safe
+            trueDirection = None
+            trueEnergy = None
 
             # Split the line
             lineContents = line.split() 
@@ -428,6 +443,15 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 # Events don't get reconstructed for a number of reasons
                 # In pair, it's mostly 'TooManyHistInCSR'
                 numberOfBadEvents = numberOfBadEvents + 1
+
+        ####### True Information #######
+        
+        if 'OI' in line and skipEvent == False:
+        
+            lineContents = line.split()
+            xTrue, yTrue, zTrue = lineContents[4:7]
+            trueDirection = [-float(xTrue), -float(yTrue), -float(zTrue)]
+            trueEnergy = float( lineContents[10] )
 
         ####### Compton Events #######
 
@@ -599,6 +623,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Save the position
             position_pairConversion.append([x1,y1,z1])
 
+            # True information should have been read in earlier
+            true_direction_PairEvents.append( trueDirection )
+            true_energy_PairEvents.append( trueEnergy )
+
 
 
         # Extract the pair electron information
@@ -710,6 +738,8 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
     events['time'] = numpy.array(time).astype(float)
     events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
+    events['true_direction_PairEvents'] = true_direction_PairEvents
+    events['true_energy_PairEvents'] = true_energy_PairEvents
 
     # Print some event statistics
     print("\n\nStatistics of Event Selection")
@@ -1022,14 +1052,23 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
         # Get the position of the gamma conversion
         position_conversion = events['position_pairConversion'][index]
+        direction_source = events['true_direction_PairEvents'][index]
+        #print( direction_source )
 
-        # Get the x-axis offset based on the theta of the source.  This assumes phi=0
-        # Note: For Compton events adjusting the theta of the source happens in the parser
-        # for pair events, it happens here in the ARM calculation. 
-        dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+        if direction_source is None:
 
-        # Set the origin position of the original gamma-ray
-        position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+            # Try to reconstruct the source direction from the cosTheta in the file name.
+            # Get the x-axis offset based on the theta of the source.  This assumes phi=0
+            # Note: For Compton events adjusting the theta of the source happens in the parser
+            # for pair events, it happens here in the ARM calculation.
+            dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+
+            # Set the origin position of the original gamma-ray
+            position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+
+            # Calculate the vector between the first interaction and the origin of the original gamma-ray
+            direction_source = -1*(position_conversion - position_source)
+            #print( direction_source )
 
         # Get the electron and positron direction vectors. These are unit vectors.
         direction_electron = events['direction_pairElectron'][index]
@@ -1045,9 +1084,6 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
         # Invert the bisect vector to obtain the reconstructed source vector
         direction_source_reconstructed = -1*direction_bisect
-
-        # Calculate the vector between the first interaction and the origin of the original gamma-ray
-        direction_source = -1*(position_conversion - position_source)
 
         # Calculate the distance of the conversion point to the top-center of the spacecraft
         position_topCenter = numpy.array([0,0,60])
@@ -2022,7 +2058,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
-        filenames = glob.glob(directory + '/*.tra')
+        filenames = glob.glob( '{}/*.tra'.format(directory)) + glob.glob( '{}/*.tra.gz'.format(directory))
 
 
     # Check if the user supplied a single file vs a list of files
@@ -2071,6 +2107,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             # Parse the .tra file obtained from revan
             events = parse(filename, sourceTheta=angle)
+            if not events: #no events pass the selection
+                continue
 
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
@@ -2216,7 +2254,7 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
     # Check to see if the user supplied a directory.  If so, include all .sim files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.sim')
+        filenames = glob.glob(directory + '/*.sim' ) + glob.glob(directory + '/*.sim.gz' )
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:
@@ -2241,7 +2279,10 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         lookback = 1000
         IDs = []
         while len(IDs) == 0:
-            command = "tail -n %d %s" % (lookback, filename)
+            if filename[-2:] == "gz":
+                command = "zcat %s | tail -n %d" % (filename, lookback)
+            else:
+                command = "tail -n %d %s" % (lookback, filename)
             output = os.popen(command).read()
             IDs  = [line for line in output.split('\n') if "ID" in line]
             lookback += 1000
@@ -2319,7 +2360,7 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.tra')
+        filenames = glob.glob( './*.tra') + glob.glob( './*.tra.gz')
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:    
