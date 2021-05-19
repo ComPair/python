@@ -283,6 +283,11 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
         # Loop through the analysis log file
         numberOfPairEventsIdeal = None
+        numberOfComptonEventsCut = numpy.nan
+        numberOfTrackedComptonEventsCut = numpy.nan
+        numberOfUntrackedComptonEventsCut = numpy.nan
+        numberOfPairEventsCut = numpy.nan
+        
         for analysisLogLine in analysisLogLines:
 
             if "Results for simulation:" in analysisLogLine:
@@ -1656,9 +1661,9 @@ def resultsToFits(data, outfile='output.fits'):
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, ideal=False, doPSF=None, \
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*0.2, ideal=False, doPSF=None, \
     xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True, \
-    SurroundingSphere=150):
+    SurroundingSphere=150, txtOutfileLabel='xxx'):
 
     #background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
     #background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1922,7 +1927,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         plot.plot(Energy, Sensitivity_pair*mev2erg, color='darkred', alpha=0.5, label='Pair')
         plot.plot(Energy, combined*mev2erg, color='grey', alpha=1.0, label='Combined')
         plot.xlabel(r'Energy (MeV)')
-        plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
+        plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$)')
         #plot.ylim(ylim)
 
         if xlog:
@@ -1939,6 +1944,31 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
 
     if doplot:
         plot.show()
+
+    # writing txt files
+    results_txt_TC = open( '%s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+    results_txt_UC = open( '%s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+    results_txt_P = open( '%s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+
+
+    results_txt_TC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy[i]):
+        results_txt_TC.write("%.3f\t%.5g\n"%(en, Sensitivity_tracked[ii]))
+    results_txt_TC.close()
+    print('Created %s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection))
+        
+    results_txt_UC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy[j]):
+        results_txt_UC.write("%.3f\t%.5g\n"%(en, Sensitivity_untracked[ii]))
+    results_txt_UC.close()
+    print('Created %s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection))
+    
+    results_txt_P.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy[k]):
+        results_txt_P.write("%.3f\t%.5g\n"%(en, Sensitivity_pair[ii]))
+    results_txt_P.close()
+    print( 'Created %s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection))
+
 
     return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair, combined
 
@@ -2118,11 +2148,12 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
     #plot.plot(compair_eng,tracked,'r--',color='grey',lw=2)	
     #plot.plot(compair_eng,pair,'r--',color='grey',lw=2)
-    #HFplot.plot(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)],combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
-    plot.plot(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)],combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg,color='grey',lw=4, ls="--")
+    
+    plot.plot(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)],combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
+    #plot.plot(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)],combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg,color='grey',lw=4, ls="--")
 
-    print("Final AMEGO Numbers, energy:", compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])
-    print("Final AMEGO Numbers, energy:", combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg )
+    print("Final AMEGO Numbers, energy:", compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)])
+    print("Final AMEGO Numbers, energy:", combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg )
 
     #if plotIdeal:
         #plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
@@ -2135,16 +2166,18 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     #plot.annotate('Previous ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
 
     #plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
-    plot.annotate('AMEGO-X (DSSD)', xy=(0.5,(1e-5*mev2erg)),xycoords='data',fontsize=16, color="grey")
-
-
-    pixel = ascii.read("/Users/hfleisc1/amego_software/ComPair/simfiles/pixel_results_to_copy/AMEGO_sensitivity_Cos0.8.dat", names = ["E", "sensitivity"] )
-    plot.plot( pixel["E"], pixel["sensitivity"] ,color='black',lw=4)
+    #plot.annotate('AMEGO-X (DSSD)', xy=(0.5,(1e-5*mev2erg)),xycoords='data',fontsize=16, color="grey")
     plot.annotate('AMEGO-X (AstroPix)', xy=(0.2,(8e-7*mev2erg)),xycoords='data',fontsize=20)
+
+
+    #pixel = ascii.read("/Users/hfleisc1/amego_software/ComPair/simfiles/pixel_results_to_copy/AMEGO_sensitivity_Cos0.8.dat", names = ["E", "sensitivity"] )
+    #plot.plot( pixel["E"], pixel["sensitivity"] ,color='black',lw=4)
+    #plot.annotate('AMEGO-X (AstroPix)', xy=(0.2,(8e-7*mev2erg)),xycoords='data',fontsize=20)
 
 
     if save:
         #plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
+        plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
         plot.savefig('full_sensitivity_Cos%s.png' % angleSelection)
         fout=open('AMEGO_sensitivity_Cos%s.dat' %angleSelection,"w")
         fout.write('Energy (MeV)'+"\t"+ 'E2xSensitivity ('+unit+'cm-2 s-1)\n')
