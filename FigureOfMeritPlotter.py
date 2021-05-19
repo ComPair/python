@@ -1950,6 +1950,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*
     results_txt_UC = open( '%s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
     results_txt_P = open( '%s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
 
+    unit = "erg" if uniterg else "MeV"
 
     results_txt_TC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
     for ii, en in enumerate(Energy[i]):
