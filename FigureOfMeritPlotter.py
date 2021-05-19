@@ -1953,19 +1953,19 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*
     unit = "erg" if uniterg else "MeV"
 
     results_txt_TC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
-    for ii, en in enumerate(Energy[i]):
+    for ii, en in enumerate(Energy):
         results_txt_TC.write("%.3f\t%.5g\n"%(en, Sensitivity_tracked[ii]))
     results_txt_TC.close()
     print('Created %s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection))
         
     results_txt_UC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
-    for ii, en in enumerate(Energy[j]):
+    for ii, en in enumerate(Energy):
         results_txt_UC.write("%.3f\t%.5g\n"%(en, Sensitivity_untracked[ii]))
     results_txt_UC.close()
     print('Created %s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection))
     
     results_txt_P.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
-    for ii, en in enumerate(Energy[k]):
+    for ii, en in enumerate(Energy):
         results_txt_P.write("%.3f\t%.5g\n"%(en, Sensitivity_pair[ii]))
     results_txt_P.close()
     print( 'Created %s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection))
