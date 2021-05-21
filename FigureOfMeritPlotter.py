@@ -263,7 +263,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         numberOfSimulatedEvents = lineContents[2]
 
         # Generate the log filename
-        analysisLog = directory + '/' + simulationName.replace('.sim', '.log')
+        analysisLog = directory + '/' + simulationName.replace('.sim', '.log').replace(".gz", "")
 
         try:
             if silent==False:
@@ -394,7 +394,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim',''))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -563,7 +563,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -689,7 +689,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -862,7 +862,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
 			if energy == energySelection:
 				Angle.append(angle)
@@ -988,7 +988,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim',''))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
             #print energy, angle
 
             if angle == angleSelection:
@@ -1171,7 +1171,7 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
     for key in data.keys():
         energy = float(key.split('_')[1].replace('MeV', ''))
         half = key.split('_')[2].replace('Cos', '')
-        angle = float(half.replace('.inc1.id1.sim', ''))
+        angle = float(half.replace('.inc1.id1.sim', '').replace(".gz", ""))
 
         #print energy, angle
 
@@ -1278,7 +1278,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -1400,7 +1400,7 @@ def resultsToFits(data, outfile='output.fits'):
 	for key in data.keys():
 		energy = float(key.split('_')[1].replace('MeV',''))
 		half = key.split('_')[2].replace('Cos','')
-		angle = float(half.replace('.inc1.id1.sim',''))
+		angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
 		if energy not in Energy:
 			Energy.append(energy)
 		if angle not in Angle:
@@ -1422,9 +1422,9 @@ def resultsToFits(data, outfile='output.fits'):
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, ideal=False, doPSF=None, \
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*0.2, ideal=False, doPSF=None, \
     xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True, \
-    SurroundingSphere=150):
+    SurroundingSphere=150, txtOutfileLabel='xxx'):
 
     #background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
     #background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1443,7 +1443,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
 
         #angle = float(key.split('_')[2].replace('Cos',''))
         half = key.split('_')[2].replace('Cos','')
-        angle = float(half.replace('.inc1.id1.sim',''))
+        angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
         if angle == angleSelection:
 
             # Get the number of reconstructed events
@@ -1656,7 +1656,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         plot.scatter(Energy, Sensitivity_pair*mev2erg, color='darkred')
         plot.plot(Energy, Sensitivity_pair*mev2erg, color='darkred', alpha=0.5, label='Pair')	
         plot.xlabel(r'Energy (MeV)')
-        plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
+        plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$)')
         plot.ylim(ylim)
 
         if xlog:
@@ -1673,6 +1673,33 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
 
     if doplot:
         plot.show()
+        
+        
+    # writing txt files
+    results_txt_TC = open( '%s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+    results_txt_UC = open( '%s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+    results_txt_P = open( '%s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+
+    unit = "erg" if uniterg else "MeV"
+
+    results_txt_TC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy):
+        results_txt_TC.write("%.3f\t%.5g\n"%(en, Sensitivity_tracked[ii]))
+    results_txt_TC.close()
+    print('Created %s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection))
+        
+    results_txt_UC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy):
+        results_txt_UC.write("%.3f\t%.5g\n"%(en, Sensitivity_untracked[ii]))
+    results_txt_UC.close()
+    print('Created %s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection))
+    
+    results_txt_P.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy):
+        results_txt_P.write("%.3f\t%.5g\n"%(en, Sensitivity_pair[ii]))
+    results_txt_P.close()
+    print( 'Created %s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection))
+
 
     return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair 
 
