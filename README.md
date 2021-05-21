@@ -29,3 +29,16 @@ optional arguments:
               from input
   -b B        Base revan config file, default: revan_AMEGO_X.cfg
 ```
+
+
+Use `doAnalysis.py` for all-in-one analysis (using EventAnalysis and FigureOfMeritPlotter).
+
+```
+usage: doAnalysis.py [-h] [-d DIR] [-t TAG]
+
+optional arguments:
+  -h, --help         show this help message and exit
+  -d DIR, --dir DIR  Directory with .sim and .tra files. (Default: current
+                     directory)
+  -t TAG, --tag TAG  Tag for output txt files. (Default: xxx)
+```
