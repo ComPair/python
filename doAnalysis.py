@@ -25,5 +25,5 @@ FigureOfMeritPlotter.plotEnergyResolution(data, angleSelections=sel, save=True, 
 FigureOfMeritPlotter.plotEffectiveArea(data, angleSelections=sel, ylog=True, save=True, txtOutfileLabel=args.tag)
 
 for angle in sel:
-    FigureOfMeritPlotter.plotSourceSensitivity(data, angleSelection=angle, save=True, uniterg=False, exposure = 0.2 * 3 * 365.25 * 24 * 3600, txtOutfileLabel=args.tag)
+    FigureOfMeritPlotter.plotSourceSensitivity(data, angleSelection=angle, doplot=True, save=True, uniterg=False, exposure = 0.2 * 3 * 365.25 * 24 * 3600, txtOutfileLabel=args.tag)
 

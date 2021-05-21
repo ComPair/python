@@ -1647,7 +1647,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*
         else:
             mev2erg=1
             unit='MeV'
-            ylim=[1e-7,5e-5]
+            ylim=[1e-8,1e-2]
 
         plot.scatter(Energy, Sensitivity_tracked*mev2erg, color='darkgreen')
         plot.plot(Energy, Sensitivity_tracked*mev2erg, color='darkgreen', alpha=0.5, label='Compton')
@@ -1668,8 +1668,8 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*
         plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
         if save:
-            plot.savefig('SourceSensitivity.pdf', bbox_inches='tight')
-            plot.savefig('SourceSensitivity.png', bbox_inches='tight')
+            plot.savefig('SourceSensitivity_{}.pdf'.format(angleSelection), bbox_inches='tight')
+            plot.savefig('SourceSensitivity_{}.png'.format(angleSelection), bbox_inches='tight')
 
     if doplot:
         plot.show()
