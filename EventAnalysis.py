@@ -847,12 +847,12 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     gs = gridspec.GridSpec(4,1)
     ax1 = plot.subplot(gs[:3, :])
     
-    if len(dphi[selection]) < 10:
-        print("The number of events is not sufficient (<10)")
+    if len(dphi[selection]) < 50:
+        print("The number of events is not sufficient (<50)")
         return numpy.nan, numpy.nan
-    elif len(dphi[selection]) < 500:
-        print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
-        numberOfBins = 25
+    #elif len(dphi[selection]) < 500:
+    #    print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
+    #    numberOfBins = 25
         
     # Create the histogram
     histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -860,11 +860,11 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
 
     # Extract the binned data and bin locations
     dphi_binned = histogram_angleResults[0]
-    if max(dphi_binned) < 10:
-        numberOfBins = 20
-        histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
-        ax1.set_xlim([-1*phiRadius,phiRadius])
-        dphi_binned = histogram_angleResults[0]
+    #if max(dphi_binned) < 10:
+    #    numberOfBins = 20
+    #    histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+    #    ax1.set_xlim([-1*phiRadius,phiRadius])
+    #    dphi_binned = histogram_angleResults[0]
 
     bins = histogram_angleResults[1]
     bincenters = 0.5*(bins[1:]+bins[:-1])
@@ -2115,8 +2115,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
         if energy <= maximumComptonEnergy:
-            if energy >= 3:
-                phiRadiusCompton = phiRadiusCompton/3.
+            
+            phiRadiusCompton = 15            
+            if energy < 0.3:
+                phiRadiusCompton = 30
 
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
@@ -2197,7 +2199,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             FWHM_pairComptonEvents = numpy.nan
 
         # Open the results filename for writing
-        output_filename = filename.replace('.tra','.log')
+        output_filename = filename.replace('.tra','.log').replace(".gz", "")
         output = open(output_filename, 'w')
 
         # Write the results to disk
