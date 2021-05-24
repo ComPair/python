@@ -1663,7 +1663,7 @@ def resultsToFits(data, outfile='output.fits'):
 
 def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*0.2, ideal=False, doPSF=None, \
     xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True, \
-    SurroundingSphere=150, txtOutfileLabel='xxx'):
+    SurroundingSphere=150, txtOutfileLabel='xxx', data_nominal = None):
 
     #background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
     #background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1711,10 +1711,15 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*
                 numberOfReconstructedEvents_untracked = float(data[key][3][-1])
                 numberOfReconstructedEvents_pair = float(data[key][4][-2])
 
-			# Get the angular resolution
-            fwhm_tracked = data[key][2][7]
-            fwhm_untracked = data[key][3][7]
-            containment68 = data[key][4][6]
+            # Get the angular resolution
+            if data_nominal is not None:
+                fwhm_tracked = data_nominal[key][2][7]
+                fwhm_untracked = data_nominal[key][3][7]
+                containment68 = data_nominal[key][4][6]
+            else:
+                fwhm_tracked = data[key][2][7]
+                fwhm_untracked = data[key][3][7]
+                containment68 = data[key][4][6]
 
             # Calculate the effective area
             effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2

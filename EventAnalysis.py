@@ -2448,7 +2448,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             n_selected_pair = numpy.nan
 
         # Open the results filename for writing
-        output_filename = filename.replace('.tra','.log')
+        output_filename = filename.replace('.tra','.log').replace(".gz", "")
         output = open(output_filename, 'w')
 
         # Write the results to disk
