@@ -1663,7 +1663,7 @@ def resultsToFits(data, outfile='output.fits'):
 
 def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*0.2, ideal=False, doPSF=None, \
     xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True, \
-    SurroundingSphere=150, txtOutfileLabel='xxx', data_nominal = None):
+    SurroundingSphere=150, txtOutfileLabel='xxx', data_nominal = None, useCutEffectiveArea = False ):
 
     #background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
     #background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1707,9 +1707,16 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*
                 numberOfReconstructedEvents_untracked = 100000.*float(data[key][3][-1])/(total_compton_events)
                 numberOfReconstructedEvents_pair = float(data[key][4][-4])#+(float(data[key][4][-1])*pair_to_total_ratio)
             else:
-                numberOfReconstructedEvents_tracked = float(data[key][2][-1])
-                numberOfReconstructedEvents_untracked = float(data[key][3][-1])
-                numberOfReconstructedEvents_pair = float(data[key][4][-2])
+                if not useCutEffectiveArea:
+                    numberOfReconstructedEvents_tracked = float(data[key][2][-1])
+                    numberOfReconstructedEvents_untracked = float(data[key][3][-1])
+                    numberOfReconstructedEvents_pair = float(data[key][4][-2])
+                else:
+                    numberOfReconstructedEvents_tracked = float(data[key][2][1])
+                    numberOfReconstructedEvents_untracked = float(data[key][3][1])
+                    numberOfReconstructedEvents_pair = float(data[key][4][1])
+
+                
 
             # Get the angular resolution
             if data_nominal is not None:
