@@ -571,8 +571,14 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Calculate the vector between the second and first interaction
             directionVector2 = position2 - position1
 
-            # Calculate the vector between the first interaction and the origin of the original gamma-ray
-            directionVector1 = position1 - position0
+            if trueDirection is None:
+                            
+                # Calculate the vector between the first interaction and the origin of the original gamma-ray
+                directionVector1 = position1 - position0
+
+            else:
+                directionVector1 = [-x for x in trueDirection]
+
 
             # Calculate the product of the vector magnitudes
             product = numpy.linalg.norm(directionVector1) * numpy.linalg.norm(directionVector2)
@@ -825,14 +831,14 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
                 exit()
 
     # Calculate the Compton scattering angle
-    value = 1 - electron_mc2 * (1/energy_firstScatteredPhoton - 1/(energy_recoiledElectron + energy_firstScatteredPhoton));
+    value = 1 - electron_mc2 * (1/energy_firstScatteredPhoton - 1/(energy_recoiledElectron + energy_firstScatteredPhoton))
 
     # Keep only sane results
     # index = numpy.where( (value > -1) | (value < 1) )
     # value = value[index]
 
     # Calculate the theoretical phi angle (in radians)
-    phi_Theoretical = numpy.arccos(value);
+    phi_Theoretical = numpy.arccos(value)
 
     # Calculate the difference between the tracker reconstructed scattering angle and the theoretical scattering angle
     dphi = numpy.degrees(phi_Tracker) - numpy.degrees(phi_Theoretical)
