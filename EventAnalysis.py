@@ -2321,6 +2321,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             if energy < 0.3:
                 phiRadiusCompton = 30
             
+            if energy < 0.2:
+                phiRadiusCompton = 60
+            
             #if energy >= 3:
                 #phiRadiusCompton = phiRadiusCompton/3.
 
