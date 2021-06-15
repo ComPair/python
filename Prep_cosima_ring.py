@@ -8,9 +8,11 @@ import os
 
 import argparse
 
-Log_E=[1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5,5.7,6]
-#angles = [0, 25.8, 36.9, 45.6, 53.1, 60] #cos
-angles = [0, 36.9] #cos
+Log_E=[1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5,5.7,6] #all energies
+#Log_E=[1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3,3.2,3.5,3.7] #compton only
+
+#theta_angles  =[0, 25.8, 36.9, 45.6, 53.1, 60] #all angles
+theta_angles  =[0, 36.9] #limited angle selection
 
 width = 1.0 # degrees
 
@@ -53,9 +55,13 @@ if __name__ == "__main__":
                 maxTheta = min( ang + width, 180 )
                 minPhi = 0.0
                 maxPhi = 360.0
-            
+
+                #simulate 1e6 events below 10 MeV (compton range) and 1e5 events >= 10 MeV (pair range)
+                NTriggers = 100000 if myene > 10e3 else 1000000
+
+
                 #this is just a long string, with all the raws of the .source file, and the energies/angles values
-                string= "# An example run for Cosima \n# This was created with the python wrapper --> create_source_file.py <--\n\nVersion          1 \nGeometry         %s // Update this to your path \nCheckForOverlaps 1000 0.01 \nPhysicsListEM    LivermorePol \n\nStoreCalibrate                 true\nStoreSimulationInfo            true\nStoreOnlyEventsWithEnergyLoss  true  // Only relevant if no trigger criteria is given! \nDiscretizeHits                 true \nStoreSimulationInfoIonization  false \n\nRun FFPS \nFFPS.FileName              %s/%s_%.3fMeV_Cos%.1f \nFFPS.NTriggers             100000 \n\n\nFFPS.Source One \nOne.ParticleType        1 \nOne.Beam                %s  %.1f %.1f %.1f %.1f \nOne.Spectrum            Mono  %i\nOne.Flux                10000.0 "%(geometry_file, output_dir, OneBeam, myene/1000., cosTh, OneBeam, minTheta, maxTheta, minPhi, maxPhi, myene)
+                string= "# An example run for Cosima \n# This was created with the python wrapper --> create_source_file.py <--\n\nVersion          1 \nGeometry         %s // Update this to your path \nCheckForOverlaps 1000 0.01 \nPhysicsListEM    LivermorePol \n\nStoreCalibrate                 true\nStoreSimulationInfo            true\nStoreOnlyEventsWithEnergyLoss  true  // Only relevant if no trigger criteria is given! \nDiscretizeHits                 true \nStoreSimulationInfoIonization  false \n\nRun FFPS \nFFPS.FileName              %s/%s_%.3fMeV_Cos%.1f \nFFPS.NTriggers             %d \n\n\nFFPS.Source One \nOne.ParticleType        1 \nOne.Beam                %s  %.1f %.1f %.1f %.1f \nOne.Spectrum            Mono  %i\nOne.Flux                10000.0 "%(geometry_file, output_dir, OneBeam, myene/1000., cosTh, NTriggers, OneBeam, minTheta, maxTheta, minPhi, maxPhi, myene)
                 source_file='%s/%s_%.3fMeV_Cos%.1f.source'%(output_dir, OneBeam,myene/1000.,cosTh)
                 sf=open(source_file,'w')
                 sf.write(string)
