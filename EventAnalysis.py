@@ -2125,6 +2125,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             phiRadiusCompton = 15            
             if energy < 0.3:
                 phiRadiusCompton = 30
+            if energy < 0.2:
+                phiRadiusCompton = 60
 
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
