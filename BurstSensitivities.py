@@ -173,7 +173,7 @@ if __name__ == '__main__':
 
         #only try to calculate the sensitivity if we have events
         if BGrate is not None and (Aeff > 0):
-            sensi = get_sensitivity(args.exposure, args.significance, Aeff*(Emax - Emin), BGrate)
+            sensi = get_sensitivity(args.exposure, args.significance, Aeff, BGrate)
             
             print( f"{type:2s} Events: {Emin:5.2f} - {Emax:5.2f} MeV, "
                     f" Aeff = {Aeff:6.4g} cm2, "
