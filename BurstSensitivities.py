@@ -54,7 +54,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ROOT
 from scipy.interpolate import interp1d
-from scipy.optimize import minimize
+from scipy.optimize import minimize, root_scalar
 
 __description__ = 'Integral flux sensitivities for bursts'
 
@@ -153,6 +153,15 @@ def get_sensitivity(time, significance, Aeff, BGrate):
     num = (significance**2/2+arg)/(Aeff*time)
     return num
 
+def get_signficance(flux, time, Aeff, BGrate):
+    """Calculate expected significance for a given flux (ph/cm2/s), exposure time,
+        effective area, and background rate"""
+        
+    S = flux * time * Aeff
+    B = time * BGrate
+    return S / np.sqrt(S+B)
+        
+
 
 
 if __name__ == '__main__':
@@ -165,6 +174,9 @@ if __name__ == '__main__':
     
     Emin = args.emin
     Emax = args.emax
+    
+    EAs_for_combo = {}
+    BGs_for_combo = {}
 
     for type in theEAs.keys():
 
@@ -178,3 +190,32 @@ if __name__ == '__main__':
             print( f"{type:2s} Events: {Emin:5.2f} - {Emax:5.2f} MeV, "
                     f" Aeff = {Aeff:6.4g} cm2, "
                     f"BG = {BGrate:5.1f} Hz, min. Flux = {sensi:7.4g} ph/cm2/s" )
+                    
+            EAs_for_combo[type] = Aeff
+            BGs_for_combo[type] = BGrate
+            
+    def get_combined_significance(flux):
+    
+        sig = 0
+        for type in EAs_for_combo.keys():
+            sig += get_signficance( flux, args.exposure, EAs_for_combo[type], BGs_for_combo[type])**2
+            
+        return np.sqrt(sig)
+        
+    def function_to_root( flux ):
+        return get_combined_significance(flux) - args.significance
+
+    solution = root_scalar(function_to_root, x0 = 0, x1 = sensi)
+    min_flux = solution.root
+    
+    out_string =  f"Combo: min. Flux = {min_flux:7.4g} ph/cm2/s, significance = "
+    total_sig = 0
+    for type in EAs_for_combo.keys():
+        sig = get_signficance( min_flux, args.exposure, EAs_for_combo[type], BGs_for_combo[type])
+        out_string += f" {sig:.3g}[{type}] ⊕"
+        total_sig+=sig**2
+    out_string = out_string[:-2]
+    total_sig = np.sqrt(total_sig)
+    out_string +=  f" = {total_sig:.3g}"
+
+    print( out_string )
