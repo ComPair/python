@@ -755,7 +755,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     print("***********************************")
     print("Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents))
 
-    if numberOfComptonEvents + numberOfPairEvents == 0:
+    if numberOfComptonEvents + numberOfPairEvents + numberOfPhotoElectricEffectEvents == 0:
         print("No events pass selection")
         events=False
         return events
