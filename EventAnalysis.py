@@ -746,6 +746,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
     events['true_direction_PairEvents'] = true_direction_PairEvents
     events['true_energy_PairEvents'] = true_energy_PairEvents
+    events['numberOfPhotoElectricEffectEvents'] = numberOfPhotoElectricEffectEvents
 
     # Print some event statistics
     print("\n\nStatistics of Event Selection")
@@ -757,13 +758,15 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
         events=False
         return events
 
+    numberOfTotalEvents = numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes + numberOfPhotoElectricEffectEvents
     print("")
-    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/numberOfTotalEvents))
+    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/numberOfTotalEvents))
+    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/numberOfTotalEvents))
     if numberOfComptonEvents > 0:
         print(" - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents)))
         print(" - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents)))
+    print("Number of p.e. events: %s (%i%%)" % (numberOfPhotoElectricEffectEvents, 100*numberOfPhotoElectricEffectEvents/numberOfTotalEvents))
     print("")
     print("")
 
@@ -2233,6 +2236,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
+        output.write("Number of Photo Electric Effect Events: %s\n" % events['numberOfPhotoElectricEffectEvents'])
 
         # Close the file
         output.close()
