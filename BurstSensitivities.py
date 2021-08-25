@@ -153,7 +153,7 @@ def get_sensitivity(time, significance, Aeff, BGrate):
     num = (significance**2/2+arg)/(Aeff*time)
     return num
 
-def get_signficance(flux, time, Aeff, BGrate):
+def get_significance(flux, time, Aeff, BGrate):
     """Calculate expected significance for a given flux (ph/cm2/s), exposure time,
         effective area, and background rate"""
         
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     
         sig = 0
         for type in EAs_for_combo.keys():
-            sig += get_signficance( flux, args.exposure, EAs_for_combo[type], BGs_for_combo[type])**2
+            sig += get_significance( flux, args.exposure, EAs_for_combo[type], BGs_for_combo[type])**2
             
         return np.sqrt(sig)
         
@@ -211,7 +211,7 @@ if __name__ == '__main__':
     out_string =  f"Combo: min. Flux = {min_flux:7.4g} ph/cm2/s, significance = "
     total_sig = 0
     for type in EAs_for_combo.keys():
-        sig = get_signficance( min_flux, args.exposure, EAs_for_combo[type], BGs_for_combo[type])
+        sig = get_significance( min_flux, args.exposure, EAs_for_combo[type], BGs_for_combo[type])
         out_string += f" {sig:.3g}[{type}] ⊕"
         total_sig+=sig**2
     out_string = out_string[:-2]
