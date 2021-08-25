@@ -641,36 +641,38 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
             # Split the line
             lineContents = line.split()
+            if len(lineContents) >= 6: #PE token can be used for either pair events or photoelectric effect.
+                
+                # Get the electron information
+                energy_pairElectron.append(float(lineContents[1]))
+                energy_pairElectron_error.append(float(lineContents[2]))
 
-            # Get the electron information
-            energy_pairElectron.append(float(lineContents[1]))
-            energy_pairElectron_error.append(float(lineContents[2]))
+                # Get the direction of the pair electron
+                x = float(lineContents[3])
+                y = float(lineContents[4])
+                z = float(lineContents[5])
 
-            # Get the direction of the pair electron
-            x = float(lineContents[3])
-            y = float(lineContents[4])
-            z = float(lineContents[5])
-
-            # Store the direction of the pair electron
-            direction_pairElectron.append([x,y,z])
+                # Store the direction of the pair electron
+                direction_pairElectron.append([x,y,z])
 
         # Extract the pair positron information
         if 'PP ' in line and skipEvent == False:
 
             # Split the line
             lineContents = line.split()
+            if len(lineContents) >= 6: #PP token can be used for either pair events or photoelectric effect.
 
-            # Get the electron information
-            energy_pairPositron.append(float(lineContents[1]))
-            energy_pairPositron_error.append(float(lineContents[2]))
+                # Get the electron information
+                energy_pairPositron.append(float(lineContents[1]))
+                energy_pairPositron_error.append(float(lineContents[2]))
 
-            # Get the direction of the pair electron
-            x = float(lineContents[3])
-            y = float(lineContents[4])
-            z = float(lineContents[5])
+                # Get the direction of the pair electron
+                x = float(lineContents[3])
+                y = float(lineContents[4])
+                z = float(lineContents[5])
 
-            # Store the direction of the pair electron
-            direction_pairPositron.append([x,y,z])
+                # Store the direction of the pair electron
+                direction_pairPositron.append([x,y,z])
 
 
         if 'PI ' in line and skipEvent == False:
