@@ -2249,7 +2249,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
         output.write("Pair Energy FitMax (keV): %s\n" % fitMax_pair)
         output.write("Pair Energy Median (keV): %s\n" % med_pair)
-        output.write("Pair Energy 68% Containment Interval (keV): %s\n" % (up_pair - low_pair) )
+        output.write("Pair Energy 68%% Containment Interval (keV): %s\n" % (up_pair - low_pair) )
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
