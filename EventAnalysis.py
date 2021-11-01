@@ -1536,10 +1536,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
     ax1.plot([x1,x2],[numpy.max(y_fit)/2.,numpy.max(y_fit)/2.], color='darkred', linestyle='--', linewidth=2)
 
-    # Annotate the plot
-    ax1.text(0.03, 0.9, "Max = %.3f keV\nFWHM = %.3f keV" % (fitMax, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
-
-    # Create a subplot for the residuals 
+    # Create a subplot for the residuals
     ax2 = plot.subplot(gs[3, :])
 
     # Plot the residuals
@@ -1553,11 +1550,16 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
     ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
     
-    low, med, up = numpy.quantile( energy_pairReconstructedPhoton[selection], ( .16, 0.5, .84) )
+    selection2 = numpy.where( qualityOfPairReconstruction <= qualityCut )
+    low, med, up = numpy.quantile( energy_pairReconstructedPhoton[selection2], ( .16, 0.5, .84) )
 
     ax1.axvline( low, color="0.5", linestyle=":", linewidth=1.5)
     ax1.axvline( med, color="0.5", linestyle=":", linewidth=3)
     ax1.axvline( up, color="0.5", linestyle=":", linewidth=1.5)
+    
+    # Annotate the plot
+    ax1.text(0.03, 0.9, "Max = %.3f keV\nFWHM = %.3f keV\nmedian = %.3f\n68%% containment half width = %3f keV" % (fitMax, FWHM, med, (up-low)), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
+
 
     plot.savefig(fileBase+"_energyResolution_pairs.png")
 
