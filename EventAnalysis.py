@@ -2122,6 +2122,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
     # Loop through the user specified filename(s) and extract the energy and angular resolution measurements
     for filename, energy, angle in zip(filenames, energies, angles):
 
+        output_filename = filename.replace('.tra','.log').replace(".gz", "")
+        if os.path.exists(output_filename):
+            continue
+            
         if parsing:
             print("Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             # Parse the .tra file obtained from revan
@@ -2132,9 +2136,6 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
 
-        output_filename = filename.replace('.tra','.log').replace(".gz", "")
-        if os.path.exists(output_filename):
-            continue
 
         # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
         if energy <= maximumComptonEnergy:
