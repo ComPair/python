@@ -1574,7 +1574,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     print("")
     print("Fitting in range: ", energyFitRange[0], energyFitRange[1])
     print("Median reco energy: %s keV" % med)
-    print("68%% Containment Interval: %s - % keV" % (low, up) )
+    print("68%% Containment Interval: %s - %s keV" % (low, up) )
     print("Max of fit: %s keV" % fitMax)
     print("FWHM of fit: %s keV" % FWHM)
     print("sigma of fit: %s keV" % sigma)
