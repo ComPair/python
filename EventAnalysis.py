@@ -1513,7 +1513,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     FWHM = x2-x1
 
     # Approximate sigma as FWHM/2
-    sigma=FWHM/2.
+    sigma=FWHM/2.355
 
     # Print some statistics
     print("\n\nStatistics of energy histogram and fit (pair events)")
@@ -1562,6 +1562,14 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
     ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
     ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
+    
+    low, med, up = numpy.quantile( energy_pairReconstructedPhoton[selection], ( .16, 0.5, .84) )
+
+    ax1.axvline( low, color="0.5", linestyle=":", linewidth=1.5)
+    ax1.axvline( med, color="0.5", linestyle=":", linewidth=3)
+    ax1.axvline( up, color="0.5", linestyle=":", linewidth=1.5)
+
+    plot.savefig(fileBase+"_energyResolution_pairs.png")
 
     # Show the plot
     if showPlots == True:
@@ -1569,7 +1577,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     else:
         plot.close()
 
-    return fitMax, FWHM, sigma
+    return fitMax, FWHM, sigma, low, med, up
 
 ##########################################################################################
 
@@ -2199,7 +2207,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the energy resolution for pair events...")
             print("EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)")
             fileBase = "%sMeV_Cos%s" % (energy,angle)
-            fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
+            fitMax_pair, FWHM_pairComptonEvents, sigma_pair, low_pair, med_pair, up_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
 
             # Calculate the angular resolution measurement (ARM) for pair events
             print("\n\nCalculating the angular resolution measurement for pair events...")
@@ -2207,6 +2215,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots, filename=filename)
 
         else:
+            fitMax_pair = numpy.nan
+            med_pair = numpy.nan
+            up_pair = numpy.nan
+            low_pair = numpy.nan
             sigma_pair = numpy.nan
             contaimentData_68 = numpy.nan
             FWHM_pairComptonEvents = numpy.nan
@@ -2235,6 +2247,9 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
+        output.write("Pair Energy FitMax (keV): %s\n" % fitMax_pair)
+        output.write("Pair Energy Median (keV): %s\n" % med_pair)
+        output.write("Pair Energy 68% Containment Interval (keV): %s\n" % (up_pair - low_pair) )
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
