@@ -1467,7 +1467,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 
     if len(energy_pairReconstructedPhoton[selection]) < 10:
         print("The number of events is too small (<10)")
-        return numpy.nan, numpy.nan, numpy.nan
+        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
     elif len(energy_pairReconstructedPhoton[selection]) < 100:
         numberOfBins = 30
     
@@ -2132,6 +2132,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
 
+        output_filename = filename.replace('.tra','.log').replace(".gz", "")
+        if os.path.exists(output_filename):
+            continue
+
         # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
         if energy <= maximumComptonEnergy:
             
@@ -2224,7 +2228,6 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             FWHM_pairComptonEvents = numpy.nan
 
         # Open the results filename for writing
-        output_filename = filename.replace('.tra','.log').replace(".gz", "")
         output = open(output_filename, 'w')
 
         # Write the results to disk
