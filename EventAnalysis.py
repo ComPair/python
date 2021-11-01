@@ -1502,7 +1502,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
         y_fit = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
     except Exception as msg:
         print("{}".format(msg))
-        return numpy.nan, numpy.nan, numpy.nan
+        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
 
     # Get the max of the fit
     fitMax = bincenters[numpy.argmax(y_fit)]
@@ -1515,16 +1515,6 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     # Approximate sigma as FWHM/2
     sigma=FWHM/2.355
 
-    # Print some statistics
-    print("\n\nStatistics of energy histogram and fit (pair events)")
-    print("********************************************************")
-    print("Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) ))
-    print("")
-    print("Fitting in range: ", energyFitRange[0], energyFitRange[1])
-    print("Max of fit: %s keV" % fitMax)    
-    print("FWHM of fit: %s keV" % FWHM)
-    print("sigma of fit: %s keV" % sigma)
-    print("")
 
 
     # Set the plot size
@@ -1576,6 +1566,20 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
         plot.show()
     else:
         plot.close()
+
+    # Print some statistics
+    print("\n\nStatistics of energy histogram and fit (pair events)")
+    print("********************************************************")
+    print("Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) ))
+    print("")
+    print("Fitting in range: ", energyFitRange[0], energyFitRange[1])
+    print("Median reco energy: %s keV" % med)
+    print("68%% Containment Interval: %s - % keV" % (low, up) )
+    print("Max of fit: %s keV" % fitMax)
+    print("FWHM of fit: %s keV" % FWHM)
+    print("sigma of fit: %s keV" % sigma)
+    print("")
+
 
     return fitMax, FWHM, sigma, low, med, up
 
@@ -2124,6 +2128,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         output_filename = filename.replace('.tra','.log').replace(".gz", "")
         if os.path.exists(output_filename):
+            print("Skipping: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             continue
             
         if parsing:
