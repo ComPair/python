@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """
 ------------------------------------------------------------------------
 
@@ -21,10 +22,10 @@ import EventAnalysis
 
 # Parse the .tra file obtained from revan
 events = EventAnalysis.parse('EffectiveArea_2MeV.inc1.id1.tra', sourceTheta=0.9)
- 
+
 # Calculate the angular resolution measurement (ARM) for Compton events
 FWHM_ARM, dphi = EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=5)
- 
+
 # Calculate the angular resolution measurement (ARM) for pair events
 angles, openingAngles, contaimentData_68, contaimentBinned_68 = EventAnalysis.getARMForPairEvents(events, numberOfBins=100)
 
@@ -152,7 +153,7 @@ def DoubleLorentzian(x, offset, mean, width1, height1, width2, height2):
 
 def Lorentzian(x, par):
 
-    x = numpy.array(range(-50,50,1))/10.
+    x = numpy.array(range(-50, 50, 1))/10.
     par = [0,0.5]
 
     mean = par[0]
@@ -276,6 +277,7 @@ def extractCoordinates(coordinateData):
 
 ##########################################################################################
 
+
 def plotPairConversionCoordinates(events):
 
     # Get the individual pair conversion coordinates
@@ -294,7 +296,7 @@ def plotPairConversionCoordinates(events):
     plot.xlabel('z')
 
 
-##########################################################################################
+###############################################################################
 
 def parse(filename, sourceTheta=1.0, testnum=-1):
 
@@ -303,7 +305,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
     # Define the lists to store energy information for Compton events
     energy_ComptonEvents = []
-    energy_ComptonEvents_error = [] 
+    energy_ComptonEvents_error = []
     energy_TrackedComptonEvents = []
     energy_UntrackedComptonEvents = []
     energy_firstScatteredPhoton = []
@@ -318,6 +320,11 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     energy_pairPositron_error = []
     energy_pairDepositedInFirstLayer = []
     energy_pairDepositedInFirstLayer_error = []
+
+    # Define the lists to store energy information for single site events
+    energy_photoElectricEffect = []
+    location_photoElectricEffect = []
+    #energy_photoElectricEffect_error = []
 
     # Define the lists to store position information
     position_originalPhoton = []
@@ -338,7 +345,6 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     phi_Tracker = []
     qualityOfComptonReconstruction = []
     qualityOfPairReconstruction = []
-
 
     # Read the number of lines in the file
     command = 'wc %s' % filename
@@ -363,7 +369,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     # track time of event and times between events
     time = []
     dt = []
-    tn=0
+    tn = 0
 
     # Start by collecting all events
     skipEvent = False
@@ -373,25 +379,27 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     for line in fileinput.input([filename]):
 
         try:
-            sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
-            sys.stdout.flush()
+            pass
+            #sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100))
+            #sys.stdout.flush()
         except:
             pass
 
         if 'TI' in line:
-            lineContents = line.split() 
+            lineContents = line.split()
             time.append(float(lineContents[1]))
 
         if testnum > 0:
 
             if tn == testnum:
                 break
-            tn=tn+1
+            tn = tn+1
 
         if 'ET ' in line:
+            phType = False
 
             # Split the line
-            lineContents = line.split() 
+            lineContents = line.split()
 
             eventType = lineContents[1]
 
@@ -414,6 +422,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 numberOfPairEvents = numberOfPairEvents + 1
 
             if 'PH' in eventType:
+                phType = True
                 # Increment the photo electron effect counter
                 numberOfPhotoElectricEffectEvents = numberOfPhotoElectricEffectEvents + 1
 
@@ -432,7 +441,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
         ####### Compton Events #######
 
         # Extract the Compton event energy information
-        if 'CE ' in line and skipEvent == False:
+        if 'CE ' in line and skipEvent is False:
 
             # Split the line
             lineContents = line.split() 
@@ -445,19 +454,18 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             energy_recoiledElectron.append(float(lineContents[3]))
             energy_recoiledElectron_error.append(float(lineContents[4]))
 
-
         # Extract the Compton event hit information
-        if 'CD ' in line and skipEvent == False:
+        if 'CD ' in line and skipEvent is False:
 
             # Split the line
-            lineContents = line.split() 
+            lineContents = line.split()
 
             # Get the position of the first scattered gamma-ray
             x1 = float(lineContents[1])
             y1 = float(lineContents[2])
             z1 = float(lineContents[3])
 
-            # Get the position uncertainty of the first scattered gamma-ray     
+            # Get the position uncertainty of the first scattered gamma-ray
             x1_error = float(lineContents[4])
             y1_error = float(lineContents[5])
             z1_error = float(lineContents[6])
@@ -467,7 +475,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             y2 = float(lineContents[8])
             z2 = float(lineContents[9])
 
-            # Get the position uncertainty of the second scattered gamma-ray        
+            # Get the position uncertainty of the second scattered gamma-ray
             x2_error = float(lineContents[10])
             y2_error = float(lineContents[11])
             z2_error = float(lineContents[12])
@@ -482,7 +490,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             y_electron = float(lineContents[14])
             z_electron = float(lineContents[15])
 
-            # Get the position uncertainty of the second scattered gamma-ray        
+            # Get the position uncertainty of the second scattered gamma-ray
             x_electron_error = float(lineContents[16])
             y_electron_error = float(lineContents[17])
             z_electron_error = float(lineContents[18])
@@ -492,7 +500,6 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
             # Record the energy error of the Compton event (regardless of whether it was has a tracked or untrack electron)
             energy_ComptonEvents_error.append( math.sqrt( energy_firstScatteredPhoton_error[-1]**2 + energy_recoiledElectron_error[-1]**2 ) )
-
 
             # Determine if the recoil electron was tracked by the detector
             if x_electron != 0:
@@ -523,7 +530,6 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 # Add this event to the index of untracked events
                 index_untracked.append(eventNumber)
 
-
             # Store the origin coordinates of the original gamma-ray 
             position0 = numpy.array([x0, y0, z0])
             # position0Error = numpy.array([x1_error,y1_error,z1_error])
@@ -540,7 +546,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             position1 = numpy.array([x1, y1, z1])
             position1Error = numpy.array([x1_error, y1_error, z1_error])
 
-            # Store the coordinates of the second interaction in an array       
+            # Store the coordinates of the second interaction in an array
             position2 = numpy.array([x2, y2, z2])
             position2Error = numpy.array([x2_error, y2_error, z2_error])
 
@@ -560,12 +566,12 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 dotProduct = numpy.dot(directionVector2, directionVector1)
 
                 # Make sure we have sane results
-                value = dotProduct/product 
+                value = dotProduct/product
                 if (value >  1.0): value =  1.0;
                 if (value < -1.0): value = -1.0;
 
-                # Get the reconstructed phi angle (in radians) and add the known angle to the source 
-                phi_Tracker.append(numpy.arccos(value)) 
+                # Get the reconstructed phi angle (in radians) and add the known angle to the source
+                phi_Tracker.append(numpy.arccos(value))
 
             else:
 
@@ -589,7 +595,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
         if 'PC ' in line and skipEvent == False:
 
             # Split the line
-            lineContents = line.split() 
+            lineContents = line.split()
 
             # Get the position of the pair conversion
             x1 = float(lineContents[1])
@@ -597,49 +603,54 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             z1 = float(lineContents[3])
 
             # Save the position
-            position_pairConversion.append([x1,y1,z1])
-
-
+            position_pairConversion.append([x1, y1, z1])
 
         # Extract the pair electron information
-        if 'PE ' in line and skipEvent == False:
-
-
+        if 'PE ' in line and skipEvent is False:
             # Split the line
             lineContents = line.split()
 
-            # Get the electron information
-            energy_pairElectron.append(float(lineContents[1]))
-            energy_pairElectron_error.append(float(lineContents[2]))
+            if phType:
+                energy_photoElectricEffect.append(float(lineContents[1]))
+            else:
 
-            # Get the direction of the pair electron
-            x = float(lineContents[3])
-            y = float(lineContents[4])
-            z = float(lineContents[5])
+                # Get the electron information
+                energy_pairElectron.append(float(lineContents[1]))
+                energy_pairElectron_error.append(float(lineContents[2]))
 
-            # Store the direction of the pair electron
-            direction_pairElectron.append([x,y,z])
+                # Get the direction of the pair electron
+                x = float(lineContents[3])
+                y = float(lineContents[4])
+                z = float(lineContents[5])
+
+                # Store the direction of the pair electron
+                direction_pairElectron.append([x, y, z])
 
         # Extract the pair positron information
-        if 'PP ' in line and skipEvent == False:
+        if 'PP ' in line and skipEvent is False:
 
             # Split the line
             lineContents = line.split()
 
-            # Get the electron information
-            energy_pairPositron.append(float(lineContents[1]))
-            energy_pairPositron_error.append(float(lineContents[2]))
+            if phType:
+                x = float(lineContents[1])
+                y = float(lineContents[2])
+                z = float(lineContents[3])
+                location_photoElectricEffect.append([x, y, z])
+            else:
+                # Get the electron information
+                energy_pairPositron.append(float(lineContents[1]))
+                energy_pairPositron_error.append(float(lineContents[2]))
 
-            # Get the direction of the pair electron
-            x = float(lineContents[3])
-            y = float(lineContents[4])
-            z = float(lineContents[5])
+                # Get the direction of the pair electron
+                x = float(lineContents[3])
+                y = float(lineContents[4])
+                z = float(lineContents[5])
 
-            # Store the direction of the pair electron
-            direction_pairPositron.append([x,y,z])
+                # Store the direction of the pair electron
+                direction_pairPositron.append([x, y, z])
 
-
-        if 'PI ' in line and skipEvent == False:
+        if 'PI ' in line and skipEvent is False:
 
             # Split the line
             lineContents = line.split()
@@ -647,11 +658,8 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Get the electron information
             energy_pairDepositedInFirstLayer.append(float(lineContents[1]))
 
-
-
-
         # Extract the reconstruction quality
-        if 'TQ ' in line and skipEvent == False:
+        if 'TQ ' in line and skipEvent is False:
 
             # Split the line
             lineContents = line.split()
@@ -668,7 +676,6 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
         # Increment the line number for the progress indicator
         lineNumber = lineNumber + 1
-
 
     # Add all of the lists to the results dictionary
     events['energy_ComptonEvents'] = numpy.array(energy_ComptonEvents).astype(float)
@@ -698,12 +705,14 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['direction_pairPositron'] = numpy.array(direction_pairPositron).astype(float)
 
     events['phi_Tracker'] = numpy.array(phi_Tracker).astype(float)
-    events['numberOfComptonEvents'] =numberOfComptonEvents
-    events['numberOfUntrackedElectronEvents'] =numberOfUntrackedElectronEvents
-    events['numberOfTrackedElectronEvents'] =numberOfTrackedElectronEvents
+    events['numberOfComptonEvents'] = numberOfComptonEvents
+    events['numberOfUntrackedElectronEvents'] = numberOfUntrackedElectronEvents
+    events['numberOfTrackedElectronEvents'] = numberOfTrackedElectronEvents
     events['numberOfPairEvents'] = numberOfPairEvents
     events['numberOfUnknownEventTypes'] = numberOfUnknownEventTypes
     events['numberOfBadEvents'] = numberOfBadEvents
+    events['numberOfPhotoElectricEffectEvents'] = numberOfPhotoElectricEffectEvents
+
     events['index_tracked'] = numpy.array(index_tracked)
     events['index_untracked']= numpy.array(index_untracked)
     events['qualityOfComptonReconstruction'] = numpy.array(qualityOfComptonReconstruction).astype(float)
@@ -716,18 +725,24 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     print("***********************************")
     print("Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents))
 
-    if numberOfComptonEvents + numberOfPairEvents == 0:
+    if numberOfComptonEvents + numberOfPairEvents + numberOfPhotoElectricEffectEvents == 0:
         print("No events pass selection")
         events=False
         return events
 
+    #numberTotalEvents = numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes
+    numberTotalEvents = numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes + numberOfPhotoElectricEffectEvents
     print("")
-    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    #print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    #print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    #print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/numberTotalEvents))
+    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/numberTotalEvents))
+    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/numberTotalEvents))
     if numberOfComptonEvents > 0:
         print(" - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents)))
         print(" - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents)))
+    print("Number of photo electric effect events: %s (%i%%)" % (numberOfPhotoElectricEffectEvents, 100*numberOfPhotoElectricEffectEvents/numberTotalEvents))
     print("")
     print("")
 
@@ -1526,7 +1541,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 
 ##########################################################################################
 
-def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut = 5, energyPlotRange=None, energyFitRange=None, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=False, filename=None, inputEnergy=None):
+def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut=5, energyPlotRange=None, energyFitRange=None, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=False, filename=None, inputEnergy=None):
 
     # Retrieve the event data
     energy_ComptonEvents = events['energy_ComptonEvents']
@@ -1534,20 +1549,19 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
     numberOfPairEvents = events['numberOfPairEvents']
 
     # Determine whether to include only Tracked or Untracked electron events
-    if onlyTrackedElectrons == True:
-        energy_ComptonEvents  = events['energy_TrackedComptonEvents']
-        numberOfComptonEvents = len(events['index_tracked']) 
-        if onlyUntrackedElectrons == True:
+    if onlyTrackedElectrons:
+        energy_ComptonEvents = events['energy_TrackedComptonEvents']
+        numberOfComptonEvents = len(events['index_tracked'])
+        if onlyUntrackedElectrons:
             print("select either tracked or untracked compton events!!")
             exit()
 
-    if onlyUntrackedElectrons == True:
-        energy_ComptonEvents  = events['energy_UntrackedComptonEvents']
+    if onlyUntrackedElectrons:
+        energy_ComptonEvents = events['energy_UntrackedComptonEvents']
         numberOfComptonEvents = len(events['index_untracked'])
-        if onlyTrackedElectrons == True:
+        if onlyTrackedElectrons:
             print("select either tracked or untracked compton events!!")
             exit()
-
 
     # Convert the list to a numpy array
     energy_ComptonEvents = numpy.array(energy_ComptonEvents)
@@ -1558,9 +1572,8 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
     elif numberOfComptonEvents < 100:
         numberOfBins = 30
 
-
     # Select the events within the desired energy range
-    if energyPlotRange != None:
+    if energyPlotRange is not None:
         energySelection_plot = numpy.where((energy_ComptonEvents >= energyPlotRange[0]) & (energy_ComptonEvents <= energyPlotRange[1]))
     else:
         energySelection_plot = numpy.arange(len(energy_ComptonEvents))
@@ -1568,11 +1581,11 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
     # Create the binned data
     histogram_energyResults = plot.hist(energy_ComptonEvents[energySelection_plot], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
     plot.close()
-    
+
     '''
     # Extract the binned data and bin locations
     energy_binned = histogram_energyResults[0]
-    
+
     if numpy.argmax(energy_binned) < 10:
         numberOfBins = 8
         #print(numpy.argmax(energy_binned))
@@ -1580,31 +1593,58 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
         plot.close()
         #print(numpy.argmax(energy_binned))
     '''
-    
+
     energy_binned = histogram_energyResults[0]
     bins_energy = histogram_energyResults[1]
     bincenters_energy = 0.5*(bins_energy[1:]+bins_energy[:-1])
     bin_start = 0
-    # Set the range of the energy fit by finding the inflection points in the histogram. This will not work with poorly sampled data
-    if energyFitRange == None:
-        if max(energy_binned)>10:
-            if inputEnergy == None:
+    # Set the range of the energy fit by finding the inflection points in
+    # the histogram. This will not work with poorly sampled data
+    if energyFitRange is None:
+        print("A: max(energy_binned) = ", max(energy_binned))
+        print("B: inputEnergy = ", inputEnergy)
+        if max(energy_binned) > 10:
+            if inputEnergy is None:
                 bin_max = numpy.argmax(energy_binned)
             else:
-                bin_max = numpy.argmin(numpy.abs(bins_energy - inputEnergy*1000))-1
-                
-            print(numpy.argmax(energy_binned), numpy.argmin(numpy.abs(bins_energy - inputEnergy*1000))-1)
-            for i in range(bin_max):
+                #bin_max = numpy.argmin(numpy.abs(bins_energy - inputEnergy*1000))-1
+                bin_max = numpy.argmin(numpy.abs(bincenters_energy - inputEnergy*1000))
+
+            print("C: energy_binned[bin_max] = ", energy_binned[bin_max])
+            print("D: bins_energy[bin_max] = ", bins_energy[bin_max])
+            #x = bins_energy[bin_max]
+            #x1 = bins_energy[bin_max-1]
+            #x2 = bins_energy[bin_max-2]
+            #x3 = bins_energy[bin_max-3]
+            #x4 = bins_energy[bin_max-4]
+            #plot.plot(bincenters_energy, energy_binned)
+            #plot.plot([x, x], [0, 1500])
+            #plot.plot([x1, x1], [0, 1500])
+            #plot.plot([x2, x2], [0, 1500])
+            #plot.plot([x3, x3], [0, 1500])
+            #plot.plot([x4, x4], [0, 1500])
+            #plot.show()
+
+            for i in range(1, bin_max):
                 if energy_binned[bin_max] > 500:
-                    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) or (energy_binned[bin_max-i-1]< (energy_binned[bin_max]*0.7)):
+                    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) or (energy_binned[bin_max-i-1] < (energy_binned[bin_max]*0.7)):
                         bin_start = bincenters_energy[bin_max-i]
                         break
                 else:
-                    if ((energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) and (energy_binned[bin_max-i-1]< (energy_binned[bin_max]/2.))) or (energy_binned[bin_max-i-1]< (energy_binned[bin_max]/2.)):
+                    if ((energy_binned[bin_max-i-1] > energy_binned[bin_max-i]) and (energy_binned[bin_max-i-1] < (energy_binned[bin_max]/2.))) or (energy_binned[bin_max-i-1] < (energy_binned[bin_max]/2.)):
                         bin_start = bincenters_energy[bin_max-i]
                         if (bin_start > bincenters_energy[numpy.argmax(energy_binned)]*(1-energyHardCut/100.)):
                             bin_start = bincenters_energy[numpy.argmax(energy_binned)]*(1-energyHardCut/100.)
                         break
+
+            #for i in range(1, bin_max):
+            #    if (energy_binned[bin_max-i-1] > energy_binned[bin_max-i]):
+            #        print("SSS1:", energy_binned[bin_max-i-1], energy_binned[bin_max-i])
+            #        bin_start = bincenters_energy[bin_max-i]
+            #        break
+            #    else:
+            #        print("SSS2:", energy_binned[bin_max-i-1], energy_binned[bin_max-i])
+            #        bin_start = bincenters_energy[bin_max-i]
 
             for i in range(len(bins_energy-1)-bin_max-2):
                 if (energy_binned[bin_max+i+1] > energy_binned[bin_max+i]):
@@ -1612,14 +1652,16 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut 
                     break
                 else:
                     bin_stop = bincenters_energy[bin_max+i]
-                    
-            
-            
-            energyFitRange = [min(bin_start,bincenters_energy[numpy.argmax(energy_binned)]*0.97) , max(bin_stop, bincenters_energy[numpy.argmax(energy_binned)]*1.15)]
-            
+
+            energyFitRange = [min(bin_start, bincenters_energy[numpy.argmax(energy_binned)] * 0.97),
+                              max(bin_stop, bincenters_energy[numpy.argmax(energy_binned)] * 1.15)]
+
+            #energyFitRange = [bin_start, bin_stop]
         else:
             energyFitRange =[bincenters_energy[numpy.argmax(energy_binned)]*0.91, bincenters_energy[numpy.argmax(energy_binned)]*1.15]
-    
+
+    print("energyFitRange = ", energyFitRange)
+    #zzz
     # Set the range of the energy fit to a hard coded percentage of the maximum value
     # if energyFitRange == None:
         # energyFitRange = [bincenters_energy[numpy.argmax(energy_binned)]*0.91, bincenters_energy[numpy.argmax(energy_binned)]*1.15]
@@ -1941,14 +1983,14 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
     ax = fig.add_subplot(111, projection='3d')
 
     # Plot the geometry
-    plotCube(shape=[50*2,50*2,35.75*2], position=[0,0,35.0], color='red', ax=ax)
-    plotCube(shape=[40*2,40*2,30*2], position=[0,0,29.25], color='blue', ax=ax)
-    plotCube(shape=[40*2,40*2,5.0*2], position=[0,0,-8.0], color='green', ax=ax)
+    plotCube(shape=[50*2, 50*2, 35.75*2], position=[0, 0, 35.0], color='red', ax=ax)
+    plotCube(shape=[40*2, 40*2, 30*2], position=[0, 0, 29.25], color='blue', ax=ax)
+    plotCube(shape=[40*2, 40*2, 5.0*2], position=[0, 0, -8.0], color='green', ax=ax)
 
     # Set the plot limits
-    ax.set_xlim3d(-60,60)
-    ax.set_ylim3d(-60,60)
-    ax.set_zlim3d(-50,100)
+    ax.set_xlim3d(-60, 60)
+    ax.set_ylim3d(-60, 60)
+    ax.set_zlim3d(-50, 100)
 
     # Set the plot labels
     ax.set_xlabel('x')
@@ -1986,6 +2028,11 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
     ax.scatter(position_firstInteraction[0], position_firstInteraction[1], position_firstInteraction[2], marker='s', color='darkblue', label='Comp')
     # ax.scatter(position_secondInteraction[0], position_secondInteraction[1], position_secondInteraction[2], marker='o', label='BREM')
 
+    results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
+    for ii, en in enumerate(Energy):
+        results_txt_P.write("%.1f\t%.1f\n" % (en, EffectiveArea_Pair[ii]))
+    results_txt_P.close()
+    print('Created %s_Aeff_Cos%s_P.txt ...!' % (txtOutfileLabel, angleSelection))
     ax.plot( [position_originalPhoton[0], position_firstInteraction[0]], [position_originalPhoton[1],position_firstInteraction[1]], zs=[position_originalPhoton[2],position_firstInteraction[2]], linestyle='--', color='purple', label=r"$\gamma$")
     # ax.plot( [position_firstInteraction[0], position_secondInteraction[0]], [position_firstInteraction[1],position_secondInteraction[1]], zs=[position_firstInteraction[2],position_secondInteraction[2]] )
 
@@ -2007,7 +2054,10 @@ def visualizeCompton(events, showEvent=1, onlyShowTracked=True):
 ##########################################################################################
 
 
-def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False, energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2, energyRangeCompton=None, phiRadiusCompton=15, openingAngleMax=60., energyHardCut = 5, parsing=True, events = None):
+def performCompleteAnalysis(filename=None, directory=None, energies=None, angles=None, showPlots=False,
+                            energySearchUnit='MeV', maximumComptonEnergy=7, minimumPairEnergy=2,
+                            energyRangeCompton=None, phiRadiusCompton=15, openingAngleMax=60.,
+                            energyHardCut = 5, parsing=True, events = None):
 
     """
     A function to plot the cosima output simulation file.
@@ -2015,23 +2065,21 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
     EventViewer.performCompleteAnalysis(filename='FarFieldPointSource_100MeV_Cos1.inc1.id1.tra')
     """
 
-    if filename == None and directory == None:
+    if filename is None and directory is None:
         print("*** No filename or directory provide ***")
         print("Please provide a  filename, a list of filenames, or a directory name")
         return
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
-    if directory != None:
+    if directory is not None:
         filenames = glob.glob(directory + '/*.tra')
 
-
     # Check if the user supplied a single file vs a list of files
-    if isinstance(filename, list) == False and filename != None:
+    if isinstance(filename, list) is False and filename is not None:
         filenames = [filename]
 
-
     # Try to get the energy from the filename
-    if energies == None:
+    if energies is None:
         energies = []
         for filename in filenames:
             try:
@@ -2045,7 +2093,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 return
 
     # Try to get the angle from the filename
-    if angles == None:
+    if angles is None:
         angles = []
         for filename in filenames:
             try:
@@ -2075,16 +2123,18 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
 
-        # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
+        # Don't bother measuring the energy and angular resolution values for
+        # Compton events above the specified maximumComptonEnergy
+        print("COMPTON STUFF:", energy, maximumComptonEnergy)
         if energy <= maximumComptonEnergy:
-            if energy >= 3:
-                phiRadiusCompton = phiRadiusCompton/3.
+            #if energy >= 3:
+            #    phiRadiusCompton = phiRadiusCompton/3.
 
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
             print("Calculating the energy resolution for All Compton events...")
             print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
-            mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents, sigma_Compton= getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
+            mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents, sigma_Compton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
 
             # Calculate the angular resolution measurement (ARM) for All Compton events
             print("\n\nCalculating the angular resolution measurement for Compton events...")
@@ -2097,7 +2147,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             if energy <= 2:
                 print("Calculating the energy resolution for Untracked Compton events...")
                 print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
-                mean_untracked, FWHM_energyUntrackedComptonEvents, UntrackedFitMax, FWHM_skewed_energyUntrackedComptonEvents, sigma_UntrackedCompton= getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
+                mean_untracked, FWHM_energyUntrackedComptonEvents, UntrackedFitMax, FWHM_skewed_energyUntrackedComptonEvents, sigma_UntrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
 
                 print("\n\nCalculating the angular resolution measurement for Untracked Compton events...")
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
@@ -2116,13 +2166,12 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 print("--------- Tracked Compton Events ---------")
                 print("Calculating the energy resolution for Tracked Compton events...")
                 print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
-                mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton= getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
+                mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
                 print("\n\nCalculating the angular resolution measurement for Tracked Compton events...")
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
                 FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_tracked, sigma_TrackedCompton])
             else:
                 print("Energy too low (<0.2 MeV) for Tracked Compton events...")
-
 
         else:
 
@@ -2139,7 +2188,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             FWHM_angleUntrackedComptonEvents = numpy.nan
             sigma_UntrackedCompton = numpy.nan
 
-        # Don't bother measuring the energy and angular resolutuon values for pair events below the specified minimumPairEnergy
+        # Don't bother measuring the energy and angular resolutuon values for pair
+        # events below the specified minimumPairEnergy
         if energy >= minimumPairEnergy:
 
             # Calculate the energy resolution for Pair events
@@ -2163,7 +2213,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         output = open(output_filename, 'w')
 
         # Write the results to disk
-        if energy<0.2:
+        if energy < 0.2:
             sigma_TrackedCompton = numpy.nan
             FWHM_angleTrackedComptonEvents = numpy.nan
         if energy > 2:
@@ -2184,6 +2234,8 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
+        output.write("Photoelectric Effect Events Reconstructed: %s\n" % events['numberOfPhotoElectricEffectEvents'])
+
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
 
         # Close the file
@@ -2191,14 +2243,15 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         print("Results saved to:\n%s" % output_filename)
         
-        #try:
+        # try:
         #    clear_output(wait=True)
-        #except:
+        # except:
         #    pass
         
     return events
 
 ##########################################################################################
+
 
 def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
     """
@@ -2208,23 +2261,23 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
     EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
     """
 
-    if filename == None and directory == None:
+    # if filename == None and directory == None:
+    if filename is None and directory is None:
         print("*** No filename or directory provide ***")
         print("Please provide a  filename, a list of filenames, or a directory name")
         return
 
     # Check to see if the user supplied a directory.  If so, include all .sim files in the directory
-    if directory != None:
+    if directory is not None:
         print("\nSearching: %s\n" % directory)
         filenames = glob.glob(directory + '/*.sim')
 
     # Check if the user supplied a single file vs a list of files
-    if isinstance(filename, list) == False and filename != None:
+    if isinstance(filename, list) is False and filename is not None:
         filenames = [filename]
 
     # Create a dictionary to return the results
     triggerEfficiency = {}      
-
 
     # Loop through each file
     for filename in filenames:
@@ -2263,7 +2316,6 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         for key in details:
             triggerEfficiency[filename][key] = details[key]
 
-
     print("\nTrigger Efficiencies:")
     for filename in filenames:
 
@@ -2275,10 +2327,10 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         print(filename, numberOfTriggers, numberOfSimulatedEvents, ' %.2f%%' % (100*numberOfTriggers/numberOfSimulatedEvents))
 
     # Check to see if the results should be written to disk
-    if save == True:
+    if save:
 
         # Set a default filename if none was provided
-        if savefile == None:
+        if savefile is None:
             savefile = 'TriggerEfficiency.txt'
 
         # Open the file for writing
@@ -2299,8 +2351,8 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 
         print("\nResults saved to:\n./%s\n" % savefile)
 
-
     return triggerEfficiency
+
 
 def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile=None):
 
@@ -2311,18 +2363,18 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
     EventViewer.getNumberOfSimulatedEvents(directory='./Simulations/MySimulations/')
     """
 
-    if filename == None and directory == None:
+    if filename is None and directory is None:
         print("*** No filename or directory provide ***")
         print("Please provide a  filename, a list of filenames, or a directory name")
         return
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
-    if directory != None:
+    if directory is not None:
         print("\nSearching: %s\n" % directory)
         filenames = glob.glob(directory + '/*.tra')
 
     # Check if the user supplied a single file vs a list of files
-    if isinstance(filename, list) == False and filename != None:    
+    if isinstance(filename, list) is False and filename is not None:
         filenames = [filename]
 
     # Create a dictionary to return the results
@@ -2333,19 +2385,19 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
 
         print("Parsing: %s" % filename)
 
-        #Counter to look keep track of section dividers.
+        # Counter to look keep track of section dividers.
         counter = 0
 
-        #Dictionary to save individual file results
+        # Dictionary to save individual file results
         triggerStats = {}
-        #Fill the details from the filname
+        # Fill the details from the filname
         details = getDetailsFromFilename(filename)
         for key in details:
             triggerStats[key] = details[key]
 
             with open(filename) as infile:
                 for line in infile:
-                # Loop until you find these dividers.  Four dividers.
+                    # Loop until you find these dividers.  Four dividers.
                     if line[0:5] == '-----':
                         counter += 1
             if counter == 2:
@@ -2362,10 +2414,6 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
         print(revanStats[filename])
 
     return revanStats
-
-
-
-
 
 ##########################################################################################
 
