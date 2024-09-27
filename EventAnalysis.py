@@ -55,6 +55,7 @@ from scipy.optimize import leastsq
 import scipy.optimize
 import math
 import glob
+import gzip
 
 try:
     import matplotlib.pyplot as plot
@@ -339,6 +340,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     qualityOfComptonReconstruction = []
     qualityOfPairReconstruction = []
 
+    # Original (true) information
+    true_direction_PairEvents = []
+    true_energy_PairEvents = []
+
 
     # Read the number of lines in the file
     command = 'wc %s' % filename
@@ -370,7 +375,13 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
     # Loop through the .tra file
     print('\nParsing: %s' % filename)
-    for line in fileinput.input([filename]):
+
+    if filename[-2:] == "gz": #compressed file
+        lines = gzip.open(filename, mode="rt")
+    else:
+        lines = fileinput.input([filename])
+    
+    for line in lines:
 
         try:
             sys.stdout.write("Progress: %d%%   \r" % (lineNumber/totalNumberOfLines * 100) )
@@ -389,6 +400,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             tn=tn+1
 
         if 'ET ' in line:
+
+            # new event -- reset true information just to be safe
+            trueDirection = None
+            trueEnergy = None
 
             # Split the line
             lineContents = line.split() 
@@ -428,6 +443,15 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
                 # Events don't get reconstructed for a number of reasons
                 # In pair, it's mostly 'TooManyHistInCSR'
                 numberOfBadEvents = numberOfBadEvents + 1
+
+        ####### True Information #######
+        
+        if 'OI' in line and skipEvent == False:
+        
+            lineContents = line.split()
+            xTrue, yTrue, zTrue = lineContents[4:7]
+            trueDirection = [-float(xTrue), -float(yTrue), -float(zTrue)]
+            trueEnergy = float( lineContents[10] )
 
         ####### Compton Events #######
 
@@ -547,8 +571,14 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Calculate the vector between the second and first interaction
             directionVector2 = position2 - position1
 
-            # Calculate the vector between the first interaction and the origin of the original gamma-ray
-            directionVector1 = position1 - position0
+            if trueDirection is None:
+                            
+                # Calculate the vector between the first interaction and the origin of the original gamma-ray
+                directionVector1 = position1 - position0
+
+            else:
+                directionVector1 = [-x for x in trueDirection]
+
 
             # Calculate the product of the vector magnitudes
             product = numpy.linalg.norm(directionVector1) * numpy.linalg.norm(directionVector2)
@@ -599,6 +629,10 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
             # Save the position
             position_pairConversion.append([x1,y1,z1])
 
+            # True information should have been read in earlier
+            true_direction_PairEvents.append( trueDirection )
+            true_energy_PairEvents.append( trueEnergy )
+
 
 
         # Extract the pair electron information
@@ -607,36 +641,38 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
             # Split the line
             lineContents = line.split()
+            if len(lineContents) >= 6: #PE token can be used for either pair events or photoelectric effect.
+                
+                # Get the electron information
+                energy_pairElectron.append(float(lineContents[1]))
+                energy_pairElectron_error.append(float(lineContents[2]))
 
-            # Get the electron information
-            energy_pairElectron.append(float(lineContents[1]))
-            energy_pairElectron_error.append(float(lineContents[2]))
+                # Get the direction of the pair electron
+                x = float(lineContents[3])
+                y = float(lineContents[4])
+                z = float(lineContents[5])
 
-            # Get the direction of the pair electron
-            x = float(lineContents[3])
-            y = float(lineContents[4])
-            z = float(lineContents[5])
-
-            # Store the direction of the pair electron
-            direction_pairElectron.append([x,y,z])
+                # Store the direction of the pair electron
+                direction_pairElectron.append([x,y,z])
 
         # Extract the pair positron information
         if 'PP ' in line and skipEvent == False:
 
             # Split the line
             lineContents = line.split()
+            if len(lineContents) >= 6: #PP token can be used for either pair events or photoelectric effect.
 
-            # Get the electron information
-            energy_pairPositron.append(float(lineContents[1]))
-            energy_pairPositron_error.append(float(lineContents[2]))
+                # Get the electron information
+                energy_pairPositron.append(float(lineContents[1]))
+                energy_pairPositron_error.append(float(lineContents[2]))
 
-            # Get the direction of the pair electron
-            x = float(lineContents[3])
-            y = float(lineContents[4])
-            z = float(lineContents[5])
+                # Get the direction of the pair electron
+                x = float(lineContents[3])
+                y = float(lineContents[4])
+                z = float(lineContents[5])
 
-            # Store the direction of the pair electron
-            direction_pairPositron.append([x,y,z])
+                # Store the direction of the pair electron
+                direction_pairPositron.append([x,y,z])
 
 
         if 'PI ' in line and skipEvent == False:
@@ -710,24 +746,29 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
     events['qualityOfPairReconstruction'] = numpy.array(qualityOfPairReconstruction).astype(float)
     events['time'] = numpy.array(time).astype(float)
     events['deltime'] = numpy.append(0.,events['time'][1:]-events['time'][0:len(events['time'])-1])
+    events['true_direction_PairEvents'] = true_direction_PairEvents
+    events['true_energy_PairEvents'] = true_energy_PairEvents
+    events['numberOfPhotoElectricEffectEvents'] = numberOfPhotoElectricEffectEvents
 
     # Print some event statistics
     print("\n\nStatistics of Event Selection")
     print("***********************************")
     print("Total number of analyzed events: %s" % (numberOfComptonEvents + numberOfPairEvents))
 
-    if numberOfComptonEvents + numberOfPairEvents == 0:
+    if numberOfComptonEvents + numberOfPairEvents + numberOfPhotoElectricEffectEvents == 0:
         print("No events pass selection")
         events=False
         return events
 
+    numberOfTotalEvents = numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes + numberOfPhotoElectricEffectEvents
     print("")
-    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
-    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/(numberOfComptonEvents + numberOfPairEvents + numberOfUnknownEventTypes)))
+    print("Number of unknown events: %s (%i%%)" % (numberOfUnknownEventTypes, 100*numberOfUnknownEventTypes/numberOfTotalEvents))
+    print("Number of pair events: %s (%i%%)" % (numberOfPairEvents, 100*numberOfPairEvents/numberOfTotalEvents))
+    print("Number of Compton events: %s (%i%%)" % (numberOfComptonEvents, 100*numberOfComptonEvents/numberOfTotalEvents))
     if numberOfComptonEvents > 0:
         print(" - Number of tracked electron events: %s (%i%%)" % (numberOfTrackedElectronEvents, 100.0*(float(numberOfTrackedElectronEvents)/numberOfComptonEvents)))
         print(" - Number of untracked electron events: %s (%i%%)" % (numberOfUntrackedElectronEvents, 100*(float(numberOfUntrackedElectronEvents)/numberOfComptonEvents)))
+    print("Number of p.e. events: %s (%i%%)" % (numberOfPhotoElectricEffectEvents, 100*numberOfPhotoElectricEffectEvents/numberOfTotalEvents))
     print("")
     print("")
 
@@ -795,14 +836,14 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
                 exit()
 
     # Calculate the Compton scattering angle
-    value = 1 - electron_mc2 * (1/energy_firstScatteredPhoton - 1/(energy_recoiledElectron + energy_firstScatteredPhoton));
+    value = 1 - electron_mc2 * (1/energy_firstScatteredPhoton - 1/(energy_recoiledElectron + energy_firstScatteredPhoton))
 
     # Keep only sane results
     # index = numpy.where( (value > -1) | (value < 1) )
     # value = value[index]
 
     # Calculate the theoretical phi angle (in radians)
-    phi_Theoretical = numpy.arccos(value);
+    phi_Theoretical = numpy.arccos(value)
 
     # Calculate the difference between the tracker reconstructed scattering angle and the theoretical scattering angle
     dphi = numpy.degrees(phi_Tracker) - numpy.degrees(phi_Theoretical)
@@ -817,12 +858,12 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
     gs = gridspec.GridSpec(4,1)
     ax1 = plot.subplot(gs[:3, :])
     
-    if len(dphi[selection]) < 10:
-        print("The number of events is not sufficient (<10)")
+    if len(dphi[selection]) < 50:
+        print("The number of events is not sufficient (<50)")
         return numpy.nan, numpy.nan
-    elif len(dphi[selection]) < 500:
-        print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
-        numberOfBins = 25
+    #elif len(dphi[selection]) < 500:
+    #    print("The number of events is not sufficient, so that 'numberOfBins' and 'phiRadius' changed.")
+    #    numberOfBins = 25
         
     # Create the histogram
     histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
@@ -830,11 +871,11 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
 
     # Extract the binned data and bin locations
     dphi_binned = histogram_angleResults[0]
-    if max(dphi_binned) < 10:
-        numberOfBins = 20
-        histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
-        ax1.set_xlim([-1*phiRadius,phiRadius])
-        dphi_binned = histogram_angleResults[0]
+    #if max(dphi_binned) < 10:
+    #    numberOfBins = 20
+    #    histogram_angleResults = ax1.hist(dphi[selection], numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
+    #    ax1.set_xlim([-1*phiRadius,phiRadius])
+    #    dphi_binned = histogram_angleResults[0]
 
     bins = histogram_angleResults[1]
     bincenters = 0.5*(bins[1:]+bins[:-1])
@@ -1022,14 +1063,23 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
         # Get the position of the gamma conversion
         position_conversion = events['position_pairConversion'][index]
+        direction_source = events['true_direction_PairEvents'][index]
+        #print( direction_source )
 
-        # Get the x-axis offset based on the theta of the source.  This assumes phi=0
-        # Note: For Compton events adjusting the theta of the source happens in the parser
-        # for pair events, it happens here in the ARM calculation. 
-        dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+        if direction_source is None:
 
-        # Set the origin position of the original gamma-ray
-        position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+            # Try to reconstruct the source direction from the cosTheta in the file name.
+            # Get the x-axis offset based on the theta of the source.  This assumes phi=0
+            # Note: For Compton events adjusting the theta of the source happens in the parser
+            # for pair events, it happens here in the ARM calculation.
+            dx = numpy.tan(numpy.radians(sourceTheta)) * (position_conversion[2] - dz)
+
+            # Set the origin position of the original gamma-ray
+            position_source = [position_conversion[0]-dx, position_conversion[1], dz]
+
+            # Calculate the vector between the first interaction and the origin of the original gamma-ray
+            direction_source = -1*(position_conversion - position_source)
+            #print( direction_source )
 
         # Get the electron and positron direction vectors. These are unit vectors.
         direction_electron = events['direction_pairElectron'][index]
@@ -1045,9 +1095,6 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
         # Invert the bisect vector to obtain the reconstructed source vector
         direction_source_reconstructed = -1*direction_bisect
-
-        # Calculate the vector between the first interaction and the origin of the original gamma-ray
-        direction_source = -1*(position_conversion - position_source)
 
         # Calculate the distance of the conversion point to the top-center of the spacecraft
         position_topCenter = numpy.array([0,0,60])
@@ -1420,7 +1467,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 
     if len(energy_pairReconstructedPhoton[selection]) < 10:
         print("The number of events is too small (<10)")
-        return numpy.nan, numpy.nan, numpy.nan
+        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
     elif len(energy_pairReconstructedPhoton[selection]) < 100:
         numberOfBins = 30
     
@@ -1455,7 +1502,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
         y_fit = skewedGaussian(bincenters, optimizedParameters[0], optimizedParameters[1], optimizedParameters[2], optimizedParameters[3])
     except Exception as msg:
         print("{}".format(msg))
-        return numpy.nan, numpy.nan, numpy.nan
+        return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
 
     # Get the max of the fit
     fitMax = bincenters[numpy.argmax(y_fit)]
@@ -1466,18 +1513,8 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     FWHM = x2-x1
 
     # Approximate sigma as FWHM/2
-    sigma=FWHM/2.
+    sigma=FWHM/2.355
 
-    # Print some statistics
-    print("\n\nStatistics of energy histogram and fit (pair events)")
-    print("********************************************************")
-    print("Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) ))
-    print("")
-    print("Fitting in range: ", energyFitRange[0], energyFitRange[1])
-    print("Max of fit: %s keV" % fitMax)    
-    print("FWHM of fit: %s keV" % FWHM)
-    print("sigma of fit: %s keV" % sigma)
-    print("")
 
 
     # Set the plot size
@@ -1499,10 +1536,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     ax1.plot(bincenters, y_fit, color='darkred', linewidth=2)
     ax1.plot([x1,x2],[numpy.max(y_fit)/2.,numpy.max(y_fit)/2.], color='darkred', linestyle='--', linewidth=2)
 
-    # Annotate the plot
-    ax1.text(0.03, 0.9, "Max = %.3f keV\nFWHM = %.3f keV" % (fitMax, FWHM), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
-
-    # Create a subplot for the residuals 
+    # Create a subplot for the residuals
     ax2 = plot.subplot(gs[3, :])
 
     # Plot the residuals
@@ -1515,6 +1549,19 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     ax1.xaxis.set_minor_locator(AutoMinorLocator(4))
     ax1.yaxis.set_minor_locator(AutoMinorLocator(4))
     ax2.xaxis.set_minor_locator(AutoMinorLocator(4))
+    
+    selection2 = numpy.where( qualityOfPairReconstruction <= qualityCut )
+    low, med, up = numpy.quantile( energy_pairReconstructedPhoton[selection2], ( .16, 0.5, .84) )
+
+    ax1.axvline( low, color="0.5", linestyle=":", linewidth=1.5)
+    ax1.axvline( med, color="0.5", linestyle=":", linewidth=3)
+    ax1.axvline( up, color="0.5", linestyle=":", linewidth=1.5)
+    
+    # Annotate the plot
+    ax1.text(0.03, 0.9, "Max = %.3f keV\nFWHM = %.3f keV\nmedian = %.3f\n68%% containment half width = %3f keV" % (fitMax, FWHM, med, (up-low)), verticalalignment='bottom', horizontalalignment='left', transform=ax1.transAxes, color='black', fontsize=12)
+
+
+    plot.savefig(fileBase+"_energyResolution_pairs.png")
 
     # Show the plot
     if showPlots == True:
@@ -1522,7 +1569,21 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     else:
         plot.close()
 
-    return fitMax, FWHM, sigma
+    # Print some statistics
+    print("\n\nStatistics of energy histogram and fit (pair events)")
+    print("********************************************************")
+    print("Number of Compton and pair events in histogram: %s (%s%%)" % ( len(energy_pairReconstructedPhoton[selection]), 100*len(energy_pairReconstructedPhoton[selection])/(len(energy_pairReconstructedPhoton)) ))
+    print("")
+    print("Fitting in range: ", energyFitRange[0], energyFitRange[1])
+    print("Median reco energy: %s keV" % med)
+    print("68%% Containment Interval: %s - %s keV" % (low, up) )
+    print("Max of fit: %s keV" % fitMax)
+    print("FWHM of fit: %s keV" % FWHM)
+    print("sigma of fit: %s keV" % sigma)
+    print("")
+
+
+    return fitMax, FWHM, sigma, low, med, up
 
 ##########################################################################################
 
@@ -2022,7 +2083,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
-        filenames = glob.glob(directory + '/*.tra')
+        filenames = glob.glob( '{}/*.tra'.format(directory)) + glob.glob( '{}/*.tra.gz'.format(directory))
 
 
     # Check if the user supplied a single file vs a list of files
@@ -2067,18 +2128,30 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
     # Loop through the user specified filename(s) and extract the energy and angular resolution measurements
     for filename, energy, angle in zip(filenames, energies, angles):
 
+        output_filename = filename.replace('.tra','.log').replace(".gz", "")
+        if os.path.exists(output_filename):
+            print("Skipping: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
+            continue
+            
         if parsing:
             print("Parsing: %s %s Cos %s %s" % (energy, energySearchUnit, angle, filename))
             # Parse the .tra file obtained from revan
             events = parse(filename, sourceTheta=angle)
+            if not events: #no events pass the selection
+                continue
 
         # Calculate the source theta in degrees
         source_theta = numpy.arccos(angle)*180./numpy.pi
 
+
         # Don't bother measuring the energy and angular resolutuon values for Compton events above the specified maximumComptonEnergy
         if energy <= maximumComptonEnergy:
-            if energy >= 3:
-                phiRadiusCompton = phiRadiusCompton/3.
+            
+            phiRadiusCompton = 15            
+            if energy < 0.3:
+                phiRadiusCompton = 30
+            if energy < 0.2:
+                phiRadiusCompton = 60
 
             print("--------- All Compton Events ---------")
             # Calculate the energy resolution for Compton events
@@ -2146,7 +2219,7 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the energy resolution for pair events...")
             print("EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)")
             fileBase = "%sMeV_Cos%s" % (energy,angle)
-            fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
+            fitMax_pair, FWHM_pairComptonEvents, sigma_pair, low_pair, med_pair, up_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
 
             # Calculate the angular resolution measurement (ARM) for pair events
             print("\n\nCalculating the angular resolution measurement for pair events...")
@@ -2154,12 +2227,15 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots, filename=filename)
 
         else:
+            fitMax_pair = numpy.nan
+            med_pair = numpy.nan
+            up_pair = numpy.nan
+            low_pair = numpy.nan
             sigma_pair = numpy.nan
             contaimentData_68 = numpy.nan
             FWHM_pairComptonEvents = numpy.nan
 
         # Open the results filename for writing
-        output_filename = filename.replace('.tra','.log')
         output = open(output_filename, 'w')
 
         # Write the results to disk
@@ -2182,9 +2258,13 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
 
         output.write("Pair Events Reconstructed: %s\n" % events['numberOfPairEvents'])
         output.write("Pair Energy Resolution (keV): %s\n" % sigma_pair) #FWHM_pairComptonEvents
+        output.write("Pair Energy FitMax (keV): %s\n" % fitMax_pair)
+        output.write("Pair Energy Median (keV): %s\n" % med_pair)
+        output.write("Pair Energy 68%% Containment Interval (keV): %s\n" % (up_pair - low_pair) )
         output.write("Pair Angular Containment (68%%): %s\n" % contaimentData_68)
 
         output.write("Events Not Reconstructed Flagged as Bad: %s\n" % events['numberOfBadEvents'])
+        output.write("Number of Photo Electric Effect Events: %s\n" % events['numberOfPhotoElectricEffectEvents'])
 
         # Close the file
         output.close()
@@ -2216,7 +2296,7 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
     # Check to see if the user supplied a directory.  If so, include all .sim files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.sim')
+        filenames = glob.glob(directory + '/*.sim' ) + glob.glob(directory + '/*.sim.gz' )
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:
@@ -2241,7 +2321,10 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
         lookback = 1000
         IDs = []
         while len(IDs) == 0:
-            command = "tail -n %d %s" % (lookback, filename)
+            if filename[-2:] == "gz":
+                command = "zcat %s | tail -n %d" % (filename, lookback)
+            else:
+                command = "tail -n %d %s" % (lookback, filename)
             output = os.popen(command).read()
             IDs  = [line for line in output.split('\n') if "ID" in line]
             lookback += 1000
@@ -2319,7 +2402,7 @@ def getRevanTriggerEfficiency(filename=None, directory=None, save=True, savefile
     # Check to see if the user supplied a directory.  If so, include all .tra files in the directory
     if directory != None:
         print("\nSearching: %s\n" % directory)
-        filenames = glob.glob(directory + '/*.tra')
+        filenames = glob.glob( './*.tra') + glob.glob( './*.tra.gz')
 
     # Check if the user supplied a single file vs a list of files
     if isinstance(filename, list) == False and filename != None:    

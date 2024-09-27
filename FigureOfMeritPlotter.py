@@ -258,18 +258,12 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         # Get the filename
         simulationName = lineContents[0].split('/')[-1]	
 
-        # Create a key for this simulation name
-        data[simulationName] = []
-
         # Get the number of triggered and simulated events
         numberOfTriggeredEvents = lineContents[1]		
         numberOfSimulatedEvents = lineContents[2]
 
-        # Add the number of simulated to the results dictionary
-        data[simulationName].append(numberOfSimulatedEvents)
-
         # Generate the log filename
-        analysisLog = directory + '/' + simulationName.replace('.sim', '.log')
+        analysisLog = directory + '/' + simulationName.replace('.sim', '.log').replace(".gz", "")
 
         try:
             if silent==False:
@@ -279,9 +273,18 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
         except:
             print("*** Could not find log file: %s" % analysisLog)
+            continue
+
+        # Create a key for this simulation name
+        data[simulationName] = []
+
+        # Add the number of simulated to the results dictionary
+        data[simulationName].append(numberOfSimulatedEvents)
 
         # Loop through the analysis log file
         numberOfPairEventsIdeal = None
+        numberOfPhotoElectricEffectEvents = 0
+        
         for analysisLogLine in analysisLogLines:
 
             if "Results for simulation:" in analysisLogLine:
@@ -330,6 +333,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
             if "Pair Events Ideal: " in analysisLogLine:
                 numberOfPairEventsIdeal = analysisLogLine.split()[-1]
                 print("pair events ideal:  ", numberOfPairEventsIdeal)
+                
+            if "Number of Photo Electric Effect Events" in analysisLogLine:
+                numberOfPhotoElectricEffectEvents = analysisLogLine.split()[-1]
 
         # Add all the values to the results dictionary
         
@@ -339,7 +345,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         holder=-999. # This is required for historic reasons
 
         if float(energy) <=30.0:
-            data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
+            data[simulationName].append([numberOfPhotoElectricEffectEvents, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
             data[simulationName].append([holder, holder, holder, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
             data[simulationName].append([holder, holder, holder, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents])
         else:
@@ -393,7 +399,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim',''))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -432,19 +438,19 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
     	# writing txt files	
         results_txt_TC.write("# Energy[MeV] AngRes_TkrCompton[deg]\n")
         for ii, en in enumerate(Energy[i]):
-        	results_txt_TC.write("%.1f\t%.1f\n"%(en, st[i][ii]))
+        	results_txt_TC.write("%.3f\t%.3f\n"%(en, st[i][ii]))
         results_txt_TC.close()
         print('Created %s_AngRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] AngRes_UntkrCompton[deg]\n")
         for ii, en in enumerate(Energy[j]):
-        	results_txt_UC.write("%.1f\t%.1f\n"%(en, sut[j][ii]))
+        	results_txt_UC.write("%.3f\t%.3f\n"%(en, sut[j][ii]))
         results_txt_UC.close()
         print('Created %s_AngRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] AngRes_Pair[deg]\n")
         for ii, en in enumerate(Energy[k]):
-        	results_txt_P.write("%.1f\t%.1f\n"%(en, sp[k][ii]))
+        	results_txt_P.write("%.3f\t%.3f\n"%(en, sp[k][ii]))
         results_txt_P.close()
         print('Created %s_AngRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
 
@@ -562,7 +568,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -688,7 +694,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
             if angle == angleSelection:
                 Energy.append(energy)
@@ -728,19 +734,19 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         # writing txt files	
         results_txt_TC.write("# Energy[MeV] EnRes_TkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[i]):
-        	results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
+        	results_txt_TC.write("%.3f\t%.3f\n"%(en, st[ii]))
         results_txt_TC.close()
         print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] EnRes_UntkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[j]):
-        	results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
+        	results_txt_UC.write("%.3f\t%.3f\n"%(en, sut[ii]))
         results_txt_UC.close()
         print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] EnRes_Pair[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[k]):
-         	results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
+         	results_txt_P.write("%.3f\t%.3f\n"%(en, sp[ii]))
         results_txt_P.close()
         print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
         
@@ -861,7 +867,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 
 			if energy == energySelection:
 				Angle.append(angle)
@@ -957,7 +963,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, 
                       ylog=False, save=False, show=True, collapse=False, 
-                    SurroundingSphere=150, txtOutfileLabel='xxx'):
+                    SurroundingSphere=150, txtOutfileLabel='xxx', includePE = False):
 
     if hasattr(angleSelections, '__iter__') == False:
         angleSelections = [angleSelections]
@@ -977,22 +983,26 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         results_txt_TC = open( '%s_Aeff_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
         results_txt_UC = open( '%s_Aeff_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
         results_txt_P = open( '%s_Aeff_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_S = open( '%s_Aeff_Cos%s_S.txt' % (txtOutfileLabel, angleSelection), 'w')
         
         Energy = []
         EffectiveArea_Tracked = []
         EffectiveArea_Untracked  = []
         EffectiveArea_Pair  = []
+        EffectiveArea_SingleSite  = []
 
         for key in data.keys():
             energy = float(key.split('_')[1].replace('MeV',''))
             #angle = float(key.split('_')[2].replace('Cos',''))
             half = key.split('_')[2].replace('Cos','')
-            angle = float(half.replace('.inc1.id1.sim',''))
+            angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
             #print energy, angle
 
             if angle == angleSelection:
                 #print data
                 numberOfSimulatedEvents = float(data[key][0])
+
+                numberOfPhotoElectricEffectEvents = float(data[key][1][0])
 
                 if ideal:
                     # This removes the event selection on the final Aeff calculation
@@ -1021,12 +1031,14 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
                 effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
+                effectiveArea_single = (numberOfPhotoElectricEffectEvents/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
 
                 # Store the results
                 Energy.append(energy)
                 EffectiveArea_Tracked.append(effectiveArea_tracked)
                 EffectiveArea_Untracked.append(effectiveArea_untracked)
                 EffectiveArea_Pair.append(effectiveArea_pair)
+                EffectiveArea_SingleSite.append(effectiveArea_single)
 
 
         # Convert everything to a numpy array
@@ -1034,6 +1046,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
         EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
         EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
+        EffectiveArea_SingleSite = numpy.array(EffectiveArea_SingleSite)
 
         # Sort by energy
         i = [numpy.argsort(Energy)]
@@ -1041,6 +1054,7 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Tracked = EffectiveArea_Tracked[i]
         EffectiveArea_Untracked = EffectiveArea_Untracked[i]
         EffectiveArea_Pair = EffectiveArea_Pair[i]
+        EffectiveArea_SingleSite = EffectiveArea_SingleSite[i]
     
         #EffectiveArea_UntrackedSiStart=numpy.array([96.0/2884228*70685.8, 14936.0/2132319*70685.8, 21777.0/1744552*70685.8,\
  #                                                   17861.0/1568899*70685.8, 13722.0/1567836*70685.8, #numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, \
@@ -1056,21 +1070,27 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         # writing txt files	
         results_txt_TC.write("# Energy[MeV] Aeff_TkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_TC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
+        	results_txt_TC.write("%.3f\t%.3f\n"%(en, EffectiveArea_Tracked[ii]))
         results_txt_TC.close()
         print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections))
         	
         results_txt_UC.write("# Energy[MeV] Aeff_UntkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_UC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
+        	results_txt_UC.write("%.3f\t%.3f\n"%(en, EffectiveArea_Untracked[ii]))
         results_txt_UC.close()
         print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
-        
+                
         results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_P.write("%.1f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
+            results_txt_P.write("%.3f\t%.3f\n"%(en, EffectiveArea_Pair[ii]))
         results_txt_P.close()
         print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
+                
+        results_txt_S.write("# Energy[MeV] Aeff_SingleSite[cm2]\n")
+        for ii, en in enumerate(Energy):
+            results_txt_S.write("%.3f\t%.3f\n"%(en, EffectiveArea_SingleSite[ii]))
+        results_txt_S.close()
+        print('Created %s_Aeff_Cos%s_S.txt ...!'%(txtOutfileLabel, angleSelection))
         
         
         # Plot the data
@@ -1086,6 +1106,9 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
             plot.scatter(Energy, EffectiveArea_Untracked, color='blue')
             plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=3, label='Untracked Compton')
+
+            plot.scatter(Energy, EffectiveArea_SingleSite, color='orange')
+            plot.plot(Energy, EffectiveArea_SingleSite, color='orange', alpha=0.5, lw=3, label='Single Site')
 
             #plot.scatter(Energy, EffectiveArea_UntrackedSiStart, color='blue')
             #plot.plot(Energy, EffectiveArea_UntrackedSiStart, color='blue', linestyle="--", alpha=0.5, lw=3, label='Untracked Compton in Silicon')
@@ -1170,7 +1193,7 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
     for key in data.keys():
         energy = float(key.split('_')[1].replace('MeV', ''))
         half = key.split('_')[2].replace('Cos', '')
-        angle = float(half.replace('.inc1.id1.sim', ''))
+        angle = float(half.replace('.inc1.id1.sim', '').replace(".gz", ""))
 
         #print energy, angle
 
@@ -1277,7 +1300,7 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 			energy = float(key.split('_')[1].replace('MeV',''))
 			#angle = float(key.split('_')[2].replace('Cos',''))
 			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+			angle = numpy.array(float(half.replace('.inc1.id1.sim','').replace(".gz", "")))
 			angle = round(numpy.degrees(numpy.arccos(angle)))
 
 			if energy == energySelection:
@@ -1399,7 +1422,7 @@ def resultsToFits(data, outfile='output.fits'):
 	for key in data.keys():
 		energy = float(key.split('_')[1].replace('MeV',''))
 		half = key.split('_')[2].replace('Cos','')
-		angle = float(half.replace('.inc1.id1.sim',''))
+		angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
 		if energy not in Energy:
 			Energy.append(energy)
 		if angle not in Angle:
@@ -1421,9 +1444,9 @@ def resultsToFits(data, outfile='output.fits'):
 
 ########################################################################################## 
 
-def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, ideal=False, doPSF=None, \
+def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3*365.25*24*3600*0.2, ideal=False, doPSF=None, \
     xlog=True, ylog=True, save=False, doplot=False, showbackground=False, uniterg=False,doRealBkg=True, \
-    SurroundingSphere=150):
+    SurroundingSphere=150, txtOutfileLabel='xxx', data_nominal = None):
 
     #background = numpy.array([0.00346008, 0.00447618, 0.00594937, 0.00812853, 0.0100297, 0.0124697, 0.0161290])
     #background=numpy.array([0.00346008,0.00378121,0.00447618,0.00504666,0.00594937,0.00712394,0.00812853,0.00881078,0.0100297,0.0109190,0.0124697,0.0139781,0.0161290])
@@ -1442,7 +1465,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
 
         #angle = float(key.split('_')[2].replace('Cos',''))
         half = key.split('_')[2].replace('Cos','')
-        angle = float(half.replace('.inc1.id1.sim',''))
+        angle = float(half.replace('.inc1.id1.sim','').replace(".gz", ""))
         if angle == angleSelection:
 
             # Get the number of reconstructed events
@@ -1469,9 +1492,15 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
                 numberOfReconstructedEvents_pair = float(data[key][4][-2])
 
 			# Get the angular resolution
-            fwhm_tracked = data[key][2][7]
-            fwhm_untracked = data[key][3][7]
-            containment68 = data[key][4][6]
+            if data_nominal is not None:
+                fwhm_tracked = data_nominal[key][2][7]
+                fwhm_untracked = data_nominal[key][3][7]
+                containment68 = data_nominal[key][4][6]
+            else:
+                fwhm_tracked = data[key][2][7]
+                fwhm_untracked = data[key][3][7]
+                containment68 = data[key][4][6]
+
 
             # Calculate the effective area
             effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
@@ -1646,7 +1675,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         else:
             mev2erg=1
             unit='MeV'
-            ylim=[1e-7,5e-5]
+            ylim=[1e-8,1e-2]
 
         plot.scatter(Energy, Sensitivity_tracked*mev2erg, color='darkgreen')
         plot.plot(Energy, Sensitivity_tracked*mev2erg, color='darkgreen', alpha=0.5, label='Compton')
@@ -1655,7 +1684,7 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         plot.scatter(Energy, Sensitivity_pair*mev2erg, color='darkred')
         plot.plot(Energy, Sensitivity_pair*mev2erg, color='darkred', alpha=0.5, label='Pair')	
         plot.xlabel(r'Energy (MeV)')
-        plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$ sr$^{-1}$)')
+        plot.ylabel(r'$E^2 \times$ Intensity ('+unit+' cm$^{-2}$ s$^{-1}$)')
         plot.ylim(ylim)
 
         if xlog:
@@ -1667,11 +1696,38 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
 
         if save:
-            plot.savefig('SourceSensitivity.pdf', bbox_inches='tight')
-            plot.savefig('SourceSensitivity.png', bbox_inches='tight')
+            plot.savefig('SourceSensitivity_{}.pdf'.format(angleSelection), bbox_inches='tight')
+            plot.savefig('SourceSensitivity_{}.png'.format(angleSelection), bbox_inches='tight')
 
     if doplot:
         plot.show()
+        
+        
+    # writing txt files
+    results_txt_TC = open( '%s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+    results_txt_UC = open( '%s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+    results_txt_P = open( '%s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection), 'w')
+
+    unit = "erg" if uniterg else "MeV"
+
+    results_txt_TC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy):
+        results_txt_TC.write("%.3f\t%.5g\n"%(en, Sensitivity_tracked[ii]))
+    results_txt_TC.close()
+    print('Created %s_Sensi_%.1fs_Cos%s_TC.txt' % (txtOutfileLabel, exposure, angleSelection))
+        
+    results_txt_UC.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy):
+        results_txt_UC.write("%.3f\t%.5g\n"%(en, Sensitivity_untracked[ii]))
+    results_txt_UC.close()
+    print('Created %s_Sensi_%.1fs_Cos%s_UC.txt' % (txtOutfileLabel, exposure, angleSelection))
+    
+    results_txt_P.write("# Energy[MeV] E2Sensitivity[%scm-2s-1]\n" % unit )
+    for ii, en in enumerate(Energy):
+        results_txt_P.write("%.3f\t%.5g\n"%(en, Sensitivity_pair[ii]))
+    results_txt_P.close()
+    print( 'Created %s_Sensi_%.1fs_Cos%s_P.txt' % (txtOutfileLabel, exposure, angleSelection))
+
 
     return Energy, Sensitivity_tracked, Sensitivity_untracked, Sensitivity_pair 
 
@@ -1751,7 +1807,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     plot.gca().set_yscale('log')
     plot.gca().set_xlim([1e-2,1e6])
     plot.gca().set_ylim(ylim)
-    plot.gca().set_xlabel('Energy (MeV)', fontsize=16, fontname="Helvetica")
+    #plot.gca().set_xlabel('Energy (MeV)', fontsize=16, fontname="Helvetica")
+    plot.gca().set_xlabel('Energy (MeV)', fontsize=16 )
     plot.gca().set_ylabel(r'$3\sigma$ Continuum Sensitivity $\times\ E^2$ ($\gamma$ '+unit+' cm$^{-2}$ s$^{-1}$)', fontsize=16)
     plot.annotate('Fermi-LAT', xy=(1e3,(1e-6*mev2erg)),xycoords='data',fontsize=16,color='magenta')
 
@@ -1777,7 +1834,8 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     #SPI
     ind=numpy.arange(20,46)
     plot.plot(energy[ind],sens[ind]*mev2erg,color='green',lw=2)
-    plot.annotate('SPI', xy=(6e-2,(1e-4*mev2erg)),xycoords='data',fontsize=16,color='green')
+    plot.annotate('SPI', xy=(2e-2,(1e-5*mev2erg)),xycoords='data',fontsize=16,color='green')
+
 
     #COMPTEL
     comptel_energy=numpy.array([0.73295844,0.8483429,1.617075,5.057877,16.895761,29.717747])
@@ -1844,17 +1902,17 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
 
 
     #Combine with activation simulation numbers
-    amego_activation_interp = numpy.interp(compair_eng[(compair_eng>0.5) & (compair_eng<=10)],amego_activation_energy, amego_activation_sens)
+    ##HFamego_activation_interp = numpy.interp(compair_eng[(compair_eng>0.5) & (compair_eng<=10)],amego_activation_energy, amego_activation_sens)
     #plot.plot(compair_eng[(compair_eng>0.3) & (compair_eng<=10)], amego_activation_interp,color='blue', lw=3, linestyle='--')
-    for e in range(len(compair_eng[(compair_eng>0.5) & (compair_eng<=10)])):
-        combined[e+2]= (amego_activation_interp[e] + combined[e+2])/2
+    ##HFfor e in range(len(compair_eng[(compair_eng>0.5) & (compair_eng<=10)])):
+    ##HF    combined[e+2]= (amego_activation_interp[e] + combined[e+2])/2
 
     #plot.plot(compair_eng,tracked,'r--',color='grey',lw=2)	
     #plot.plot(compair_eng,pair,'r--',color='grey',lw=2)
-    plot.plot(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)],combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
+    plot.plot(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)],combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg,color='black',lw=4)
 
-    print("Final AMEGO Numbers, energy:", compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])
-    print("Final AMEGO Numbers, energy:", combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg )
+    ##HFprint("Final AMEGO Numbers, energy:", compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])
+    print("Final AMEGO Numbers, energy:", combined[(compair_eng>0.05) & (compair_eng<=1e3)]*mev2erg )
 
     #if plotIdeal:
         #plot.plot(compair_eng,tracked_ideal,'r:',color='black',lw=3)
@@ -1867,16 +1925,21 @@ def plotAllSourceSensitivities(data, angleSelection=0.8, plotIdeal=False, xlog=T
     #plot.annotate('Previous ComPair', xy=(7e2,3e-6),xycoords='data',fontsize=14,color='red')
 
     #plot.plot(compair_eng,pair_idealang,'r-.',color='black',lw=3)
-    plot.annotate('AMEGO', xy=(1,(3e-7*mev2erg)),xycoords='data',fontsize=22)
+    #plot.annotate('AMEGO', xy=(1,(3e-7*mev2erg)),xycoords='data',fontsize=22)
+    plot.annotate('AMEGO-X (AstroPix)', xy=(0.2,(8e-7*mev2erg)),xycoords='data',fontsize=20)
 
     if save:
         plot.savefig('full_sensitivity_Cos%s.pdf' % angleSelection)
         plot.savefig('full_sensitivity_Cos%s.png' % angleSelection)
-        fout=open('AMEGO_sensitivity_Cos%s.dat' %angleSelection,"w")
-        fout.write('Energy (MeV)'+"\t"+ 'E2xSensitivity ('+unit+'cm-2 s-1)')
-        for i in range(len(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)])):
-            fout.write(str(compair_eng[(compair_eng>0.1) & (compair_eng<=1e3)][i])+"\t"+\
-                str(combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg))
+        fout=open('AMEGO-X_sensitivity_Cos%s.dat' %angleSelection,"w")
+        fout.write('#Energy (MeV)'+"\t"+ 'E2xSensitivity ('+unit+'cm-2 s-1)\n')
+        for i in range(len(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)])):
+        
+            fout.write("%.3f\t%.5g\n"%(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)][i], combined[i]*mev2erg))
+            #fout.write(str(compair_eng[(compair_eng>0.05) & (compair_eng<=1e3)][i])+"\t"+\
+                #str(combined[(compair_eng>0.1) & (compair_eng<=1e3)]*mev2erg))
+             #   str(combined[i]*mev2erg)+"\n")
+        fout.close()
 
     if doplot == True:
         plot.show()
