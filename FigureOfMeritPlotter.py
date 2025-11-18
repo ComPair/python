@@ -24,10 +24,10 @@ directory = '../Simulations/MyCustomSimulationRun'
 triggerEfficiencyFilename = "../Simulations/MyCustomSimulationRun/TriggerEfficiency.txt"
 data = FigureOfMeritPlotter.parseEventAnalysisLogs(directory, triggerEfficiencyFilename=triggerEfficiencyFilename)
 
-# Effecitive Area vs Energy
+# Effective Area vs Energy
 FigureOfMeritPlotter.plotEffectiveArea(data)
 
-# Effecitive Area vs Angle
+# Effective Area vs Angle
 FigureOfMeritPlotter.plotEffectiveAreaVsAngle(data)
 
 # Energy Resolution vs Energy
@@ -69,10 +69,10 @@ colors = ['red', 'blue', 'green', 'orange', 'brown', 'purple', 'darkred']
 
 def omega(PSF):
 
-	psf=numpy.array(PSF).astype(float)
-	omega_solidAngle = 2*math.pi*(1-numpy.cos(2*psf*math.pi/180.))
+    psf=numpy.array(PSF).astype(float)
+    omega_solidAngle = 2*math.pi*(1-numpy.cos(2*psf*math.pi/180.))
 
-	return omega_solidAngle
+    return omega_solidAngle
 
 ##########################################################################################
 
@@ -93,149 +93,147 @@ def Isrc(E,time, Aeff, nsig, domega, Bbkg):
 
 def parseSimLog(filename):
 
-	for line in fileinput.input([filename]):
+    for line in fileinput.input([filename]):
 
-		# Parse the lines
-		if 'ID ' in line:
-			numberOfSimulatedEvents = float(line.split()[2])
+        # Parse the lines
+        if 'ID ' in line:
+            numberOfSimulatedEvents = float(line.split()[2])
 
-	fileinput.close()
+    fileinput.close()
 
-	return numberOfSimulatedEvents
+    return numberOfSimulatedEvents
 
 
 ##########################################################################################
 
 def getMimrecValues(filename, interactionType, verbose=False):
 
-	# Return nan values if the file doesn't exist
-	if os.path.isfile(filename) == False:
-		if 'Pair' in interactionType:
-			return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
-		else:
-			return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
+    # Return nan values if the file doesn't exist
+    if os.path.isfile(filename) == False:
+        if 'Pair' in interactionType:
+            return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
+        else:
+            return numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan
 
-	RMS = []
-	FWHM = []
-	Containment68 = None
+    RMS = []
+    FWHM = []
+    Containment68 = None
 
-	# Read the file line by line
-	for line in fileinput.input([filename]):
+    # Read the file line by line
+    for line in fileinput.input([filename]):
 
-		# Parse the lines
-		if '1  Constant' in line:
-			Constant = float(line.split()[2])
-			ConstantError = float(line.split()[3])	
+        # Parse the lines
+        if '1  Constant' in line:
+            Constant = float(line.split()[2])
+            ConstantError = float(line.split()[3])
 
-		if '2  Mean' in line:
-			Mean = float(line.split()[2])
-			MeanError = float(line.split()[3])
+        if '2  Mean' in line:
+            Mean = float(line.split()[2])
+            MeanError = float(line.split()[3])
 
-		if '3  Sigma' in line:
-			Sigma = float(line.split()[2])
-			SigmaError = float(line.split()[3])
+        if '3  Sigma' in line:
+            Sigma = float(line.split()[2])
+            SigmaError = float(line.split()[3])
 
-		if 'RMS: ' in line:
-			RMS.append(float(line.split()[1]))
+        if 'RMS: ' in line:
+            RMS.append(float(line.split()[1]))
 
-		if 'Pair' in interactionType:
+        if 'Pair' in interactionType:
 
-			if '0.68% containment:' in line and Containment68 == None:
-				Containment68 = float(line.split()[2])
+            if '0.68% containment:' in line and Containment68 == None:
+                Containment68 = float(line.split()[2])
 
-			if 'Pair events in histogram:' in line:
-				NumberOfReconstructedEvents = float(line.split()[4])
+            if 'Pair events in histogram:' in line:
+                NumberOfReconstructedEvents = float(line.split()[4])
 
-		else:
+        else:
 
-			if 'Total FWHM of fit (not of data!): ' in line:
-				FWHM.append(float(line.split()[7]))
+            if 'Total FWHM of fit (not of data!): ' in line:
+                FWHM.append(float(line.split()[7]))
 
-			if 'Compton and pair events in histogram: ' in line:
-				NumberOfReconstructedEvents = float(line.split()[6])
+            if 'Compton and pair events in histogram: ' in line:
+                NumberOfReconstructedEvents = float(line.split()[6])
 
-	# Close the input
-	fileinput.close()
+    # Close the input
+    fileinput.close()
 
-	# Return the results
-	if 'Pair' in interactionType:
-		return Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedEvents
-	else:
-		return Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS[-2], FWHM[-2], NumberOfReconstructedEvents
+    # Return the results
+    if 'Pair' in interactionType:
+        return Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedEvents
+    else:
+        return Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS[-2], FWHM[-2], NumberOfReconstructedEvents
 
 
 ##########################################################################################
 
 def parseMimrecLogs(sumlationsIDs=None):
 
-	# Define the path to the python repository
-	pythonPath = os.path.dirname(os.path.realpath(__file__))
+    # Define the path to the python repository
+    pythonPath = os.path.dirname(os.path.realpath(__file__))
 
-	# Define the root path containg the ComPair repositories
-	rootPath = pythonPath.replace('python','')
+    # Define the root path containg the ComPair repositories
+    rootPath = pythonPath.replace('python','')
 
-	# Define the PerformancePlotSourceFiles path
-	sourceDirectory = rootPath + 'Simulations/PerformancePlotSourceFiles'
+    # Define the PerformancePlotSourceFiles path
+    sourceDirectory = rootPath + 'Simulations/PerformancePlotSourceFiles'
 
-	# Define the PerformancePlotMimrecFiles path
-	mimrecDirectory = rootPath + 'Simulations/PerformancePlotMimrecFiles'
+    # Define the PerformancePlotMimrecFiles path
+    mimrecDirectory = rootPath + 'Simulations/PerformancePlotMimrecFiles'
 
-	# Define the PerformancePlotTraFiles path
-	traDirectory = rootPath + 'Simulations/PerformancePlotTraFiles' 
+    # Define the PerformancePlotTraFiles path
+    traDirectory = rootPath + 'Simulations/PerformancePlotTraFiles'
 
-	if sumlationsIDs == None:
-		sumlationsIDs = sourceDirectory + '/FarFieldPointSourceIDs.txt'
+    if sumlationsIDs == None:
+        sumlationsIDs = sourceDirectory + '/FarFieldPointSourceIDs.txt'
 
-	# Create a dictionary to store the data
-	data = {}
-
-
-	# Read the sim file
-	with open(sumlationsIDs) as filehandle:
-		lines = filehandle.readlines()
-
-	currentNumber = 1
-	print('parsing mimrec logs...')
-
-	# Loop through each of the lines
-	for line in lines:
-		lineContents = line.split()
-		simulationName = lineContents[0].split('.inc')[0]		
-		simulationFilename = lineContents[0].replace(':ID','')
-		NumberOfSimulatedEvents = lineContents[2]
-
-		# Enter an empty list for the initial value to which the results will be appended
-		data[simulationName] = []
-
-		# Add the number of simulated to the results dictionary
-		data[simulationName].append(NumberOfSimulatedEvents)
-
-		# Generate the mimrec log names
-		mimrecFilename_tracked = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_tracked.log')
-		mimrecFilename_untracked = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_untracked.log')
-		mimrecFilename_pair = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_pair.log')
-
-		# Get the mimrec figures of merit and add the dictionary
-		# print "Parsing: %s" % mimrecFilename_tracked
-		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = getMimrecValues(mimrecFilename_tracked, interactionType='Compton')
-		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
-
-		# Get the mimrec figures of merit and add the dictionary
-		# print "Parsing: %s" % mimrecFilename_untracked	
-		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = getMimrecValues(mimrecFilename_untracked, interactionType='Compton')
-		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
-
-		# Get the mimrec figures of merit and add the dictionary
-		# print "Parsing: %s" % mimrecFsilename_pair		
-		Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents = getMimrecValues(mimrecFilename_pair, interactionType='Pair')
-		data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents])
-
-		currentNumber = currentNumber + 1
+    # Create a dictionary to store the data
+    data = {}
 
 
-	print('Done.')
-	return data
+    # Read the sim file
+    with open(sumlationsIDs) as filehandle:
+        lines = filehandle.readlines()
 
+    currentNumber = 1
+    print('parsing mimrec logs...')
+
+    # Loop through each of the lines
+    for line in lines:
+        lineContents = line.split()
+        simulationName = lineContents[0].split('.inc')[0]
+        simulationFilename = lineContents[0].replace(':ID','')
+        NumberOfSimulatedEvents = lineContents[2]
+
+        # Enter an empty list for the initial value to which the results will be appended
+        data[simulationName] = []
+
+        # Add the number of simulated to the results dictionary
+        data[simulationName].append(NumberOfSimulatedEvents)
+
+        # Generate the mimrec log names
+        mimrecFilename_tracked = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_tracked.log')
+        mimrecFilename_untracked = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_untracked.log')
+        mimrecFilename_pair = mimrecDirectory + '/'  + simulationFilename.replace('.sim', '.mimrec_pair.log')
+
+        # Get the mimrec figures of merit and add the dictionary
+        # print "Parsing: %s" % mimrecFilename_tracked
+        Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = getMimrecValues(mimrecFilename_tracked, interactionType='Compton')
+        data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
+
+        # Get the mimrec figures of merit and add the dictionary
+        # print "Parsing: %s" % mimrecFilename_untracked
+        Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents = getMimrecValues(mimrecFilename_untracked, interactionType='Compton')
+        data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, RMS, FWHM, NumberOfReconstructedEvents])
+
+        # Get the mimrec figures of merit and add the dictionary
+        # print "Parsing: %s" % mimrecFsilename_pair
+        Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents = getMimrecValues(mimrecFilename_pair, interactionType='Pair')
+        data[simulationName].append([Constant, ConstantError, Mean, MeanError, Sigma, SigmaError, Containment68, NumberOfReconstructedPairEvents])
+
+        currentNumber = currentNumber + 1
+
+    print('Done.')
+    return data
 
 
 ##########################################################################################
@@ -272,7 +270,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         analysisLog = directory + '/' + simulationName.replace('.sim', '.log')
 
         try:
-            if silent==False:
+            if not silent:
                 print("Parsing: %s" % analysisLog)
             with open(analysisLog) as filehandle:
                 analysisLogLines = filehandle.readlines()
@@ -324,6 +322,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
             if "Pair Angular Containment " in analysisLogLine:
                 contaimentData_68 = analysisLogLine.split()[-1]
 
+            if "Photoelectric Effect Events Reconstructed: " in analysisLogLine:
+                numberofPhotoElectricEffectEvents = analysisLogLine.split()[-1]
+
             if "Events Not Reconstructed Flagged as Bad" in analysisLogLine:
                 numberOfNotReconstructedEvents = analysisLogLine.split()[-1]
 
@@ -336,9 +337,9 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         if numberOfPairEventsIdeal is None:
             numberOfPairEventsIdeal = numpy.nan
 
-        holder=-999. # This is required for historic reasons
+        holder = -999.  # This is required for historic reasons
 
-        if float(energy) <=30.0:
+        if float(energy) <= 30.0:
             data[simulationName].append([holder, holder, holder, holder, FWHM_energyComptonEvents, holder, holder, FWHM_angleComptonEvents, numberOfComptonEvents])
             data[simulationName].append([holder, holder, holder, holder, FWHM_energyTrackedComptonEvents, holder, holder, FWHM_angleTrackedComptonEvents, numberOfTrackedComptonEvents])
             data[simulationName].append([holder, holder, holder, holder, FWHM_energyUntrackedComptonEvents, holder, holder, FWHM_angleUntrackedComptonEvents, numberOfUntrackedComptonEvents])
@@ -355,35 +356,42 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
         else:
             data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
 
+        # NJM: need to check this
+        if float(energy)  <= 20.0:
+            data[simulationName].append([holder, holder, holder, holder, holder, holder, holder, holder, numberofPhotoElectricEffectEvents])
+        else:
+            data[simulationName].append([numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan])
     return data
 
 
 ##########################################################################################
 
-def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, 
-	 						save=False, collapse=False, doplot=True, txtOutfileLabel='xxx'):
-	
-    if hasattr(angleSelections, '__iter__') == False:
+def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False,
+                          save=False, collapse=False, doplot=True, txtOutfileLabel='xxx',
+                          scal=1.0):
+
+    overplot = False
+
+    if not hasattr(angleSelections, '__iter__'):
         angleSelections = [angleSelections]
 
     plotNumber = 1
     if doplot:
         if len(angleSelections)==1:
             plot.figure(figsize=(8,6))
-        elif collapse == False:
+        elif not collapse:
             # Create the new subplot
             plot.figure(figsize=(10,12))
         else:
-            #print "collapse!"
+            # print "collapse!"
             plot.figure(figsize=(10, 6.39))
             ax = plot.subplot(111)
-
 
     for angleSelection in angleSelections:
         results_txt_TC = open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_TC.txt", 'w')
         results_txt_UC = open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_UC.txt", 'w')
         results_txt_P =  open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_P.txt", 'w')
-    	
+
         Energy = []
         FWHM_tracked = []
         FWHM_untracked = []
@@ -429,30 +437,33 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
         sp=numpy.double(Containment68)
         
         
-    	# writing txt files	
+        # writing txt files
         results_txt_TC.write("# Energy[MeV] AngRes_TkrCompton[deg]\n")
         for ii, en in enumerate(Energy[i]):
-        	results_txt_TC.write("%.1f\t%.1f\n"%(en, st[i][ii]))
+            results_txt_TC.write("%.1f\t%.1f\n"%(en, st[i][ii]))
         results_txt_TC.close()
         print('Created %s_AngRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] AngRes_UntkrCompton[deg]\n")
         for ii, en in enumerate(Energy[j]):
-        	results_txt_UC.write("%.1f\t%.1f\n"%(en, sut[j][ii]))
+            results_txt_UC.write("%.1f\t%.1f\n"%(en, sut[j][ii]))
         results_txt_UC.close()
         print('Created %s_AngRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
         
         results_txt_P.write("# Energy[MeV] AngRes_Pair[deg]\n")
         for ii, en in enumerate(Energy[k]):
-        	results_txt_P.write("%.1f\t%.1f\n"%(en, sp[k][ii]))
+            results_txt_P.write("%.1f\t%.1f\n"%(en, sp[k][ii]))
         results_txt_P.close()
         print('Created %s_AngRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
 
+        st = st*scal
+        sut = sut*scal
+        sp = sp*scal
 
         # plot the data
         if doplot:
             if collapse == False:
-                ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
+                ax = plot.subplot(int(str(len(angleSelections)) + str(10 + plotNumber)))
 
                 plot.scatter(Energy[i],st[i],color='darkgreen')
                 plot.plot(Energy[i], st[i], color='darkgreen', alpha=0.5, label='Tracked Compton',lw=2)
@@ -460,11 +471,11 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
                 #plot.scatter(Energy[j],sut,color='blue')
                 #plot.plot(Energy[j], sut, color='blue', alpha=0.5, label='Compton (untracked)')
-                plot.scatter(Energy[j],sut[j],color='blue')
+                plot.scatter(Energy[j], sut[j],color='blue')
                 plot.plot(Energy[j], sut[j], color='blue', alpha=0.5, label='Untracked Compton', lw=2)
 
-                plot.scatter(Energy[k],sp[k],color='darkred')
-                plot.plot(Energy[k],sp[k], color='darkred', alpha=0.5, label='Pair', lw=2)		
+                plot.scatter(Energy[k], sp[k],color='darkred')
+                plot.plot(Energy[k], sp[k], color='darkred', alpha=0.5, label='Pair', lw=2)
 
                 #plot.text(0.015, 0.8, '%i$^\circ$' % round(numpy.degrees(numpy.arccos(angleSelection))),
                  #   	verticalalignment='bottom', horizontalalignment='left',
@@ -472,21 +483,64 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
             else:
                 angle = round(numpy.degrees(numpy.arccos(angleSelection)))
-                plot.scatter(Energy[i],st[i], color=colors[plotNumber-1])
-                plot.plot(Energy[i], st[i], color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
 
-                plot.scatter(Energy[j],sut, color=colors[plotNumber-1])
-                plot.plot(Energy[j], sut, color=colors[plotNumber-1], alpha=0.5, linestyle='-.', lw=2)
+                print("NJM: Skipping lowest energies")
+                print("i:", i)
+                print("j:", j)
+                print("k:", k)
+                i[0][5] = False
+                j[0][3] = False
 
-                plot.scatter(Energy[k],sp[k], color=colors[plotNumber-1])
-                plot.plot(Energy[k],sp[k], color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+                # plot.scatter(Energy[i], st[i], color=colors[plotNumber-1])
+                # plot.plot(Energy[i], st[i], color=colors[plotNumber-1], alpha=0.5, lw=2,
+                #           label='Tracked Compton at %i$^\circ$' % angle)
+                plot.scatter(Energy[i], st[i], color='b')
+                plot.plot(Energy[i], st[i], color='b', alpha=0.5, lw=2,
+                          label='Tracked Compton at %i$^\circ$' % angle)
+
+                # plot.scatter(Energy[j], sut[j], color=colors[plotNumber-1])
+                # plot.plot(Energy[j], sut[j], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', lw=2,
+                #           label='Untracked Compton at %i$^\circ$' % angle)
+                plot.scatter(Energy[j], sut[j], color='g')
+                plot.plot(Energy[j], sut[j], color='g', alpha=0.5, linestyle='-.', lw=2,
+                          label='Untracked Compton at %i$^\circ$' % angle)
+
+                # plot.scatter(Energy[k], sp[k], color=colors[plotNumber-1])
+                # plot.plot(Energy[k], sp[k], color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2,
+                #           label='Pair at %i$^\circ$' % angle)
+                plot.scatter(Energy[k], sp[k], color='r')
+                plot.plot(Energy[k], sp[k], color='r', alpha=0.5, linestyle='--', lw=2,
+                          label='Pair at %i$^\circ$' % angle)
+
+                if overplot:
+                    # language=file-reference
+                    fn = "../plot_files/noLowHits_AngRes_Cos0.8_TC.txt"
+                    pub_data = numpy.loadtxt(fn)
+                    plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', label='TC at 37 Old')
+                    fn = "../plot_files/noLowHits_AngRes_Cos0.8_UC.txt"
+                    pub_data = numpy.loadtxt(fn)
+                    plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', linestyle='-.', label='UC at 37 Old')
+                    fn = "../plot_files/noLowHits_AngRes_Cos0.8_P.txt"
+                    pub_data = numpy.loadtxt(fn)
+                    plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', linestyle='--', label='P at 37 Old')
+                    fn = "../plot_files/noLowHits_AngRes_Cos1.0_TC.txt"
+                    pub_data = numpy.loadtxt(fn)
+                    plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', label='TC at 0 Old')
+                    fn = "../plot_files/noLowHits_AngRes_Cos1.0_UC.txt"
+                    pub_data = numpy.loadtxt(fn)
+                    plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', linestyle='-.', label='UC at 0 Old')
+                    fn = "../plot_files/noLowHits_AngRes_Cos1.0_P.txt"
+                    pub_data = numpy.loadtxt(fn)
+                    plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', linestyle='--', label='P at 0 Old')
+                    overplot = False
 
             if plotNumber == len(angleSelections):
                 #plot.title('Angular Resolution')			
-                plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+                plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='upper right')
 
             if xlog == True:
                 plot.xscale('log')
+                plot.xlim([0.05, 2e3])
 
             if ylog == True:
                 plot.yscale('log')
@@ -656,9 +710,12 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 ##########################################################################################
 
 def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, 
-                                         save=False, collapse=False, txtOutfileLabel='xxx'):
+                         save=False, collapse=False, txtOutfileLabel='xxx',
+                         scal=1.0):
 
-    if hasattr(angleSelections, '__iter__') == False:
+    overplot = False
+
+    if not hasattr(angleSelections, '__iter__'):
         angleSelections = [angleSelections]
 
     plotNumber = 1
@@ -728,26 +785,30 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         # writing txt files	
         results_txt_TC.write("# Energy[MeV] EnRes_TkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[i]):
-        	results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
+            results_txt_TC.write("%.1f\t%.3f\n"%(en, st[ii]))
         results_txt_TC.close()
         print('Created %s_EnRes_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelection))
         	
         results_txt_UC.write("# Energy[MeV] EnRes_UntkrCompton[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[j]):
-        	results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
+            results_txt_UC.write("%.1f\t%.3f\n"%(en, sut[ii]))
         results_txt_UC.close()
         print('Created %s_EnRes_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
-        
+
         results_txt_P.write("# Energy[MeV] EnRes_Pair[FWHM/Energy]\n")
         for ii, en in enumerate(Energy[k]):
-         	results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
+            results_txt_P.write("%.1f\t%.3f\n"%(en, sp[ii]))
         results_txt_P.close()
         print('Created %s_EnRes_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
-        
+
+        # Applying the scaling
+        st = st*scal
+        sut = sut*scal
+        sp = sp*scal
 
         # Print the data
         if collapse==False:
-            ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
+            ax = plot.subplot( int(str(len(angleSelections)) + str(10 + plotNumber)) )
 
             plot.scatter(Energy[i],st,color='darkgreen')
             #plot.plot(Energy[i], st, color='darkgreen', alpha=0.5, lw=2, label='Compton')
@@ -768,28 +829,60 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
             angle = round(numpy.degrees(numpy.arccos(angleSelection)))
 
-            plot.scatter(Energy[i],st, color=colors[plotNumber-1])
-            plot.plot(Energy[i], st, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Compton at %i$^\circ$' % angle)
+            print("k:", k)
 
-            plot.scatter(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1])
-            plot.plot(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
+            # plot.scatter(Energy[i],st, color=colors[plotNumber-1])
+            # plot.plot(Energy[i], st, color=colors[plotNumber-1], alpha=0.5, lw=2, label='Tracked Compton at %i$^\circ$' % angle)
+            plot.scatter(Energy[i],st, color='b')
+            plot.plot(Energy[i], st, color='b', alpha=0.5, lw=2, label='Tracked Compton at %i$^\circ$' % angle)
+
+            # plot.scatter(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1])
+            # plot.plot(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
+            plot.scatter(Energy[j][1:-1], sut[1:-1], color='g')
+            plot.plot(Energy[j][1:-1], sut[1:-1], color='g', alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
 
             #plot.scatter(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1])
             #plot.plot(Energy[j][1:-1], sut[1:-1], color=colors[plotNumber-1], alpha=0.5, linestyle='-.', label='Compton Untracked at %i$^\circ$' % angle, lw=2)
 
-            plot.scatter(Energy[k],sp, color=colors[plotNumber-1])
-            plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+            # plot.scatter(Energy[k],sp, color=colors[plotNumber-1])
+            # plot.plot(Energy[k],sp, color=colors[plotNumber-1], alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+            plot.scatter(Energy[k],sp, color='r')
+            plot.plot(Energy[k],sp, color='r', alpha=0.5, linestyle='--', lw=2, label='Pair at %i$^\circ$' % angle)
+
+            if overplot:
+                # language=file-reference
+                fn = "../plot_files/noLowHits_EnRes_Cos0.8_TC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', label='TC at 37 Old')
+                fn = "../plot_files/noLowHits_EnRes_Cos0.8_UC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', linestyle='-.', label='UC at 37 Old')
+                fn = "../plot_files/noLowHits_EnRes_Cos0.8_P.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', linestyle='--', label='P at 37 Old')
+                fn = "../plot_files/noLowHits_EnRes_Cos1.0_TC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', label='TC at 0 Old')
+                fn = "../plot_files/noLowHits_EnRes_Cos1.0_UC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', linestyle='-.', label='UC at 0 Old')
+                fn = "../plot_files/noLowHits_EnRes_Cos1.0_P.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', linestyle='--', label='P at 0 Old')
+                overplot = False
 
 
         if plotNumber == len(angleSelections):
             #plot.title('Energy Resolution')			
-            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='lower left')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='lower left')
             plot.gca().set_ylim([0.,0.12])
             plot.gca().set_xlim([0.14, 11])
 
         if xlog:
             plot.xscale('log')
-            plot.gca().set_ylim([0.0,0.12])
+            plot.gca().set_ylim([0.0, 0.12])
+            # plot.gca().set_ylim([0.0, 0.40])
+            plot.gca().set_xlim([0.05, 2e1])
 
         if ylog:
             plot.yscale('log')
@@ -822,150 +915,152 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False):
 
-	plotNumber = 1
+    plotNumber = 1
 
-	if energySelections is None:
-		plot.figure(figsize=(10,12))
-		Energy = []	
-		for key in data.keys():
-			energy = float(key.split('_')[1].replace('MeV',''))
-			if energy not in Energy:
-					Energy.append(energy)
-		Energy=numpy.array(Energy)
-		i = [numpy.argsort(Energy)]
-		energySelections = Energy[i]
-	else:	
-		if type(energySelections) == float or type(energySelections) == int:
-			energySelections=[energySelections]
-		energySelections.sort(key=int)
-		energySelections=numpy.array(energySelections,dtype=float)
+    if energySelections is None:
+        plot.figure(figsize=(10,12))
+        Energy = []
+        for key in data.keys():
+            energy = float(key.split('_')[1].replace('MeV',''))
+            if energy not in Energy:
+                Energy.append(energy)
+        Energy=numpy.array(Energy)
+        i = [numpy.argsort(Energy)]
+        energySelections = Energy[i]
+    else:
+        if type(energySelections) == float or type(energySelections) == int:
+            energySelections=[energySelections]
+        energySelections.sort(key=int)
+        energySelections=numpy.array(energySelections,dtype=float)
 
-	if collapse == True:
-		plot.figure(figsize=(10, 6.39))
-		ax = plot.subplot(111)
+    if collapse == True:
+        plot.figure(figsize=(10, 6.39))
+        ax = plot.subplot(111)
 
-	if len(energySelections)>6:
-		print("plotting only every other energy")
-		energySelections=energySelections[[1,3,5,7,9,11]]
+    if len(energySelections)>6:
+        print("plotting only every other energy")
+        energySelections=energySelections[[1,3,5,7,9,11]]
 
-	for energySelection in energySelections:
+    for energySelection in energySelections:
 
-		Angle = []
-		Sigma_tracked = []
-		Sigma_untracked = []
-		Sigma_pair = []
+        Angle = []
+        Sigma_tracked = []
+        Sigma_untracked = []
+        Sigma_pair = []
 
-		# print 'Name, fwhm_tracked, fwhm_untracked, containment'
+        # print 'Name, fwhm_tracked, fwhm_untracked, containment'
 
-		for key in data.keys():
-			energy = float(key.split('_')[1].replace('MeV',''))
-			#angle = float(key.split('_')[2].replace('Cos',''))
-			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+        for key in data.keys():
+            energy = float(key.split('_')[1].replace('MeV',''))
+            #angle = float(key.split('_')[2].replace('Cos',''))
+            half = key.split('_')[2].replace('Cos','')
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
 
-			if energy == energySelection:
-				Angle.append(angle)
+            if energy == energySelection:
+                Angle.append(angle)
 
-				Sigma_tracked.append(data[key][2][4])
-				Sigma_untracked.append(data[key][3][4])
-				Sigma_pair.append(data[key][4][4])
+                Sigma_tracked.append(data[key][2][4])
+                Sigma_untracked.append(data[key][3][4])
+                Sigma_pair.append(data[key][4][4])
 
-		# Convert everything to a numpy array
-		Angle = numpy.degrees(numpy.arccos(Angle))
-		Angle = numpy.array(Angle)
-		Sigma_tracked = numpy.array(Sigma_tracked)
-		Sigma_untracked = numpy.array(Sigma_untracked)
-		Sigma_pair = numpy.array(Sigma_pair)
+        # Convert everything to a numpy array
+        Angle = numpy.degrees(numpy.arccos(Angle))
+        Angle = numpy.array(Angle)
+        Sigma_tracked = numpy.array(Sigma_tracked)
+        Sigma_untracked = numpy.array(Sigma_untracked)
+        Sigma_pair = numpy.array(Sigma_pair)
 
-		# Sort by energy
-		i = [numpy.argsort(Angle)]
-		Angle = Angle[i]
-		Sigma_tracked = Sigma_tracked[i]
-		Sigma_untracked = Sigma_untracked[i]
-		Sigma_pair = Sigma_pair[i]
+        # Sort by energy
+        i = [numpy.argsort(Angle)]
+        Angle = Angle[i]
+        Sigma_tracked = Sigma_tracked[i]
+        Sigma_untracked = Sigma_untracked[i]
+        Sigma_pair = Sigma_pair[i]
 
-		# Removing nan's
-		i=Sigma_tracked == 'nan'
-		st=numpy.double(numpy.ma.array(Sigma_tracked,mask=i).compressed())/numpy.double(energySelection)*1.0e-3
+        # Removing nan's
+        i=Sigma_tracked == 'nan'
+        st=numpy.double(numpy.ma.array(Sigma_tracked,mask=i).compressed())/numpy.double(energySelection)*1.0e-3
 
-		j=Sigma_untracked == 'nan'
-		sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=j).compressed())/numpy.double(energySelection)*1e-3		
+        j=Sigma_untracked == 'nan'
+        sut=numpy.double(numpy.ma.array(Sigma_untracked,mask=j).compressed())/numpy.double(energySelection)*1e-3
 		
-		k=Sigma_pair == 'nan'
-		sp=numpy.double(numpy.ma.array(Sigma_pair,mask=k).compressed())/numpy.double(energySelection)*1e-3		
+        k=Sigma_pair == 'nan'
+        sp=numpy.double(numpy.ma.array(Sigma_pair,mask=k).compressed())/numpy.double(energySelection)*1e-3
 
-		# Plot the data
-		if collapse==False:
-			ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
+        # Plot the data
+        if collapse==False:
+            ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
 
-			plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, lw=2, label='Compton', marker='o')
+            plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, lw=2, label='Compton', marker='o')
 			
-			#plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, color='blue', alpha=0.75, lw=2, label='Compton (untracked)', marker='o')
+            #plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, color='blue', alpha=0.75, lw=2, label='Compton (untracked)', marker='o')
 			
-			plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, color='darkred', alpha=0.75, lw=2, label='Pair', marker='o')
+            plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, color='darkred', alpha=0.75, lw=2, label='Pair', marker='o')
 			
-			plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
-		        	verticalalignment='top', horizontalalignment='right',
-		        	transform=ax.transAxes,
-		        	color='black', fontsize=16)
+            plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
+		            verticalalignment='top', horizontalalignment='right',
+		            transform=ax.transAxes,
+		            color='black', fontsize=16)
 
-		else:
+        else:
 
-			if energySelection<3.:
-				#plot.scatter(numpy.ma.array(Angle,mask=i).compressed(), st, colors[plotNumber-1])
-				plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, colors[plotNumber-1], 
+            if energySelection<3.:
+                #plot.scatter(numpy.ma.array(Angle,mask=i).compressed(), st, colors[plotNumber-1])
+                plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, colors[plotNumber-1],
 					alpha=0.75, lw=2, label='Compton at %s  MeV' % energySelection)
 			
-			#plot.scatter(numpy.ma.array(Angle,mask=j).compressed(), sut, colors[plotNumber-1])
-			#plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, colors[plotNumber-1], 
-			#	alpha=0.75, lw=2, label='Compton untracked at %s  MeV' % energySelection, linestyle='-.')
+            #plot.scatter(numpy.ma.array(Angle,mask=j).compressed(), sut, colors[plotNumber-1])
+            #plot.plot(numpy.ma.array(Angle,mask=j).compressed(), sut, colors[plotNumber-1],
+            #	alpha=0.75, lw=2, label='Compton untracked at %s  MeV' % energySelection, linestyle='-.')
 			
-			if energySelection>3.:
-				#plot.scatter(numpy.ma.array(Angle,mask=k).compressed(), sp, colors[plotNumber-1])
-				plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, colors[plotNumber-1], 
+            if energySelection>3.:
+                #plot.scatter(numpy.ma.array(Angle,mask=k).compressed(), sp, colors[plotNumber-1])
+                plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, colors[plotNumber-1],
 					alpha=0.75, lw=2, label='Pair at %s MeV' % energySelection, linestyle='--')
 
-		if plotNumber == len(energySelections):
-			#plot.title('Energy Resolution')						
-			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+        if plotNumber == len(energySelections):
+            #plot.title('Energy Resolution')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
-		if xlog:
-			plot.xscale('log')
+        if xlog:
+            plot.xscale('log')
 
-		if ylog:
-			plot.yscale('log')
+        if ylog:
+            plot.yscale('log')
 
-		plot.ylabel(r'$\sigma$ / Energy')
-		plot.xlim([0,60])
+        plot.ylabel(r'$\sigma$ / Energy')
+        plot.xlim([0,60])
 
-		if plotNumber == len(energySelections):
-			plot.xlabel(r'$\theta$ (deg)')
+        if plotNumber == len(energySelections):
+            plot.xlabel(r'$\theta$ (deg)')
 
-		plotNumber = plotNumber + 1
+        plotNumber = plotNumber + 1
 
-	plot.subplots_adjust(wspace=0, hspace=.2)
+    plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save:
-		plot.savefig('EnergyResolutionVsAngle_%sMeV.pdf' % energySelections[0])
-		plot.savefig('EnergyResolutionVsAngle_%sMeV.png' % energySelections[0])
+    if save:
+        plot.savefig('EnergyResolutionVsAngle_%sMeV.pdf' % energySelections[0])
+        plot.savefig('EnergyResolutionVsAngle_%sMeV.png' % energySelections[0])
 
-	plot.show()
+    plot.show()
 
-	plot.close()
+    plot.close()
 
 ##########################################################################################
 
-def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True, 
-                      ylog=False, save=False, show=True, collapse=False, 
-                    SurroundingSphere=150, txtOutfileLabel='xxx'):
 
-    if hasattr(angleSelections, '__iter__') == False:
+def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True,
+                      ylog=False, save=False, show=True, collapse=False,
+                      SurroundingSphere=150, txtOutfileLabel='xxx', scal=1.0):
+    overplot = False
+
+    if not hasattr(angleSelections, '__iter__'):
         angleSelections = [angleSelections]
 
     plotNumber = 1
-    if len(angleSelections)==1:
+    if len(angleSelections) == 1:
         plot.figure(figsize=(8,6))
-    elif collapse == False:
+    elif not collapse:
         # Create the new subplot
         plot.figure(figsize=(10,12))
     else:
@@ -977,11 +1072,13 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         results_txt_TC = open( '%s_Aeff_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
         results_txt_UC = open( '%s_Aeff_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
         results_txt_P = open( '%s_Aeff_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
-        
+        results_txt_PH = open( '%s_Aeff_Cos%s_PH.txt' % (txtOutfileLabel, angleSelection), 'w')
+
         Energy = []
         EffectiveArea_Tracked = []
         EffectiveArea_Untracked  = []
         EffectiveArea_Pair  = []
+        EffectiveArea_Photo = []
 
         for key in data.keys():
             energy = float(key.split('_')[1].replace('MeV',''))
@@ -1008,10 +1105,12 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
                     numberOfReconstructedEvents_tracked = float(data[key][2][-1])
                     numberOfReconstructedEvents_untracked = float(data[key][3][-1])
                     numberOfReconstructedEvents_pair = float(data[key][4][-1]) #float(data[key][4][7])+(float(data[key][4][-1])*pair_to_total_ratio)
+                    numberofPhotoElectricEffectEvents = float(data[key][5][-1])
                 else:
                     numberOfReconstructedEvents_tracked = float(data[key][2][-1])
                     numberOfReconstructedEvents_untracked = float(data[key][3][-1])
                     numberOfReconstructedEvents_pair = float(data[key][4][-2])
+                    numberofPhotoElectricEffectEvents = float(data[key][5][-1])
 
                 #numberOfReconstructedEvents_tracked = float(data[key][1][-1])
                 #numberOfReconstructedEvents_untracked = float(data[key][2][-1])
@@ -1021,12 +1120,13 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
                 effectiveArea_tracked = (numberOfReconstructedEvents_tracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 effectiveArea_untracked = (numberOfReconstructedEvents_untracked/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 effectiveArea_pair = (numberOfReconstructedEvents_pair/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
-
+                effectiveArea_photo = (numberofPhotoElectricEffectEvents/numberOfSimulatedEvents) * math.pi * SurroundingSphere**2
                 # Store the results
                 Energy.append(energy)
                 EffectiveArea_Tracked.append(effectiveArea_tracked)
                 EffectiveArea_Untracked.append(effectiveArea_untracked)
                 EffectiveArea_Pair.append(effectiveArea_pair)
+                EffectiveArea_Photo.append(effectiveArea_photo)
 
 
         # Convert everything to a numpy array
@@ -1034,13 +1134,16 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         EffectiveArea_Tracked = numpy.array(EffectiveArea_Tracked)
         EffectiveArea_Untracked = numpy.array(EffectiveArea_Untracked)
         EffectiveArea_Pair = numpy.array(EffectiveArea_Pair)
+        EffectiveArea_Photo = numpy.array(EffectiveArea_Photo)
 
         # Sort by energy
-        i = [numpy.argsort(Energy)]
+        # i = [numpy.argsort(Energy)]
+        i = numpy.argsort(Energy)
         Energy = Energy[i]
         EffectiveArea_Tracked = EffectiveArea_Tracked[i]
         EffectiveArea_Untracked = EffectiveArea_Untracked[i]
         EffectiveArea_Pair = EffectiveArea_Pair[i]
+        EffectiveArea_Photo = EffectiveArea_Photo[i]
     
         #EffectiveArea_UntrackedSiStart=numpy.array([96.0/2884228*70685.8, 14936.0/2132319*70685.8, 21777.0/1744552*70685.8,\
  #                                                   17861.0/1568899*70685.8, 13722.0/1567836*70685.8, #numpy.nan, numpy.nan, numpy.nan, numpy.nan, numpy.nan, \
@@ -1056,42 +1159,52 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         # writing txt files	
         results_txt_TC.write("# Energy[MeV] Aeff_TkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_TC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
+            results_txt_TC.write("%.2f\t%.1f\n"%(en, EffectiveArea_Tracked[ii]))
         results_txt_TC.close()
         print('Created %s_Aeff_Cos%s_TC.txt ...!'%(txtOutfileLabel, angleSelections))
-        	
+
         results_txt_UC.write("# Energy[MeV] Aeff_UntkrCompton[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_UC.write("%.1f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
+            results_txt_UC.write("%.2f\t%.1f\n"%(en, EffectiveArea_Untracked[ii]))
         results_txt_UC.close()
         print('Created %s_Aeff_Cos%s_UC.txt ...!'%(txtOutfileLabel, angleSelection))
-        
+
         results_txt_P.write("# Energy[MeV] Aeff_Pair[cm2]\n")
         for ii, en in enumerate(Energy):
-        	results_txt_P.write("%.1f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
+            results_txt_P.write("%.2f\t%.1f\n"%(en, EffectiveArea_Pair[ii]))
         results_txt_P.close()
         print('Created %s_Aeff_Cos%s_P.txt ...!'%(txtOutfileLabel, angleSelection))
-        
-        
+
+        results_txt_PH.write("# Energy[MeV] Aeff_Photo[cm2]\n")
+        for ii, en in enumerate(Energy):
+            results_txt_PH.write("%.2f\t%.1f\n"%(en, EffectiveArea_Photo[ii]))
+        results_txt_PH.close()
+        print('Created %s_Aeff_Cos%s_PH.txt ...!'%(txtOutfileLabel, angleSelection))
+
+        EffectiveArea_Pair = EffectiveArea_Pair*scal
+        EffectiveArea_Untracked = EffectiveArea_Untracked*scal
+        EffectiveArea_Tracked = EffectiveArea_Tracked*scal
+        EffectiveArea_Photo = EffectiveArea_Photo*scal
+
         # Plot the data
         if collapse == False:
-            ax = plot.subplot( str(len(angleSelections)) + str(10 + plotNumber) )
+            ax = plot.subplot( int(str(len(angleSelections)) + str(10 + plotNumber)) )
 
             plot.scatter(Energy, EffectiveArea_Tracked, color='darkgreen')
-            #plot.plot(Energy, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=2, label='Compton')
+            # plot.plot(Energy, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=2, label='Compton')
 
-            #plot.scatter(Energy, EffectiveArea_Untracked, color='blue')
-            #plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
+            # plot.scatter(Energy, EffectiveArea_Untracked, color='blue')
+            # plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
             plot.plot(Energy, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=3, label='Tracked Compton')
 
             plot.scatter(Energy, EffectiveArea_Untracked, color='blue')
             plot.plot(Energy, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=3, label='Untracked Compton')
 
-            #plot.scatter(Energy, EffectiveArea_UntrackedSiStart, color='blue')
-            #plot.plot(Energy, EffectiveArea_UntrackedSiStart, color='blue', linestyle="--", alpha=0.5, lw=3, label='Untracked Compton in Silicon')
+            # plot.scatter(Energy, EffectiveArea_UntrackedSiStart, color='blue')
+            # plot.plot(Energy, EffectiveArea_UntrackedSiStart, color='blue', linestyle="--", alpha=0.5, lw=3, label='Untracked Compton in Silicon')
 
             plot.scatter(Energy, EffectiveArea_Pair, color='darkred')
-            #plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=2, label='Pair')
+            # plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=2, label='Pair')
             plot.plot(Energy, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=3, label='Pair')
 
             #plot.text(1-0.015, 0.8, u'%i\N{DEGREE SIGN}' % round(numpy.degrees(numpy.arccos(angleSelection))),
@@ -1101,24 +1214,59 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
         else:
             angle = round(numpy.degrees(numpy.arccos(angleSelection)))
-            plot.scatter(Energy[1:], EffectiveArea_Tracked[1:], color='darkgreen')
-            plot.plot(Energy[1:], EffectiveArea_Tracked[1:], color='darkgreen', alpha=0.5, lw=3, label='Tracked Compton at %i$^\circ$' % angle)
+            # plot.scatter(Energy[1:], EffectiveArea_Tracked[1:], color='darkgreen')
+            # plot.plot(Energy[1:], EffectiveArea_Tracked[1:], color='darkgreen', alpha=0.5, lw=3, label='Tracked Compton at %i$^\circ$' % angle)
+            # plot.scatter(Energy[1:], EffectiveArea_Tracked[1:], color=colors[plotNumber-1])
+            # plot.plot(Energy[1:], EffectiveArea_Tracked[1:], color=colors[plotNumber-1], alpha=0.5, lw=3,
+            #           label='Tracked Compton at %i$^\circ$' % angle)
+            plot.scatter(Energy[1:], EffectiveArea_Tracked[1:], color='b')
+            plot.plot(Energy[1:], EffectiveArea_Tracked[1:], color='b', alpha=0.5, lw=3,
+                      label='Tracked Compton at %i$^\circ$' % angle)
 
-            #plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
-            #plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=2, alpha=0.5, linestyle='-.')
-            plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
-            plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=3, alpha=0.5, linestyle='-.', label='Untracked Compton at %i$^\circ$' % angle)
+            # plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
+            # plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=2, alpha=0.5, linestyle='-.')
+            # plot.scatter(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1])
+            # plot.plot(Energy, EffectiveArea_Untracked, color=colors[plotNumber-1], lw=3, alpha=0.5, linestyle='-.', label='Untracked Compton at %i$^\circ$' % angle)
+            plot.scatter(Energy, EffectiveArea_Untracked, color='g')
+            plot.plot(Energy, EffectiveArea_Untracked, color='g', lw=3, alpha=0.5, linestyle='-.', label='Untracked Compton at %i$^\circ$' % angle)
 
+            # plot.scatter(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1])
+            ## plot.plot(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
+            # plot.plot(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1], alpha=0.5, lw=3, linestyle='--', label='Pair at %i$^\circ$' % angle)
+            plot.scatter(Energy[5:], EffectiveArea_Pair[5:], color='r')
+            plot.plot(Energy[5:], EffectiveArea_Pair[5:], color='r', alpha=0.5, lw=3, linestyle='--', label='Pair at %i$^\circ$' % angle)
 
-            plot.scatter(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1])
-            #plot.plot(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='--', label='Pair at %i$^\circ$' % angle)
-            plot.plot(Energy[5:], EffectiveArea_Pair[5:], color=colors[plotNumber-1], alpha=0.5, lw=3, linestyle='--', label='Pair at %i$^\circ$' % angle)
+            # plot.scatter(Energy[5:], EffectiveArea_Photo[5:], color=colors[plotNumber-1])
+            # plot.plot(Energy[5:], EffectiveArea_Photo[5:], color=colors[plotNumber-1], alpha=0.5, lw=3, linestyle=":", label='Photo at %i$^\circ$' % angle)
+            plot.scatter(Energy[5:], EffectiveArea_Photo[5:], color='m')
+            plot.plot(Energy[5:], EffectiveArea_Photo[5:], color='m', alpha=0.5, lw=3, linestyle=":", label='Photo at %i$^\circ$' % angle)
 
+            if overplot:
+                # language=file-reference
+                fn = "../plot_files/noLowHits_scale0.8_Aeff_Cos0.8_TC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', label='TC at 37 Old')
+                fn = "../plot_files/noLowHits_scale0.8_Aeff_Cos0.8_UC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', linestyle='-.', label='UC at 37 Old')
+                fn = "../plot_files/noLowHits_scale0.8_Aeff_Cos0.8_P.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'g', linestyle='--', label='P at 37 Old')
+                fn = "../plot_files/noLowHits_scale0.8_Aeff_Cos1.0_TC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', label='TC at 0 Old')
+                fn = "../plot_files/noLowHits_scale0.8_Aeff_Cos1.0_UC.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', linestyle='-.', label='UC at 0 Old')
+                fn = "../plot_files/noLowHits_scale0.8_Aeff_Cos1.0_P.txt"
+                pub_data = numpy.loadtxt(fn)
+                plot.plot(pub_data[:, 0], pub_data[:, 1], 'm', linestyle='--', label='P at 0 Old')
+                overplot=False
 
         if plotNumber == len(angleSelections):
             #plot.title('Effective Area')			
             #plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
-            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='lower right')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='lower right')
             
         #plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
         plot.ylabel('Effective Area (cm$^2$)')
@@ -1132,9 +1280,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             plot.gca().set_ylim([1, 4000.])
             plot.yscale('log')
         else:
-            plot.gca().set_ylim([0.001,6000.])
-            plot.gca().set_xlim([0.12, 10000])
-
+            #plot.gca().set_ylim([0.001,6000.])
+            plot.gca().set_ylim([0.001, 1000.0])
+            # plot.gca().set_xlim([0.12, 10000])
+            plot.gca().set_xlim([0.05, 2e3])
 
         if plotNumber != len(angleSelections):
             ax.set_xticklabels([])
@@ -1143,7 +1292,6 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
             plot.xlabel(r'Energy (MeV)')
 
         plotNumber = plotNumber + 1
-
 
     plot.subplots_adjust(wspace=0, hspace=.2)
 
