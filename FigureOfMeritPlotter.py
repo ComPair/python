@@ -59,7 +59,7 @@ import matplotlib.pylab as plot
 import math
 from astropy.io import ascii
 from astropy.table import Table
-from scipy import interpolate, nansum
+from scipy import interpolate
 
 matplotlib.rcParams.update({'font.size': 14})
 colors = ['red', 'blue', 'green', 'orange', 'brown', 'purple', 'darkred']
@@ -577,135 +577,139 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False):
 
-	plotNumber = 1
+    plotNumber = 1
 
-	if energySelections is None:
-		plot.figure(figsize=(10,12))
-		Energy = []	
-		for key in data.keys():
-			energy = float(key.split('_')[1].replace('MeV',''))
-			if energy not in Energy:
-					Energy.append(energy)
-		Energy=numpy.array(Energy)
-		i = [numpy.argsort(Energy)]
-		energySelections = Energy[i]
-	else:	
-		if type(energySelections) == float or type(energySelections) == int:
-			energySelections=[energySelections]
-		energySelections.sort(key=int)
-		energySelections=numpy.array(energySelections,dtype=float)
-
-
-	if collapse == True:
-		plot.figure(figsize=(10, 6.39))
-		ax = plot.subplot(111)
-
-	if len(energySelections)>6:
-		energySelections=energySelections[[1,3,5,7,9,11]]
-		print("plotting only every other energy: ", energySelections)
+    if energySelections is None:
+        plot.figure(figsize=(10,12))
+        Energy = []	
+        for key in data.keys():
+            energy = float(key.split('_')[1].replace('MeV',''))
+            if energy not in Energy:
+                    Energy.append(energy)
+        Energy=numpy.array(Energy)
+        i = [numpy.argsort(Energy)]
+        energySelections = Energy[i]
+    else:	
+        if type(energySelections) == float or type(energySelections) == int:
+            energySelections=[energySelections]
+        energySelections.sort(key=int)
+        energySelections=numpy.array(energySelections,dtype=float)
 
 
-	for energySelection in energySelections:
+    if collapse == True:
+        plot.figure(figsize=(10, 6.39))
+        ax = plot.subplot(111)
 
-		Angle = []
-		FWHM_tracked = []
-		FWHM_untracked = []
-		Containment68 = []
+    if len(energySelections)>6:
+        energySelections=energySelections[[1,3,5,7,9,11]]
+        print("plotting only every other energy: ", energySelections)
 
-		for key in data.keys():
-			energy = float(key.split('_')[1].replace('MeV',''))
-			#angle = float(key.split('_')[2].replace('Cos',''))
-			half = key.split('_')[2].replace('Cos','')
-			angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
-			angle = round(numpy.degrees(numpy.arccos(angle)))
 
-			if energy == energySelection:
-				Angle.append(angle)
-				fwhm_tracked = data[key][2][7]
-				fwhm_untracked = data[key][3][7]
-				containment68 = data[key][4][6]
+    for energySelection in energySelections:
 
-				FWHM_tracked.append(fwhm_tracked)
-				FWHM_untracked.append(fwhm_untracked)
-				Containment68.append(containment68)
+        Angle = []
+        FWHM_tracked = []
+        FWHM_untracked = []
+        Containment68 = []
+
+        for key in data.keys():
+            energy = float(key.split('_')[1].replace('MeV',''))
+            #angle = float(key.split('_')[2].replace('Cos',''))
+            half = key.split('_')[2].replace('Cos','')
+            angle = numpy.array(float(half.replace('.inc1.id1.sim','')))
+            angle = round(numpy.degrees(numpy.arccos(angle)))
+
+            if energy == energySelection:
+                Angle.append(angle)
+                fwhm_tracked = data[key][2][7]
+                fwhm_untracked = data[key][3][7]
+                containment68 = data[key][4][6]
+
+                FWHM_tracked.append(fwhm_tracked)
+                FWHM_untracked.append(fwhm_untracked)
+                Containment68.append(containment68)
 
 		# Convert everything to a numpy array
-		Angle = numpy.array(Angle)
-		FWHM_tracked = numpy.array(FWHM_tracked)
-		FWHM_untracked = numpy.array(FWHM_untracked)
-		Containment68 = numpy.array(Containment68)
+        Angle = numpy.array(Angle)
+        FWHM_tracked = numpy.array(FWHM_tracked)
+        FWHM_untracked = numpy.array(FWHM_untracked)
+        Containment68 = numpy.array(Containment68)
 
 		# Sort by Angle
-		i = [numpy.argsort(Angle)]
-		Angle = Angle[i]
-		FWHM_tracked = FWHM_tracked[i]
-		FWHM_untracked = FWHM_untracked[i]
-		Containment68 = Containment68[i]
+        i = [numpy.argsort(Angle)]
+        Angle = Angle[i]
+        FWHM_tracked = FWHM_tracked[i]
+        FWHM_untracked = FWHM_untracked[i]
+        Containment68 = Containment68[i]
 
-		# Plot the data
-		if collapse==False:
-			ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
+        # Plot the data
+        if collapse==False:
+            ax = plot.subplot( int(str(len(energySelections)) + str(10 + plotNumber) ))
 
-			plot.scatter(Angle,FWHM_tracked,color='darkgreen')
-			plot.plot(Angle, FWHM_tracked, color='darkgreen', alpha=0.5, label='Compton', lw=2)
+            Angle=Angle.flatten().astype(float)
+            FWHM_tracked=FWHM_tracked.flatten().astype(float)
+            FWHM_untracked=FWHM_untracked.flatten().astype(float)
 
-			#plot.scatter(Angle,FWHM_untracked,color='blue')
-			#plot.plot(Angle, FWHM_untracked, color='blue', alpha=0.5, label='Compton (untracked)', lw=2)
+            plot.scatter(Angle,FWHM_tracked,color='darkgreen')
+            plot.plot(Angle, FWHM_tracked, color='darkgreen', alpha=0.5, label='Compton', lw=2)
 
-			plot.scatter(Angle,sp,color='darkred')
-			plot.plot(Angle,sp, color='darkred', alpha=0.5, label='Pair', lw=2)		
+            plot.scatter(Angle,FWHM_untracked,color='blue')
+            plot.plot(Angle, FWHM_untracked, color='blue', alpha=0.5, label='Compton (untracked)', lw=2)
 
-			plot.text(0.015, 0.8, '%s MeV' % energySelection,
+            # plot.scatter(Angle,sp,color='darkred')
+            # plot.plot(Angle,sp, color='darkred', alpha=0.5, label='Pair', lw=2)		
+
+            plot.text(0.015, 0.8, '%s MeV' % energySelection,
 		        	verticalalignment='bottom', horizontalalignment='left',
 		        	transform=ax.transAxes,
 		        	color='black', fontsize=16)
 
-		else:
-			if energySelection<3.:
-				plot.scatter(Angle,FWHM_tracked, color=colors[plotNumber-1])
-				plot.plot(Angle, FWHM_tracked, color=colors[plotNumber-1], alpha=0.5, 
+        else:
+            if energySelection<3.:
+                plot.scatter(Angle,FWHM_tracked, color=colors[plotNumber-1])
+                plot.plot(Angle, FWHM_tracked, color=colors[plotNumber-1], alpha=0.5, 
 						lw=2, label='Compton at %s  MeV' % energySelection)
 
 			#plot.scatter(Angle,FWHM_untracked, color=colors[plotNumber-1])
 			#plot.plot(Angle, FWHM_untracked, color=colors[plotNumber-1], alpha=0.5, lw=2, linestyle='-.')
 
 			#print Containment68
-			if energySelection>3.:
+            if energySelection>3.:
 				#print Containment68[0], Angle, energySelection
-				plot.scatter(Angle,Containment68, color=colors[plotNumber-1])
-				plot.plot(Angle,Containment68, color=colors[plotNumber-1], alpha=0.5, label='Pair at %s MeV' % energySelection, 
+                plot.scatter(Angle,Containment68, color=colors[plotNumber-1])
+                plot.plot(Angle,Containment68, color=colors[plotNumber-1], alpha=0.5, label='Pair at %s MeV' % energySelection, 
 						lw=2, linestyle='--')
 
 
-		if plotNumber == len(energySelections):
-			#plot.title('Angular Resolution')
-			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+        if plotNumber == len(energySelections):
+            #plot.title('Angular Resolution')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
 
-		if xlog:
-			plot.xscale('log')
+        if xlog:
+            plot.xscale('log')
 
-		if ylog:
-			plot.yscale('log')
+        if ylog:
+            plot.yscale('log')
 
-		plot.ylabel('Angular Resolution ($^{\circ}$)', fontsize=16)
+        plot.ylabel('Angular Resolution ($^{\circ}$)', fontsize=16)
 
-		if plotNumber == len(energySelections):
-			plot.xlabel(r'$\theta$', fontsize=16)
+        if plotNumber == len(energySelections):
+            plot.xlabel(r'$\theta$', fontsize=16)
 
 
-		plotNumber = plotNumber + 1
+        plotNumber = plotNumber + 1
 
-	plot.ylim([1.0,10])
+    plot.ylim([1.0,10])
 
-	plot.subplots_adjust(wspace=0, hspace=.2)
+    plot.subplots_adjust(wspace=0, hspace=.2)
 
-	if save:
-		plot.savefig('AngularResolutionVsAngle_%sMeV.pdf' % energySelections[0])
-		plot.savefig('AngularResolutionVsAngle_%sMeV.png' % energySelections[0])
+    if save:
+        plot.savefig('AngularResolutionVsAngle_%sMeV.pdf' % energySelections[0])
+        plot.savefig('AngularResolutionVsAngle_%sMeV.png' % energySelections[0])
 
-	plot.show()
+    plot.show()
 
-	plot.close()
+    plot.close()
 
 ##########################################################################################
 
@@ -989,7 +993,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
         # Plot the data
         if collapse==False:
-            ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
+            ax = plot.subplot( int(str(len(energySelections)) + str(10 + plotNumber) ))
 
             plot.plot(numpy.ma.array(Angle,mask=i).compressed(), st, color='darkgreen', alpha=0.75, lw=2, label='Compton', marker='o')
 			
@@ -997,7 +1001,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 			
             plot.plot(numpy.ma.array(Angle,mask=k).compressed(), sp, color='darkred', alpha=0.75, lw=2, label='Pair', marker='o')
 			
-            plot.text(1-0.015, 0.8, '%s MeV' % energySelection,
+            plot.text(0.25, 0.8, '%s MeV' % energySelection,
 		            verticalalignment='top', horizontalalignment='right',
 		            transform=ax.transAxes,
 		            color='black', fontsize=16)
@@ -1036,7 +1040,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
         plotNumber = plotNumber + 1
 
-    plot.subplots_adjust(wspace=0, hspace=.2)
+    plot.subplots_adjust(wspace=0, hspace=.2, left=0.2)
 
     if save:
         plot.savefig('EnergyResolutionVsAngle_%sMeV.pdf' % energySelections[0])
@@ -1370,11 +1374,11 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
 
     # print that table
     if doPrint:
-    	print('Energy    | %s' % ('                      | '.join(['% 24.1f' % x for x in angleSelections])))
-    	print('         ' + ' |  tracked  | untracked |  compton  |    pair  ' * len(angleSelections))
-    	print('------------' + '-' * 48*len(angleSelections))
-    	for energy, ds in table_data:
-        	print('% 8.1f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds])))
+        print('Energy    | %s' % ('                      | '.join(['% 24.1f' % x for x in angleSelections])))
+        print('         ' + ' |  tracked  | untracked |  compton  |    pair  ' * len(angleSelections))
+        print('------------' + '-' * 48*len(angleSelections))
+        for energy, ds in table_data:
+            print('% 8.1f  | %s' % (energy, ' | '.join(['% 9.1f | % 9.1f | % 9.1f | % 9.1f' % (x[1][0], x[1][1], x[1][0] + x[1][1], x[1][2]) for x in ds])))
 
     return table_data
 
@@ -1476,13 +1480,13 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 
 		# Plot the data
 		if collapse == False:
-			ax = plot.subplot( str(len(energySelections)) + str(10 + plotNumber) )
+			ax = plot.subplot( int(str(len(energySelections)) + str(10 + plotNumber) ))
 
 			plot.scatter(Angle, EffectiveArea_Tracked, color='darkgreen')
 			plot.plot(Angle, EffectiveArea_Tracked, color='darkgreen', alpha=0.5, lw=2, label='Compton')
 
-			#plot.scatter(Angle, EffectiveArea_Untracked, color='blue')
-			#plot.plot(Angle, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
+			plot.scatter(Angle, EffectiveArea_Untracked, color='blue')
+			plot.plot(Angle, EffectiveArea_Untracked, color='blue', alpha=0.5, lw=2, label='Compton (untracked)')
 
 			plot.scatter(Angle, EffectiveArea_Pair, color='darkred')
 			plot.plot(Angle, EffectiveArea_Pair, color='darkred', alpha=0.5, lw=2, label='Pair')			
@@ -2106,7 +2110,7 @@ def convolveAresAeff(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, y
     for i in range(len(AeffData)):
         #Sum up only results for tracked and pair events
         #If all events are desired use [0:3] instead
-        AeffSum.append(nansum(AeffData[i][1][0][1][1:3]))
+        AeffSum.append(numpy.nansum(AeffData[i][1][0][1][1:3]))
         Acceptance.append(AeffSum[i]*2.5)
 
     NormAeff=AeffSum/sum(AeffSum)*19.0
