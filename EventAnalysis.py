@@ -753,7 +753,7 @@ def parse(filename, sourceTheta=1.0, testnum=-1):
 
 ##########################################################################################
 
-def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True, filename=None, energyCutSelection=False, energyCut = [0, 0]):
+def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=True, filename=None, energyCutSelection=False, energyCut = [0, 0], working_directory='.'):
 
     # Set some constants
     electron_mc2 = 511.0        # KeV
@@ -933,7 +933,7 @@ def getARMForComptonEvents(events, numberOfBins=100, phiRadius=10, onlyTrackedEl
         else:
             ft='untracked'
 
-        plot.savefig("%sMeV_Cos%s_angular_resolution_%s.png" % (f1,f2,ft))
+        plot.savefig("%s/Plots/%sMeV_Cos%s_angular_resolution_%s.png" % (working_directory,f1,f2,ft))
 
     # Show the plot
     if showPlots == True:
@@ -992,7 +992,7 @@ def getScaledDeviation(events, sourceTheta=0):
 
 ##########################################################################################
 
-def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,30], anglePlotRange=[0,30], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False):
+def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[0,30], anglePlotRange=[0,30], openingAngleMax=180., showPlots=True, numberOfPlots=0, finishExtraction=True, qualityCut=1, energyCut=numpy.nan, weightByEnergy=True, showDiagnosticPlots=True, filename=None, log=False, getScaledDeviation=False, onlyangles=False, working_directory='.'):
 
 
     # Define the list to contain the resulting angle measurements
@@ -1382,7 +1382,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
         f=getDetailsFromFilename(filename)
         f1,f2 = f['MeV'], f['Cos']
 
-        plot.savefig("%sMeV_Cos%s_angular_resolution_Pair.png" % (f1,f2))
+        plot.savefig("%s/Plots/%sMeV_Cos%s_angular_resolution_Pair.png" % (working_directory,f1,f2))
 
     # Show the plot
     if showPlots == True:
@@ -1395,7 +1395,7 @@ def getARMForPairEvents(events, sourceTheta=0, numberOfBins=100, angleFitRange=[
 
 ##########################################################################################
 
-def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=False, showPlots=True, qualityCut=1.0,fileBase="5.011MeV_Cos0.8"):
+def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=False, showPlots=True, qualityCut=1.0,fileBase="5.011MeV_Cos0.8",working_directory='.'):
 
     # Retrieve the event data
     energy_pairElectron = events['energy_pairElectron']
@@ -1430,7 +1430,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     plot.xlabel('Energy (keV)')
     plot.xlim(energyPlotRange)
     plot.legend()
-    plot.savefig(fileBase+"_pairEnergies.png")
+    plot.savefig(f'{working_directory}/Plots/{fileBase}_pairEnergies.png')
     plot.close()
 
     if len(energy_pairReconstructedPhoton[selection]) < 10:
@@ -1443,7 +1443,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
     histogramResults = plot.hist(energy_pairReconstructedPhoton[selection], bins=numberOfBins, color='#3e4d8b', alpha=0.9, histtype='stepfilled')
     plot.xlabel('Energy (keV)')
     plot.xlim(energyPlotRange)
-    plot.savefig(fileBase+"_photonEnergies.png")
+    plot.savefig(f'{working_directory}/Plots/{fileBase}_photonEnergies.png')
     plot.close()
 
     # Extract the binned data and bin locations
@@ -1541,7 +1541,7 @@ def getEnergyResolutionForPairEvents(events, numberOfBins=100, energyPlotRange=N
 
 ##########################################################################################
 
-def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut=5, energyPlotRange=None, energyFitRange=None, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=False, filename=None, inputEnergy=None):
+def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut=5, energyPlotRange=None, energyFitRange=None, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=False, filename=None, inputEnergy=None, working_directory='.'):
 
     # Retrieve the event data
     energy_ComptonEvents = events['energy_ComptonEvents']
@@ -1799,7 +1799,7 @@ def getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyHardCut=
         if not onlyTrackedElectrons and not onlyUntrackedElectrons:
             titlestr = "Both"
        
-        plot.savefig(f"{f1}MeV_Cos{f2}_energy_resolution_{titlestr}.png")
+        plot.savefig(f"{working_directory}/Plots/{f1}MeV_Cos{f2}_energy_resolution_{titlestr}.png")
 
     if showPlots == True:
         plot.show()
@@ -2134,12 +2134,12 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             # Calculate the energy resolution for Compton events
             print("Calculating the energy resolution for All Compton events...")
             print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
-            mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents, sigma_Compton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
+            mean, FWHM_energyComptonEvents, fitMax, FWHM_skewed_energyComptonEvents, sigma_Compton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy, working_directory=directory)
 
             # Calculate the angular resolution measurement (ARM) for All Compton events
             print("\n\nCalculating the angular resolution measurement for Compton events...")
             print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
-            FWHM_angleComptonEvents, dphi = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean, sigma_Compton])
+            FWHM_angleComptonEvents, dphi = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean, sigma_Compton], working_directory=directory)
 
             # Calculate the energy resolution for tracked vs untracked Compton events
             print("--------- Untracked Compton Events ---------")
@@ -2147,11 +2147,11 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             if energy <= 2:
                 print("Calculating the energy resolution for Untracked Compton events...")
                 print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
-                mean_untracked, FWHM_energyUntrackedComptonEvents, UntrackedFitMax, FWHM_skewed_energyUntrackedComptonEvents, sigma_UntrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
+                mean_untracked, FWHM_energyUntrackedComptonEvents, UntrackedFitMax, FWHM_skewed_energyUntrackedComptonEvents, sigma_UntrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy, working_directory=directory)
 
                 print("\n\nCalculating the angular resolution measurement for Untracked Compton events...")
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
-                FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_untracked, sigma_UntrackedCompton])
+                FWHM_angleUntrackedComptonEvents, dphi_untracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=False, onlyUntrackedElectrons=True, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_untracked, sigma_UntrackedCompton],working_directory=directory)
             else:
                 print("Energy too high (> 2 MeV) for untracked electrons. \n\n")
                 mean_untracked = numpy.nan
@@ -2166,10 +2166,10 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
                 print("--------- Tracked Compton Events ---------")
                 print("Calculating the energy resolution for Tracked Compton events...")
                 print("EventAnalysis.getEnergyResolutionForComptonEvents(events, numberOfBins=100, energyPlotRange=None, energyFitRange=%s)" % (energyRangeCompton))
-                mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy)
+                mean_tracked, FWHM_energyTrackedComptonEvents, TrackedFitMax, FWHM_skewed_energyTrackedComptonEvents, sigma_TrackedCompton = getEnergyResolutionForComptonEvents(events, numberOfBins=100, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, energyPlotRange=None, energyFitRange=energyRangeCompton, showPlots=showPlots, filename=filename, energyHardCut=energyHardCut, inputEnergy=energy,working_directory=directory)
                 print("\n\nCalculating the angular resolution measurement for Tracked Compton events...")
                 print("EventAnalysis.getARMForComptonEvents(events, numberOfBins=100, phiRadius=%s)" % (phiRadiusCompton))
-                FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_tracked, sigma_TrackedCompton])
+                FWHM_angleTrackedComptonEvents, dphi_tracked = getARMForComptonEvents(events, numberOfBins=100, phiRadius=phiRadiusCompton, onlyTrackedElectrons=True, onlyUntrackedElectrons=False, showPlots=showPlots, filename=filename, energyCutSelection = True, energyCut = [mean_tracked, sigma_TrackedCompton],working_directory=directory)
             else:
                 print("Energy too low (<0.2 MeV) for Tracked Compton events...")
 
@@ -2196,12 +2196,12 @@ def performCompleteAnalysis(filename=None, directory=None, energies=None, angles
             print("\n\nCalculating the energy resolution for pair events...")
             print("EventAnalysis.getEnergyResolutionForPairEvents(events, numberOfBins=100)")
             fileBase = "%sMeV_Cos%s" % (energy,angle)
-            fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase)
+            fitMax, FWHM_pairComptonEvents, sigma_pair = getEnergyResolutionForPairEvents(events, numberOfBins=100, energyFitRange=True, showPlots=showPlots,fileBase=fileBase,working_directory=directory)
 
             # Calculate the angular resolution measurement (ARM) for pair events
             print("\n\nCalculating the angular resolution measurement for pair events...")
             print("EventAnalysis.getARMForPairEvents(events, numberOfBins=100, showDiagnosticPlots=False)")
-            angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots, filename=filename)
+            angles, openingAngles, contaimentData_68, contaimentBinned_68 = getARMForPairEvents(events, openingAngleMax=openingAngleMax, sourceTheta=source_theta, numberOfBins=100, showDiagnosticPlots=False, showPlots=showPlots, filename=filename,working_directory=directory)
 
         else:
             sigma_pair = numpy.nan
@@ -2331,7 +2331,10 @@ def getTriggerEfficiency(filename=None, directory=None, save=True, savefile=None
 
         # Set a default filename if none was provided
         if savefile is None:
-            savefile = 'TriggerEfficiency.txt'
+            if directory is None:
+                savefile = f'TriggerEfficiency.txt'
+            else:
+                savefile = f'{directory}/TriggerEfficiency.txt'
 
         # Open the file for writing
         output = open(savefile, 'w')

@@ -10,17 +10,6 @@ import math
 import argparse
 import os
 
-# Log_E=[2.2,2.5,2.7,3,3.2,3.5,3.7,4,4.2,4.5,4.7,5,5.2,5.5,5.7,6,6.2,6.5,6.7]
-# Log_E = [2.2, 2.5, 2.7, 3, 3.2, 3.5, 3.7, 4.2] # 5
-#Log_E = [1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.7]
-Log_E = [1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.7, 3, 3.2, 3.5, 3.7, 4.2, 4.4]
-# angles  =[0,25.8,36.9,45.6,53.1,60]
-#Log_E = [1.4, 1.9, 3.5, 4.4]
-
-angles = [0]
-OneBeam = 'FarFieldPointSource'
-geometry_file = 'ComPair23.geo.setup'
-
 
 # gives the cosTheta array
 def ang2cos(allAng):
@@ -40,37 +29,45 @@ def logE2ene(allEne):
     return ene
 
 
-energies = logE2ene(Log_E)
-cos_ang = ang2cos(angles)
 
-
-def create_file(source_file):
-    with open('./{}.revan.cfg'.format(source_file), mode='w') as cfg:
-        with open('./{}'.format(base_file)) as base:
+def create_file(source_dir, source_file, base_file, geofile):
+    with open(f'{source_dir}/{source_file}.revan.cfg', mode='w') as cfg:
+        with open(base_file) as base:
             for line in base.readlines():
                 if line.find('<GeometryFileName>') != -1:
-                    cfg.write('<GeometryFileName>{}/{}</GeometryFileName>\n'.format(geometry_dir,geometry_file))
+                    cfg.write('<GeometryFileName>{}</GeometryFileName>\n'.format(geofile))
                 elif line.find('<DataFileName>') != -1:
                     cfg.write('<DataFileName>{}/{}.inc1.id1.sim</DataFileName>\n'.format(source_dir, source_file))
                 else:
                     cfg.write(line)
 
+def main(Log_E, angles, geofile, OneBeam, revan_config_file, source_dir):
+    energies = logE2ene(Log_E)
+    cos_ang = ang2cos(angles)
+    with open(f"{source_dir}/runRevan.sh", mode='w') as f:
+            for myene in energies:
+                for cosTh, ang in zip(cos_ang, angles):
+                    source_file = '%s_%.3fMeV_Cos%.1f'%(OneBeam,myene/1000.,cosTh)
+                    create_file(source_dir, source_file, revan_config_file, geofile)
+                    f.write("revan -a -n -f {}.inc1.id1.sim -g {} -c {}.revan.cfg\n".format(f'{source_dir}/{source_file}', geofile, f'{source_dir}/{source_file}'))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("g",  help="Geometry file dir")
     parser.add_argument("-f", default=os.getcwd(), help="Source file dir (Default: current directory)")
     parser.add_argument("-b", default='revan_AMEGO_X.cfg', help="Base file")
     args = parser.parse_args()
 
     source_dir = args.f
-    geometry_dir = args.g
     base_file = args.b
 
     args = parser.parse_args()
-    with open("./runRevan.sh", mode='w') as f:
-        for myene in energies:
-            for cosTh, ang in zip(cos_ang, angles):
-                source_file = '%s_%.3fMeV_Cos%.1f'%(OneBeam,myene/1000.,cosTh)
-                create_file(source_file)
-                f.write("revan -a -n -f {}.inc1.id1.sim -g {}/{} -c {}.revan.cfg\n".format(source_file, geometry_dir,geometry_file, source_file))
+
+    Log_E = [2.0, 2.59897, 3.]
+
+    angles = [0,30]
+    OneBeam = 'FarFieldPointSource'
+    geofile = '/Users/gsommer1/Software/ComPair2/Geometry/ComPair_23/ComPair23.geo.setup'
+
+    main(Log_E=Log_E, angles=angles, geofile=geofile, OneBeam=OneBeam, revan_config_file=base_file, source_dir=source_dir)
+
+    

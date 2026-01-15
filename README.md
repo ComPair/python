@@ -30,7 +30,7 @@ Once all of the .source files and runCosima.sh have been created, use Cosima to 
 
 # Step 2
 After the .sim files have finished, the next step is to perform the event reconstruction with revan. You can use Prep_revan.py to do this automatically, which generates a runRevan.sh.  
-  \$ python Prep_revan.py /data/slag2/dtak/Geometry/AMEGO_Midex/AmegoBase.geo.setup -b revan_AMEGO_X.cfg.  
+  \$ python Prep_revan.py -b revan_AMEGO_X.cfg.  
   \$ source runRevan.sh. 
 
    The revan_AMEGO_X.cfg file contains the configuration setting for revan and is included in the GitHub python repo.

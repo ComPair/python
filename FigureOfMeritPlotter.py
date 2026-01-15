@@ -368,7 +368,7 @@ def parseEventAnalysisLogs(directory, triggerEfficiencyFilename=None, silent=Fal
 
 def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False,
                           save=False, collapse=False, doplot=True, txtOutfileLabel='xxx',
-                          scal=1.0):
+                          scal=1.0, working_directory='.'):
 
     overplot = False
 
@@ -388,9 +388,9 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
             ax = plot.subplot(111)
 
     for angleSelection in angleSelections:
-        results_txt_TC = open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_TC.txt", 'w')
-        results_txt_UC = open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_UC.txt", 'w')
-        results_txt_P =  open(f"{txtOutfileLabel}_AngRes_Cos{angleSelection}_P.txt", 'w')
+        results_txt_TC = open(f"{working_directory}/{txtOutfileLabel}_AngRes_Cos{angleSelection}_TC.txt", 'w')
+        results_txt_UC = open(f"{working_directory}/{txtOutfileLabel}_AngRes_Cos{angleSelection}_UC.txt", 'w')
+        results_txt_P =  open(f"{working_directory}/{txtOutfileLabel}_AngRes_Cos{angleSelection}_P.txt", 'w')
 
         Energy = []
         FWHM_tracked = []
@@ -536,7 +536,8 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
             if plotNumber == len(angleSelections):
                 #plot.title('Angular Resolution')			
-                plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='upper right')
+                # plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='upper right')
+                plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True)
 
             if xlog == True:
                 plot.xscale('log')
@@ -556,15 +557,16 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
                 plot.xlabel('Energy (MeV)', fontsize=16)
 
 
-                plot.gca().set_ylim([0.,20.])
+                # plot.gca().set_ylim([0.,20.])
+                plot.gca().set_ylim([-1,None])
 
                 plot.subplots_adjust(wspace=0, hspace=.2)
 
                 if save:
-                    plot.savefig('AngularResolution_Cos%s.pdf' % angleSelections[0])
-                    plot.savefig('AngularResolution_Cos%s.png' % angleSelections[0])
-
-                plot.show()
+                    plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/AngularResolution_Cos{str(angleSelections[0])}.pdf')
+                    plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/AngularResolution_Cos{str(angleSelections[0])}.png')
+                else:
+                    plot.show()
 
                 plot.close()
 
@@ -575,7 +577,7 @@ def plotAngularResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tr
 
 ##########################################################################################
 
-def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False):
+def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False, working_directory='.'):
 
     plotNumber = 1
 
@@ -683,7 +685,8 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
         if plotNumber == len(energySelections):
             #plot.title('Angular Resolution')
-            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+            # plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True)
 
         if xlog:
             plot.xscale('log')
@@ -699,15 +702,16 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
         plotNumber = plotNumber + 1
 
-    plot.ylim([1.0,10])
+    # plot.ylim([1.0,10])
+    plot.ylim([-1,None])
 
     plot.subplots_adjust(wspace=0, hspace=.2)
 
     if save:
-        plot.savefig('AngularResolutionVsAngle_%sMeV.pdf' % energySelections[0])
-        plot.savefig('AngularResolutionVsAngle_%sMeV.png' % energySelections[0])
-
-    plot.show()
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/AngularResolutionVsAngle_{str(energySelections[0])}MeV.pdf')
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/AngularResolutionVsAngle_{str(energySelections[0])}MeV.png')
+    else:
+        plot.show()
 
     plot.close()
 
@@ -715,7 +719,7 @@ def plotAngularResolutionVsAngle(data, energySelections=None, xlog=False, ylog=F
 
 def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=True, ylog=False, 
                          save=False, collapse=False, txtOutfileLabel='xxx',
-                         scal=1.0):
+                         scal=1.0, working_directory='.'):
 
     overplot = False
 
@@ -734,9 +738,9 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
     for angleSelection in angleSelections:
 
-        results_txt_TC = open( '%s_EnRes_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
-        results_txt_UC = open( '%s_EnRes_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
-        results_txt_P = open( '%s_EnRes_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_TC = open( '%s/%s_EnRes_Cos%s_TC.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
+        results_txt_UC = open( '%s/%s_EnRes_Cos%s_UC.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
+        results_txt_P = open( '%s/%s_EnRes_Cos%s_P.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
 
         Energy = []
         Sigma_tracked = []
@@ -766,16 +770,18 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
         Sigma_pair = numpy.array(Sigma_pair)
 
         # Sort by energy
-        i = [numpy.argsort(Energy)]
-        Energy = Energy[i]
-        Sigma_tracked = Sigma_tracked[i]
-        Sigma_untracked = Sigma_untracked[i]
-        Sigma_pair = Sigma_pair[i]
+        t = [numpy.argsort(Energy)]
+        Energy = Energy[t]
+        Sigma_tracked = Sigma_tracked[t]
+        Sigma_untracked = Sigma_untracked[t]
+        Sigma_pair = Sigma_pair[t]
 
         # Remove the nan's
         i=Sigma_tracked != 'nan'
         #st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3
         st=numpy.double(Sigma_tracked[i])/numpy.double(Energy[i])*1e-3*2.355
+        if isinstance(st, (int,float,str,bool)):
+            st=numpy.array([st])
 
         j=Sigma_untracked != 'nan'
         #sut=numpy.double(Sigma_untracked[j])/numpy.double(Energy[j])*1e-3
@@ -878,15 +884,24 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
         if plotNumber == len(angleSelections):
             #plot.title('Energy Resolution')			
-            plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='lower left')
-            plot.gca().set_ylim([0.,0.12])
-            plot.gca().set_xlim([0.14, 11])
+            # plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='lower left')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True)
+            # plot.gca().set_ylim([0.,0.12])
+            # plot.gca().set_xlim([0.14, 11])
+
+            default_ylim=plot.gca().get_ylim()
+            plot.gca().set_ylim([-0.005,default_ylim[1]+0.005])
+            # plot.gca().set_xlim([0.14, 11])
 
         if xlog:
             plot.xscale('log')
-            plot.gca().set_ylim([0.0, 0.12])
+            # plot.gca().set_ylim([0.0, 0.12])
             # plot.gca().set_ylim([0.0, 0.40])
-            plot.gca().set_xlim([0.05, 2e1])
+            # plot.gca().set_xlim([0.05, 2e1])
+
+            plot.gca().set_ylim([-0.005,default_ylim[1]+0.005])
+            # plot.gca().set_xlim([0.05, 2e1])
+
 
         if ylog:
             plot.yscale('log')
@@ -906,10 +921,10 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
     plot.subplots_adjust(wspace=0, hspace=.2)
 
     if save:
-        plot.savefig('EnergyResolution_Cos%s.pdf' % angleSelections[0])
-        plot.savefig('EnergyResolution_Cos%s.png' % angleSelections[0])
-
-    plot.show()
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EnergyResolution_Cos{str(angleSelections[0])}.pdf')
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EnergyResolution_Cos{str(angleSelections[0])}.png')
+    else:
+        plot.show()
 
     plot.close()
 
@@ -917,7 +932,7 @@ def plotEnergyResolution(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], xlog=Tru
 
 ##########################################################################################
 
-def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False):
+def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=False, save=False, collapse=False, working_directory='.'):
 
     plotNumber = 1
 
@@ -1024,7 +1039,8 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
         if plotNumber == len(energySelections):
             #plot.title('Energy Resolution')
-            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+            # plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper right')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True)
 
         if xlog:
             plot.xscale('log')
@@ -1033,7 +1049,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
             plot.yscale('log')
 
         plot.ylabel(r'$\sigma$ / Energy')
-        plot.xlim([0,60])
+        # plot.xlim([0,60])
 
         if plotNumber == len(energySelections):
             plot.xlabel(r'$\theta$ (deg)')
@@ -1043,8 +1059,8 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
     plot.subplots_adjust(wspace=0, hspace=.2, left=0.2)
 
     if save:
-        plot.savefig('EnergyResolutionVsAngle_%sMeV.pdf' % energySelections[0])
-        plot.savefig('EnergyResolutionVsAngle_%sMeV.png' % energySelections[0])
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EnergyResolutionVsAngle_{str(energySelections[0])}MeV.pdf')
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EnergyResolutionVsAngle_{str(energySelections[0])}MeV.png')
 
     plot.show()
 
@@ -1055,7 +1071,7 @@ def plotEnergyResolutionVsAngle(data, energySelections=None, xlog=False, ylog=Fa
 
 def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False, xlog=True,
                       ylog=False, save=False, show=True, collapse=False,
-                      SurroundingSphere=150, txtOutfileLabel='xxx', scal=1.0):
+                      SurroundingSphere=150, txtOutfileLabel='xxx', scal=1.0, working_directory='.'):
     overplot = False
 
     if not hasattr(angleSelections, '__iter__'):
@@ -1073,10 +1089,10 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
     for angleSelection in angleSelections:
         
-        results_txt_TC = open( '%s_Aeff_Cos%s_TC.txt' % (txtOutfileLabel, angleSelection), 'w')
-        results_txt_UC = open( '%s_Aeff_Cos%s_UC.txt' % (txtOutfileLabel, angleSelection), 'w')
-        results_txt_P = open( '%s_Aeff_Cos%s_P.txt' % (txtOutfileLabel, angleSelection), 'w')
-        results_txt_PH = open( '%s_Aeff_Cos%s_PH.txt' % (txtOutfileLabel, angleSelection), 'w')
+        results_txt_TC = open( '%s/%s_Aeff_Cos%s_TC.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
+        results_txt_UC = open( '%s/%s_Aeff_Cos%s_UC.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
+        results_txt_P = open( '%s/%s_Aeff_Cos%s_P.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
+        results_txt_PH = open( '%s/%s_Aeff_Cos%s_PH.txt' % (working_directory, txtOutfileLabel, angleSelection), 'w')
 
         Energy = []
         EffectiveArea_Tracked = []
@@ -1270,7 +1286,8 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
         if plotNumber == len(angleSelections):
             #plot.title('Effective Area')			
             #plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
-            plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='lower right')
+            # plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True, loc='lower right')
+            plot.legend(numpoints=1, scatterpoints=1, fontsize=12, frameon=True)
             
         #plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
         plot.ylabel('Effective Area (cm$^2$)')
@@ -1278,16 +1295,18 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
 
         if xlog:
             plot.xscale('log')
-            plot.gca().set_xlim([0.1, 10000])
+            # plot.gca().set_xlim([0.1, 10000])
 
         if ylog:
-            plot.gca().set_ylim([1, 4000.])
+            # plot.gca().set_ylim([1, 4000.])
+            plot.gca().set_ylim([1, None])
             plot.yscale('log')
         else:
             #plot.gca().set_ylim([0.001,6000.])
-            plot.gca().set_ylim([0.001, 1000.0])
+            # plot.gca().set_ylim([0.001, 1000.0])
+            plot.gca().set_ylim([-10, None])
             # plot.gca().set_xlim([0.12, 10000])
-            plot.gca().set_xlim([0.05, 2e3])
+            # plot.gca().set_xlim([0.05, 2e3])
 
         if plotNumber != len(angleSelections):
             ax.set_xticklabels([])
@@ -1300,8 +1319,8 @@ def plotEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=False
     plot.subplots_adjust(wspace=0, hspace=.2)
 
     if save:
-        plot.savefig('EffectiveArea_Cos%s.pdf' % angleSelections[0], bbox_inches='tight')
-        plot.savefig('EffectiveArea_Cos%s.png' % angleSelections[0], bbox_inches='tight')
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EffectiveArea_Cos{str(angleSelections[0])}.pdf', bbox_inches='tight')
+        plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EffectiveArea_Cos{str(angleSelections[0])}.png', bbox_inches='tight')
 
     if show:
         plot.show()
@@ -1387,7 +1406,7 @@ def tabulateEffectiveArea(data, angleSelections=[1,0.9,0.8,0.7,0.6,0.5], ideal=F
 
 ##########################################################################################
 
-def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False, SurroundingSphere=150):
+def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=False, ylog=False, save=False, collapse=False, SurroundingSphere=150, working_directory='.'):
 
 	if energySelections is None:
 		Energy = []	
@@ -1511,7 +1530,8 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 
 		if plotNumber == len(energySelections):
 			#plot.title('Effective Area')			
-			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+			# plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+			plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True)
 
 		#plot.ylabel(r'A$_{\mathrm{eff}}$ (cm$^2$)')
 		plot.ylabel('Effective Area (cm$^2$)')
@@ -1522,8 +1542,8 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 		if ylog:
 			plot.yscale('log')
 			#if len(energySelections)==1:
-			plot.gca().set_ylim([100.,5000.])
-
+			# plot.gca().set_ylim([100.,5000.])
+			plot.gca().set_ylim([1.,None])
 
 		if plotNumber != len(energySelections) and collapse == False:
 			ax.set_xticklabels([])
@@ -1537,8 +1557,8 @@ def plotEffectiveAreaVsAngle(data, energySelections=None, ideal=False, xlog=Fals
 	plot.subplots_adjust(wspace=0, hspace=.2)
 
 	if save:
-		plot.savefig('EffectiveAreaVsAngle_%sMeV.pdf' % energySelections[0])
-		plot.savefig('EffectiveAreaVsAngle_%sMeV.png' % energySelections[0])
+		plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EffectiveAreaVsAngle_{str(energySelections[0])}MeV.pdf' )
+		plot.savefig(f'{working_directory}/Plots/FiguresOfMerit/EffectiveAreaVsAngle_{str(energySelections[0])}MeV.png')
 
 	plot.show()
 
@@ -1816,7 +1836,8 @@ def plotSourceSensitivity(data, angleSelection=0.8, exposure = 3.536*10**7, idea
         if ylog:
             plot.yscale('log')
 
-        plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+        # plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True, loc='upper left')
+        plot.legend(numpoints=1, scatterpoints=1, fontsize=16, frameon=True)
 
         if save:
             plot.savefig('SourceSensitivity.pdf', bbox_inches='tight')
