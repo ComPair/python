@@ -9,6 +9,7 @@
 from numpy import *
 from math import *
 import math
+import os
 
 # gives the cosTheta array
 def ang2cos(allAng):
@@ -62,4 +63,6 @@ if __name__=='__main__':
 
     N_Triggers=50000
 
-    main(Log_E, angles, N_Triggers, geofile, OneBeam, working_drectory)
+    working_directory=os.getcwd()
+
+    main(Log_E, angles, N_Triggers, geofile, OneBeam, working_directory)

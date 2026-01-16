@@ -38,6 +38,10 @@ After the .sim files have finished, the next step is to perform the event recons
 # Step 3
 After new simulations have been run and the revan reconstruction has been performed, you’re ready to run the AMEGO python tools to create instrument performance plots! The first thing to scan the .sim files to create the TriggerEfficiency.txt file, which is used in subsequent programs to calculate the effective area.
 
+Create directories for the plots to be saved to within the directory the scripts are being run in:
+  > mkdir Plots  
+  > mkdir Plots/FiguresOfMerit  
+
 Start a python session:  
   \$ python
   > import EventAnalysis  
