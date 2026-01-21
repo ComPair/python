@@ -27,7 +27,7 @@ def figures_of_merit(directory):
 
 def main(working_directory):
     # working_directory=os.getcwd()
-    # complete_analysis(working_directory)
+    complete_analysis(working_directory)
     figures_of_merit(working_directory)
 
 if __name__=="__main__":

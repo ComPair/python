@@ -19,10 +19,13 @@ import Prep_revan
 Log_E = [2.0, 3.0]
 angles = [0]
 N_Triggers=50000
-geofile = '/Users/gsommer1/Software/ComPair2/Geometry/ComPair_23/ComPair23.geo.setup'
+geofile='/data/slag2/gsommer1/ComPair2/Simulation_Work/Geometry/ComPair_23/ComPair23.geo.setup'
+# geofile = '/Users/gsommer1/Software/ComPair2/Geometry/ComPair_23/ComPair23.geo.setup'
 OneBeam = 'FarFieldPointSource'
-revan_config_file='/Users/gsommer1/Software/ComPair2/Coding_Work/Automated_Simulations/python/revan_ComPair2_Grant_1-14-26.cfg'
-working_directory='/Users/gsommer1/Software/ComPair2/Coding_Work/Automated_Simulations/python/AutomatedAnalysis_1-15-26_part_4'
+revan_config_file='/data/slag2/gsommer1/ComPair2/Simulation_Work/Automated/python/revan_ComPair2_Grant_1-14-26.cfg'
+# revan_config_file='/Users/gsommer1/Software/ComPair2/Coding_Work/Automated_Simulations/python/revan_ComPair2_Grant_1-14-26.cfg'
+working_directory='/data/slag2/gsommer1/ComPair2/Simulation_Work/Automated/python/1-16-26'
+# working_directory='/Users/gsommer1/Software/ComPair2/Coding_Work/Automated_Simulations/python/AutomatedAnalysis_1-15-26_part_4'
 
 ### End User Inputs ###
 
